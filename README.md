@@ -1,16 +1,48 @@
-# React + Vite
+# LuxeSpace Platform — Modular Edition
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A production-ready, white-label interior design studio platform built for scale. Refactored from the ground up for performance, maintainability, and visual excellence.
 
-Currently, two official plugins are available:
+## 🚀 Overview
+LuxeSpace is a comprehensive ERP/CRM and client portal solution specifically designed for high-end interior design firms. It manages everything from public-facing portfolio sites to background administrative workflows, proposals, invoicing, and real-time client communication.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🏗️ Architecture
+The platform has been refactored from a monolithic codebase into a modular React/Vite architecture:
 
-## React Compiler
+- **src/components/**: Shared UI elements (glassmorphic modals, spinners, sliders, etc.).
+- **src/pages/**: High-level page modules (Public Site, Admin Portal, Client Portal, Account Manager Portal).
+- **src/data.js**: Centralised source of truth for mock data, pricing, and services.
+- **src/index.css**: Premium design system and print-safe global styles.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Key Features
+- **Public Site**: Elegant Home, Portfolio, and Contact pages with glassmorphic design.
+- **Admin Command Centre**: Full studio management (CRM, Analytics, Proposals, Invoices).
+- **Client Portal**: Dedicated secure area for project tracking, approvals, and payments.
+- **Design Team Portal**: Task and schedule management for account managers.
+- **Stripe-Style Payments**: Secure, multi-step payment flow simulation.
+- **AI Proposal Generator**: (Logic ready for integration) Drafts high-end proposals automatically.
 
-## Expanding the ESLint configuration
+## 🛠️ Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+- Node.js (v18+)
+- npm or yarn
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/johnsedofiadakey-hue/glasstechfab.git
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## 📦 Deployment
+The project is configured for seamless deployment to Vercel, Netlify, or AWS Amplify. Simply connect your GitHub repository and build using `npm run build`.
+
+## 📄 License
+Commercial Use Only — LuxeSpace™

@@ -45,4 +45,8 @@ export function FF({ label, children }) {
   );
 }
 
+export const PAv = Av;
+export const PSBadge = SBadge;
+export const PModal = Modal;
+
 export const Spinner = () => <div style={{ width: 15, height: 15, border: '2px solid currentColor', borderTopColor: 'transparent', borderRadius: '50%' }} className="spin" />;

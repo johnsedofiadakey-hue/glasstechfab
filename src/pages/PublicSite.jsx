@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   ChevronLeft, ChevronRight, Star, Play, X, Menu, Phone, Mail, MapPin, 
-  MessageCircle, Instagram, Facebook, Twitter, Linkedin, Award, SplitSquareHorizontal, 
+  MessageCircle, Link2, Award, SplitSquareHorizontal, 
   ArrowLeft, Check, CheckCircle, Calendar, Send, Upload, DollarSign, Eye, MessageSquare, Briefcase, Sparkles, TrendingUp
 } from 'lucide-react';
 import BA from '../components/BA';
@@ -67,7 +67,7 @@ export function PubFooter({ brand, setPage }) {
             {brand.logo ? <img src={brand.logo} alt="" style={{ height: 28, objectFit: 'contain', marginBottom: 18 }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 400, color: '#F9F7F4', marginBottom: 18 }}>{brand.name}</div>}
             <p className="lxf" style={{ fontSize: 13, color: 'rgba(249,247,244,.32)', lineHeight: 1.8 }}>Creating extraordinary interiors across Ghana and beyond since 2016.</p>
             <div style={{ display: 'flex', gap: 14, marginTop: 20 }}>
-              {[[Instagram, brand.instagram], [Facebook, brand.facebook], [Twitter, brand.twitter], [Linkedin, brand.linkedin]].filter(([, h]) => h).map(([Icon], i) => (
+              {[[Link2, brand.instagram], [Link2, brand.facebook], [Link2, brand.twitter], [Link2, brand.linkedin]].filter(([, h]) => h).map(([Icon], i) => (
                 <div key={i} style={{ color: 'rgba(249,247,244,.22)', cursor: 'pointer', transition: 'color .25s' }} onMouseOver={e => e.currentTarget.style.color = ac} onMouseOut={e => e.currentTarget.style.color = 'rgba(249,247,244,.22)'}><Icon size={16} /></div>
               ))}
             </div>
