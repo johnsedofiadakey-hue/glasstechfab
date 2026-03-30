@@ -118,7 +118,6 @@ export default function App() {
         setUserNotifications(myNotifs);
       }
       
-      const cmsDocs = mapSnap(cmsSnap);
       if (cmsDocs.length > 0) {
         const newContent = { ...INITIAL_CONTENT };
         cmsDocs.forEach(row => {
@@ -126,6 +125,10 @@ export default function App() {
           else newContent[row.id] = row.content;
         });
         setContent(newContent);
+      }
+      if (allUsers.length === 0 || cmsDocs.length === 0) {
+        // Auto-initialize if database and CMS are empty
+        migrateToFirebase();
       }
     } catch (err) {
       console.warn('Firebase fetch failed:', err);
@@ -200,8 +203,8 @@ export default function App() {
         
         setUser({ ...sessionUser, ...profile, id: profileId });
         if (profile?.role === 'client') setView('portal');
-        else if (profile?.role === 'manager' || profile?.role === 'Technical Lead' || profile?.role === 'Site Supervisor') setView('team');
-        else setView('admin'); // catch-all for staff including Admin
+        else if (profile?.role === 'admin' || profile?.role === 'Managing Director') setView('admin');
+        else setView('team'); 
       } else {
         setUser(null);
         setView('public');
