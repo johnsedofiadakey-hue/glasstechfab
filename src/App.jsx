@@ -41,6 +41,7 @@ const INITIAL_CONTENT = {
 
 export default function App() {
   const [view, setView] = useState('public'); 
+  const [page, setPage] = useState('home');
   const [user, setUser] = useState(null);
   const [brand, setBrand] = useState(BRAND0);
   const [content, setContent] = useState({
@@ -187,12 +188,16 @@ export default function App() {
         if (profile?.role === 'client') setView('portal');
         else if (profile?.role === 'manager') setView('team');
         else if (profile?.role === 'admin') setView('admin');
-        fetchData();
       } else {
         setUser(null);
         setView('public');
       }
     });
+    return () => authSub();
+  }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
 
     const projectSub = onSnapshot(collection(db, 'projects'), (snap) => {
       setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title })));
@@ -224,15 +229,11 @@ export default function App() {
       setChangeRequests(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
 
-    let notifSub = () => {};
-    if (user) {
-      notifSub = onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(50)), (snap) => {
-        setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
-      });
-    }
+    const notifSub = onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(50)), (snap) => {
+      setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
+    });
 
     return () => {
-      authSub();
       projectSub();
       paymentSub();
       logSub();
@@ -481,6 +482,7 @@ export default function App() {
   };
 
   const commonProps = {
+    page, setPage,
     brand, setBrand: syncBrand, content, setContent: syncCMS,
     clients, updateProject: syncProjects,
     dbClients, createClient, updateClient,
