@@ -93,18 +93,7 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
             }}>{l.n}</button>
           ))}
           {onPortal && (
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button 
-                onClick={onPortal} 
-                className="lxf" 
-                style={{ 
-                  background: 'transparent', cursor: 'pointer', transition: 'all 0.3s',
-                  border: `1px solid ${scrolled ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)'}`,
-                  color: scrolled ? '#121212' : '#ffffff', borderRadius: 4, 
-                  padding: '10px 20px', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase' 
-                }}>Admin Login</button>
-              <button onClick={onPortal} className="pub-btn-gold lxf" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 4 }}>Client Portal</button>
-            </div>
+            <button onClick={onPortal} className="pub-btn-gold lxf" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 4 }}>Client Portal</button>
           )}
         </div>
 
@@ -132,10 +121,7 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
             }}>{l.n}</button>
           ))}
           {onPortal && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 24, width: '100%', maxWidth: 280 }}>
-              <button onClick={() => { setMenuOpen(false); onPortal(); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, width: '100%', borderRadius: 4 }}>Client Login</button>
-              <button onClick={() => { setMenuOpen(false); onPortal(); }} className="lxf" style={{ background: 'transparent', border: '1.5px solid rgba(0,0,0,0.1)', color: '#121212', padding: '16px 40px', fontSize: 14, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', cursor: 'pointer', width: '100%', borderRadius: 4 }}>Admin Portal</button>
-            </div>
+            <button onClick={() => { setMenuOpen(false); onPortal(); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, width: '100%', maxWidth: 280, borderRadius: 4, marginTop: 24 }}>Client Login</button>
           )}
           <div style={{ marginTop: 40, textAlign: 'center' }}>
             <div className="lxf" style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Ready to start a project?</div>
@@ -147,7 +133,7 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
   );
 }
 
-export function Footer({ brand, setPage }) {
+export function Footer({ brand, setPage, onPortal }) {
   const ac = brand.color || '#B08D57';
   return (
     <footer style={{ background: '#121212', color: '#ffffff', padding: '100px 24px 60px' }}>
@@ -184,8 +170,9 @@ export function Footer({ brand, setPage }) {
         </div>
         <div style={{ paddingTop: 40, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
           <div className="lxf" style={{ fontSize: 12, color: '#666' }}>© 2026 Glasstech Fabrications Ltd. All rights reserved.</div>
-          <div style={{ display: 'flex', gap: 24 }}>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
             {['Instagram', 'LinkedIn', 'Behance'].map(s => <div key={s} style={{ fontSize: 12, color: '#666', cursor: 'pointer' }}>{s}</div>)}
+            {onPortal && <button onClick={onPortal} style={{ background: 'none', border: 'none', color: '#333', fontSize: 10, cursor: 'pointer', marginLeft: 20 }} className="lxf">Admin</button>}
           </div>
         </div>
       </div>
@@ -468,7 +455,7 @@ export default function PublicSite({ page, setPage, brand, content, onPortal }) 
     <div style={{ background: '#FDFCFB' }}>
       <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} />
       {render()}
-      <Footer brand={brand} setPage={setPage} />
+      <Footer brand={brand} setPage={setPage} onPortal={onPortal} />
     </div>
   );
 }
