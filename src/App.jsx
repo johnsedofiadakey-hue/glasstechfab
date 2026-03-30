@@ -314,6 +314,18 @@ export default function App() {
     catch(e) { notify('error', 'Failed to delete tracking item'); }
   };
 
+  const syncCMS = async (key, value) => {
+    try {
+      notify('pending', 'Saving changes...');
+      await setDoc(doc(db, 'cms_content', key), { content: value });
+      setContent(prev => ({ ...prev, [key]: value }));
+      if (key === 'brand') setBrand(value);
+      notify('success', 'Changes saved successfully');
+    } catch (e) {
+      notify('error', 'Failed to save changes');
+    }
+  };
+
   const commonProps = {
     page, setPage,
     brand, setBrand, content, setContent,
@@ -329,7 +341,7 @@ export default function App() {
     tasks, updateTask: (id, f, pid) => updateDoc(doc(db, 'projects', pid, 'tasks', id), f),
     approvals: [], changeRequests: [],
     userNotifications, markNotificationRead,
-    migrateToFirebase, getSLA
+    migrateToFirebase, getSLA, syncCMS
   };
 
   if (authLoading) return (
