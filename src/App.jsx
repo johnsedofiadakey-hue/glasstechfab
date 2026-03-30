@@ -336,6 +336,7 @@ export default function App() {
     invoices, setInvoices,
     proposals, setProposals,
     bookings, setBookings,
+    emails, setEmails,
     shipments, setShipments,
     procurements, createProcurement, updateProcurement, deleteProcurement,
     tasks, updateTask: (id, f, pid) => updateDoc(doc(db, 'projects', pid, 'tasks', id), f),

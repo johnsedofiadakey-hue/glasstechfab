@@ -1076,10 +1076,15 @@ function AdminCMS({ content, syncCMS, brand, onPreview, ...props }) {
 function CMSBranding({ brand, onSave, ac }) {
   const [f, setF] = useState(brand || {});
 
-  const handleImageUpload = (e, field) => {
-    // Note: since Firebase storage is not yet initialized by the user, we will alert.
-    // In the future this should use uploadBytesResumable from firebase/storage
-    alert("Firebase Storage is not enabled on this project. Please go to your Firebase Console, click 'Storage', and 'Get Started'. Once done, this feature will work.");
+  const handleImageUpload = async (e, field) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file, { maxWidth: 1000, quality: 0.8 });
+        const url = await uploadFile('assets', `branding/${Date.now()}_${field}_${file.name}`, compressed);
+        setF(prev => ({ ...prev, [field]: url }));
+      } catch (err) { alert('Upload failed. Please ensure Firebase Storage is enabled in your Google Cloud Console. Error: ' + err.message); }
+    }
   };
 
   return (
@@ -1122,13 +1127,34 @@ function CMSBranding({ brand, onSave, ac }) {
 
 function CMSHomepage({ hero, onSave, ac }) {
   const [slides, setSlides] = useState(hero.slides || []);
+
+  const onFile = async (idx, file) => {
+    if (file) {
+      try {
+        const compressed = await compressImage(file, { maxWidth: 1600, quality: 0.8 });
+        const url = await uploadFile('assets', `homepage/${Date.now()}_slide_${idx}_${file.name}`, compressed);
+        const ns = [...slides];
+        ns[idx].img = url;
+        setSlides(ns);
+      } catch (err) { alert('Upload failed: ' + err.message); }
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
        <h3 className="lxfh" style={{ fontSize: 20 }}>Hero Carousel</h3>
        {slides.map((s, i) => (
          <div key={i} className="p-card" style={{ padding: 20, background: '#F9F7F4', border: '1px solid rgba(0,0,0,.04)' }}>
            <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 20 }}>
-              <div style={{ height: 100, borderRadius: 6, overflow: 'hidden' }}><img src={s.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                 <div style={{ height: 100, borderRadius: 6, overflow: 'hidden', background: '#eee' }}>
+                    <img src={s.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                 </div>
+                 <div style={{ position: 'relative', overflow: 'hidden' }}>
+                    <button className="p-btn-light lxf" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '6px 0', fontSize: 10 }}><Upload size={12} /> Change Image</button>
+                    <input type="file" accept="image/*" onChange={e => onFile(i, e.target.files[0])} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                 </div>
+              </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <input className="p-inp" placeholder="Headline" value={s.title} onChange={e => {
                   const ns = [...slides]; ns[i].title = e.target.value; setSlides(ns);
@@ -1147,18 +1173,39 @@ function CMSHomepage({ hero, onSave, ac }) {
 
 function CMSServices({ services, onSave, ac }) {
   const [list, setList] = useState(services || []);
+
+  const onFile = async (idx, file) => {
+    if (file) {
+      try {
+        const compressed = await compressImage(file, { maxWidth: 1000, quality: 0.8 });
+        const url = await uploadFile('assets', `services/${Date.now()}_img_${idx}_${file.name}`, compressed);
+        const nl = [...list];
+        nl[idx].img = url;
+        setList(nl);
+      } catch (err) { alert('Upload failed: ' + err.message); }
+    }
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
          <h3 className="lxfh" style={{ fontSize: 20 }}>Service Offerings</h3>
-         <button onClick={() => setList([...list, { id: Date.now(), name: 'New Service', short: '', desc: '', packages: [], gallery: [] }])} className="p-btn-gold lxf" style={{ padding: '6px 14px', fontSize: 11 }}>Add Service</button>
+         <button onClick={() => setList([...list, { id: Date.now(), name: 'New Service', short: '', desc: '', packages: [], gallery: [], img: '' }])} className="p-btn-gold lxf" style={{ padding: '6px 14px', fontSize: 11 }}>Add Service</button>
        </div>
        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
          {list.map((s, i) => (
-           <div key={s.id} className="p-card" style={{ padding: 20 }}>
-             <PFormField label="Service Name"><input className="p-inp" value={s.name} onChange={e => { const nl = [...list]; nl[i].name = e.target.value; setList(nl); }} /></PFormField>
-             <PFormField label="Description"><textarea className="p-inp" value={s.desc} rows={3} style={{ marginTop: 8 }} onChange={e => { const nl = [...list]; nl[i].desc = e.target.value; setList(nl); }} /></PFormField>
-             <button onClick={() => setList(list.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', fontSize: 11, background: 'none', border: 'none', padding: 0, marginTop: 12, cursor: 'pointer' }}>Delete Service</button>
+           <div key={s.id} className="p-card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+             <div style={{ display: 'flex', gap: 16 }}>
+                <div style={{ width: 80, height: 80, borderRadius: 8, background: '#F9F7F4', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+                   {s.img ? <img src={s.img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B5AFA9' }}><ImgIcon size={24} /></div>}
+                   <input type="file" accept="image/*" onChange={e => onFile(i, e.target.files[0])} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                   <PFormField label="Service Name" nomargin><input className="p-inp" style={{ padding: '6px 10px' }} value={s.name} onChange={e => { const nl = [...list]; nl[i].name = e.target.value; setList(nl); }} /></PFormField>
+                </div>
+             </div>
+             <PFormField label="Description" nomargin><textarea className="p-inp" value={s.desc} rows={3} onChange={e => { const nl = [...list]; nl[i].desc = e.target.value; setList(nl); }} /></PFormField>
+             <button onClick={() => setList(list.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', fontSize: 11, background: 'none', border: 'none', padding: 0, marginTop: 'auto', alignSelf: 'flex-start', cursor: 'pointer' }}>Delete Service</button>
            </div>
          ))}
        </div>
@@ -1200,23 +1247,116 @@ function CMSProducts({ products, onSave, ac }) {
   );
 }
 
-function CMSGallery({ portfolio, onSave, ac }) {
-  const [list, setList] = useState(portfolio || []);
+function CMSAbout({ about, onSave, ac }) {
+  const [f, setF] = useState(about || {});
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        const compressed = await compressImage(file, { maxWidth: 1200, quality: 0.8 });
+        const url = await uploadFile('assets', `about/${Date.now()}_${file.name}`, compressed);
+        setF(prev => ({ ...prev, image: url }));
+      } catch (err) { alert('Upload failed. Error: ' + err.message); }
+    }
+  };
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 40 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>Company Story</h3>
+        <PFormField label="Founder Name"><input className="p-inp" value={f.founder || ''} onChange={e => setF({...f, founder: e.target.value})} /></PFormField>
+        <PFormField label="Story Headline"><input className="p-inp" value={f.storyTitle || ''} onChange={e => setF({...f, storyTitle: e.target.value})} /></PFormField>
+        <PFormField label="Mission Summary"><textarea className="p-inp" rows={4} value={f.story || ''} onChange={e => setF({...f, story: e.target.value})} /></PFormField>
+        <PFormField label="Full Vision Statement"><textarea className="p-inp" rows={4} value={f.bio || ''} onChange={e => setF({...f, bio: e.target.value})} /></PFormField>
+        <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save About Page</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>About Page Image</h3>
+        <div style={{ height: 300, background: '#F9F7F4', borderRadius: 8, overflow: 'hidden', position: 'relative' }}>
+          {f.image ? <img src={f.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>No Image</div>}
+          <div style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}>
+             <input type="file" accept="image/*" onChange={handleImageUpload} style={{ width: '100%', height: '100%', cursor: 'pointer' }} />
+          </div>
+        </div>
+        <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textAlign: 'center' }}>Click the container above to change image</div>
+      </div>
+    </div>
+  );
+}
+
+function CMSFooter({ data, onSave, ac }) {
+  const [links, setLinks] = useState(data?.links || []);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-       <h3 className="lxfh" style={{ fontSize: 20 }}>Project Portfolio</h3>
-       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-         {list.map((p, i) => (
-           <div key={p.id} className="p-card" style={{ padding: 12 }}>
-              <img src={p.after} alt="" style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 4, marginBottom: 8 }} />
-              <div className="lxf" style={{ fontSize: 11, fontWeight: 600 }}>{p.title}</div>
-              <div className="lxf" style={{ fontSize: 9, color: '#B5AFA9' }}>{p.cat} · {p.year}</div>
-              <button onClick={() => setList(list.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', fontSize: 10, border: 'none', background: 'none', padding: 0, marginTop: 10, cursor: 'pointer' }}>Delete</button>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Footer Information</h3>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+         <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>Policy Links</div>
+         {links.map((l, i) => (
+           <div key={i} style={{ display: 'flex', gap: 12 }}>
+             <input className="p-inp" placeholder="Label" value={l.label} onChange={e => { const nl = [...links]; nl[i].label = e.target.value; setLinks(nl); }} />
+             <input className="p-inp" placeholder="URL" value={l.url} onChange={e => { const nl = [...links]; nl[i].url = e.target.value; setLinks(nl); }} />
+             <button onClick={() => setLinks(links.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', border: 'none', background: 'none', cursor: 'pointer' }}><X size={16} /></button>
            </div>
          ))}
-         <div style={{ border: '2px dashed #eee', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', height: 160 }} onMouseOver={e => e.currentTarget.style.borderColor = ac} onMouseOut={e => e.currentTarget.style.borderColor = '#eee'}>
-            <div style={{ textAlign: 'center' }}><Plus size={24} color="#B5AFA9" /><div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', marginTop: 8 }}>Add Project</div></div>
-         </div>
+         <button onClick={() => setLinks([...links, { label: '', url: '#' }])} className="lxf" style={{ fontSize: 11, color: ac, background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontWeight: 600 }}>+ Add Link</button>
+       </div>
+       <button onClick={() => onSave({ links })} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Footer</button>
+    </div>
+  );
+}
+
+function CMSGallery({ portfolio, onSave, ac }) {
+  const [list, setList] = useState(portfolio || []);
+
+  const onFile = async (idx, field, file) => {
+    if (file) {
+      try {
+        const compressed = await compressImage(file, { maxWidth: 1600, quality: 0.8 });
+        const url = await uploadFile('assets', `portfolio/${Date.now()}_${field}_${file.name}`, compressed);
+        const nl = [...list];
+        nl[idx][field] = url;
+        setList(nl);
+      } catch (err) { alert('Upload failed: ' + err.message); }
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Project Portfolio Settings</h3>
+       <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginBottom: -10 }}>You can also manage these projects comprehensively in the main Portfolio tab on the left menu.</div>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+         {list.map((p, i) => (
+           <div key={p.id} className="p-card" style={{ padding: 20 }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+               <div className="lxfh" style={{ fontSize: 18 }}>{p.title || 'Untitled Project'}</div>
+               <button onClick={() => setList(list.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}><Trash2 size={18} /></button>
+             </div>
+             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+               <PFormField label="Project Title"><input className="p-inp" value={p.title || ''} onChange={e => { const nl = [...list]; nl[i].title = e.target.value; setList(nl); }} /></PFormField>
+               <PFormField label="Category">
+                 <select className="p-inp" value={p.cat || 'Full Interior'} onChange={e => { const nl = [...list]; nl[i].cat = e.target.value; setList(nl); }}>
+                   <option>Full Interior</option><option>Kitchen Installation</option><option>Washroom Setup</option>
+                   <option>Office Fit-out</option><option>Residential Finishing</option><option>Glass & Aluminum</option>
+                 </select>
+               </PFormField>
+               <PFormField label="After Image (Main)">
+                  <div style={{ position: 'relative', overflow: 'hidden' }}>
+                    <button className="p-btn-light lxf" style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}><Upload size={14} /> {p.after?.startsWith('https') ? 'Uploaded Asset' : p.after?.startsWith('data:') ? 'Local Asset' : 'Select Image'}</button>
+                    <input type="file" accept="image/*" onChange={e => onFile(i, 'after', e.target.files[0])} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                  </div>
+               </PFormField>
+               <PFormField label="Before Image (Optional)">
+                  <div style={{ position: 'relative', overflow: 'hidden' }}>
+                    <button className="p-btn-light lxf" style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 8 }}><Upload size={14} /> {p.before?.startsWith('https') ? 'Uploaded Asset' : p.before?.startsWith('data:') ? 'Local Asset' : 'Select Image'}</button>
+                    <input type="file" accept="image/*" onChange={e => onFile(i, 'before', e.target.files[0])} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+                  </div>
+               </PFormField>
+               <PFormField label="Location"><input className="p-inp" value={p.loc || ''} onChange={e => { const nl = [...list]; nl[i].loc = e.target.value; setList(nl); }} /></PFormField>
+             </div>
+           </div>
+         ))}
+         <button onClick={() => setList([...list, { id: Date.now(), title: 'New Project', cat: 'Full Interior', year: new Date().getFullYear().toString(), loc: '', desc: '', before: '', after: '' }])} className="p-btn-gold lxf" style={{ alignSelf: 'flex-start', padding: '8px 24px', borderRadius: 8 }}>+ Add Project</button>
        </div>
        <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Portfolio</button>
     </div>

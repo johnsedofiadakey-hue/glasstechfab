@@ -76,11 +76,17 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
       padding: '0 24px'
     }}>
       <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div onClick={() => setPage('home')} style={{ cursor: 'pointer', zIndex: 1001 }}>
-          <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', color: scrolled || menuOpen ? '#121212' : '#ffffff' }}>
-            GLASSTECH<span style={{ color: ac }}>.</span>
-          </div>
-          <div className="lxf" style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: scrolled || menuOpen ? '#666' : 'rgba(255,255,255,0.7)', transform: 'translateY(-2px)' }}>Interior Finishing</div>
+        <div onClick={() => setPage('home')} style={{ cursor: 'pointer', zIndex: 1001, display: 'flex', alignItems: 'center', gap: 12 }}>
+          {brand.logo ? (
+            <img src={brand.logo} alt={brand.name} style={{ height: 32, objectFit: 'contain' }} />
+          ) : (
+            <div>
+              <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', color: scrolled || menuOpen ? '#121212' : '#ffffff' }}>
+                {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
+              </div>
+              <div className="lxf" style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: scrolled || menuOpen ? '#666' : 'rgba(255,255,255,0.7)', transform: 'translateY(-2px)' }}>{brand.tagline || 'Interior Finishing'}</div>
+            </div>
+          )}
         </div>
 
         {/* Desktop Nav */}
@@ -152,7 +158,11 @@ export function Footer({ brand, setPage, onPortal }) {
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 60, marginBottom: 80 }}>
           <div>
-            <div className="lxfh" style={{ fontSize: 32, fontWeight: 700, marginBottom: 20 }}>GLASSTECH<span style={{ color: ac }}>.</span></div>
+            {brand.logo ? (
+              <img src={brand.logo} alt={brand.name} style={{ height: 40, objectFit: 'contain', marginBottom: 20 }} />
+            ) : (
+              <div className="lxfh" style={{ fontSize: 32, fontWeight: 700, marginBottom: 20 }}>{brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span></div>
+            )}
             <p className="lxf" style={{ color: '#999', lineHeight: 1.8, fontSize: 15 }}>Complete Interior & Finishing solutions for high-end residential and commercial developments. Industrial precision meets architectural luxury.</p>
           </div>
           <div>
