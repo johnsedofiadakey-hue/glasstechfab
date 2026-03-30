@@ -28,7 +28,8 @@ p, .lxf { font-family: 'DM Sans', sans-serif; line-height: 1.6; }
 @keyframes shimmer{from{background-position:200% center}to{background-position:-200% center}}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes pulse{0%,100%{opacity:.4; transform: scale(0.98)} 50%{opacity:1; transform: scale(1)}}
+.pulse{animation:pulse 2s ease-in-out infinite;}
 .afu{animation:fadeUp .9s ease forwards;} .d1{animation-delay:.05s;opacity:0} .d2{animation-delay:.2s;opacity:0} .d3{animation-delay:.35s;opacity:0} .d4{animation-delay:.5s;opacity:0}
 .rev{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease;} .rev.in{opacity:1;transform:translateY(0);}
 .spin{animation:spin 1s linear infinite;}
