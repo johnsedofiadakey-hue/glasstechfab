@@ -44,6 +44,7 @@ export default function App() {
   const [page, setPage] = useState('home');
   const [user, setUser] = useState(null);
   const [loginType, setLoginType] = useState('client'); // 'client' or 'admin'
+  const [authLoading, setAuthLoading] = useState(true); // High-integrity loading guard
   const [brand, setBrand] = useState(BRAND0);
   const [content, setContent] = useState({
     brand: BRAND0,
@@ -266,40 +267,53 @@ export default function App() {
   useEffect(() => {
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
       try {
+        setAuthLoading(true);
         if (sessionUser) {
           console.log("Auth session detected:", sessionUser.email);
-          let profile = { role: 'client' };
-          let profileId = sessionUser.uid;
+          let profile = null;
+          let profileId = null;
 
+          // 1. Try fetching by UID directly (most reliable)
           const userRef = doc(db, 'users', sessionUser.uid);
           const userSnap = await getDoc(userRef);
           
           if (userSnap.exists()) {
             profile = userSnap.data();
-            console.log("Profile found by UID:", profile.role);
+            profileId = userSnap.id;
           } else {
-            console.log("UID not found, matching email...");
+            // 2. Try fetching by email if UID not found
             const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
             const snap = await getDocs(q);
             if (!snap.empty) {
               profile = snap.docs[0].data();
               profileId = snap.docs[0].id;
-              console.log("Profile found by email:", profile.role);
-            } else {
-              console.warn("No Firestore profile for email:", sessionUser.email);
             }
           }
           
-          setUser({ ...sessionUser, ...profile, id: profileId });
-          if (profile?.role === 'client') setView('portal');
-          else setView('admin'); // All staff roles see the management console
+          if (profile) {
+            setUser({ ...sessionUser, ...profile, id: profileId });
+            // EXACT ROLE-BASED ROUTING (REQS 30.03.2026)
+            if (profile.role === 'admin') setView('admin');
+            else if (profile.role === 'manager') setView('manager');
+            else if (profile.role === 'client') setView('portal');
+            else {
+              console.warn("Unauthorized role access:", profile.role);
+              setView('public'); // Block access for unknown roles
+            }
+          } else {
+            console.error("No profile found for authenticated user:", sessionUser.email);
+            setUser(null); 
+            setView('public'); // REQUIREMENT: Block access if no role found
+          }
         } else {
           setUser(null);
           setView('public');
         }
       } catch (e) {
         console.error("Auth listener error:", e);
-        notify('error', 'Login sync failed. Please refresh.');
+        notify('error', 'Login verification failed. Please refresh.');
+      } finally {
+        setAuthLoading(false);
       }
     });
     return () => authSub();

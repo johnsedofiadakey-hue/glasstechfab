@@ -3147,3 +3147,109 @@
 [info] 
 [info] Project Console: https://console.firebase.google.com/project/glasstechfab-635c2/overview
 [info] Hosting URL: https://glasstechfab-635c2.web.app
+[debug] [2026-03-30T09:12:26.626Z] ----------------------------------------------------------------------
+[debug] [2026-03-30T09:12:26.640Z] Command:       /usr/local/bin/node /usr/local/bin/firebase deploy --only hosting
+[debug] [2026-03-30T09:12:26.641Z] CLI Version:   15.10.0
+[debug] [2026-03-30T09:12:26.641Z] Platform:      darwin
+[debug] [2026-03-30T09:12:26.641Z] Node Version:  v20.20.0
+[debug] [2026-03-30T09:12:26.643Z] Time:          Mon Mar 30 2026 09:12:26 GMT+0000 (Greenwich Mean Time)
+[debug] [2026-03-30T09:12:26.644Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-03-30T09:12:31.693Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-03-30T09:12:31.696Z] > authorizing via signed-in user (johnsedofiadakey@gmail.com)
+[debug] [2026-03-30T09:12:31.697Z] [iam] checking project glasstechfab-635c2 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2026-03-30T09:12:31.700Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:31.701Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:31.703Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/glasstechfab-635c2:testIamPermissions [none]
+[debug] [2026-03-30T09:12:31.704Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/glasstechfab-635c2:testIamPermissions  x-goog-user-project=glasstechfab-635c2
+[debug] [2026-03-30T09:12:31.704Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/glasstechfab-635c2:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-03-30T09:12:33.585Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/glasstechfab-635c2:testIamPermissions 200
+[debug] [2026-03-30T09:12:33.586Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/glasstechfab-635c2:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2026-03-30T09:12:33.588Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:33.589Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:33.590Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/glasstechfab-635c2 [none]
+[debug] [2026-03-30T09:12:34.555Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/glasstechfab-635c2 200
+[debug] [2026-03-30T09:12:34.595Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/glasstechfab-635c2 {"projectId":"glasstechfab-635c2","projectNumber":"73124172603","displayName":"glasstechfab","name":"projects/glasstechfab-635c2","resources":{"hostingSite":"glasstechfab-635c2"},"state":"ACTIVE","etag":"1_9dc533ce-bff0-4b94-a9df-9c255acb39d4"}
+[info] 
+[info] === Deploying to 'glasstechfab-635c2'...
+[info] 
+[info] i  deploying hosting 
+[debug] [2026-03-30T09:12:34.615Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:34.615Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:34.616Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions [none]
+[debug] [2026-03-30T09:12:34.616Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions {"status":"CREATED","labels":{"deployment-tool":"cli-firebase"}}
+[debug] [2026-03-30T09:12:37.129Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions 200
+[debug] [2026-03-30T09:12:37.129Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions {"name":"projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf","status":"CREATED","config":{},"labels":{"deployment-tool":"cli-firebase"}}
+[info] i  hosting[glasstechfab-635c2]: beginning deploy... 
+[info] i  hosting[glasstechfab-635c2]: found 5 files in dist 
+[debug] [2026-03-30T09:12:37.189Z] [hosting] uploading with 200 concurrency
+[debug] [2026-03-30T09:12:37.351Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:37.351Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:37.363Z] [hosting] hash cache [ZGlzdA] stored for 5 files
+[debug] [2026-03-30T09:12:37.363Z] [hosting][hash queue][FINAL] {"max":137,"min":15,"avg":43.8,"active":0,"complete":5,"success":5,"errored":0,"retried":0,"total":5,"elapsed":168}
+[debug] [2026-03-30T09:12:37.366Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf:populateFiles [none]
+[debug] [2026-03-30T09:12:37.366Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf:populateFiles {"files":{"/index.html":"d8933a3be27350d18d8058d63a77c1ba859b8a04d92c42fedb3a32f701b36098","/icons.svg":"cc5ba1c58a9496115441b46650182deb0169982e8a98d605d965ce966ff37184","/assets/index-DIBHNNH1.css":"e49955c4b341132a272c44ca99fc6310abdc5439a890f64f57988f7edfce37a7","/favicon.svg":"788edd6150d134e492c161322ce727cbe86416ba61b8e132f332bd0772c804a5","/assets/index-BUJyv9c0.js":"fcfaf7bc7ba2f409c8b9dd452c7675be88243c92208e2890577182eae2e29139"}}
+[debug] [2026-03-30T09:12:38.258Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf:populateFiles 200
+[debug] [2026-03-30T09:12:38.258Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf:populateFiles {"uploadRequiredHashes":["fcfaf7bc7ba2f409c8b9dd452c7675be88243c92208e2890577182eae2e29139","d8933a3be27350d18d8058d63a77c1ba859b8a04d92c42fedb3a32f701b36098"],"uploadUrl":"https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files"}
+[debug] [2026-03-30T09:12:38.261Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:38.261Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:38.262Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:38.262Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:38.263Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/fcfaf7bc7ba2f409c8b9dd452c7675be88243c92208e2890577182eae2e29139 [none]
+[debug] [2026-03-30T09:12:38.263Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/fcfaf7bc7ba2f409c8b9dd452c7675be88243c92208e2890577182eae2e29139 [stream]
+[debug] [2026-03-30T09:12:38.267Z] >>> [apiv2][query] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/d8933a3be27350d18d8058d63a77c1ba859b8a04d92c42fedb3a32f701b36098 [none]
+[debug] [2026-03-30T09:12:38.267Z] >>> [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/d8933a3be27350d18d8058d63a77c1ba859b8a04d92c42fedb3a32f701b36098 [stream]
+[debug] [2026-03-30T09:12:38.271Z] [hosting][populate queue][FINAL] {"max":912,"min":912,"avg":912,"active":0,"complete":1,"success":1,"errored":0,"retried":0,"total":1,"elapsed":920}
+[debug] [2026-03-30T09:12:38.272Z] [hosting] uploads queued: 2
+[info] i  hosting: uploading new files [0/2] (0%) 
+[debug] [2026-03-30T09:12:40.716Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/d8933a3be27350d18d8058d63a77c1ba859b8a04d92c42fedb3a32f701b36098 200
+[debug] [2026-03-30T09:12:40.717Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/d8933a3be27350d18d8058d63a77c1ba859b8a04d92c42fedb3a32f701b36098 [stream]
+[debug] [2026-03-30T09:12:41.429Z] <<< [apiv2][status] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/fcfaf7bc7ba2f409c8b9dd452c7675be88243c92208e2890577182eae2e29139 200
+[debug] [2026-03-30T09:12:41.430Z] <<< [apiv2][body] POST https://upload-firebasehosting.googleapis.com/upload/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf/files/fcfaf7bc7ba2f409c8b9dd452c7675be88243c92208e2890577182eae2e29139 [stream]
+[debug] [2026-03-30T09:12:41.431Z] [hosting][upload queue][FINAL] {"max":3171,"min":2456,"avg":2813.5,"active":0,"complete":2,"success":2,"errored":0,"retried":0,"total":2,"elapsed":3172}
+[info] i  hosting: upload complete 
+[info] ✔  hosting[glasstechfab-635c2]: file upload complete 
+[debug] [2026-03-30T09:12:41.433Z] [hosting] deploy completed after 4297ms
+[debug] [2026-03-30T09:12:41.433Z] [
+  {
+    "config": {
+      "public": "dist",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "site": "glasstechfab-635c2"
+    },
+    "version": "projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf"
+  }
+]
+[info] i  hosting[glasstechfab-635c2]: finalizing version... 
+[debug] [2026-03-30T09:12:41.437Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:41.437Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:41.444Z] >>> [apiv2][query] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf updateMask=status%2Cconfig
+[debug] [2026-03-30T09:12:41.445Z] >>> [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf {"status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]}}
+[debug] [2026-03-30T09:12:42.936Z] <<< [apiv2][status] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf 200
+[debug] [2026-03-30T09:12:42.936Z] <<< [apiv2][body] PATCH https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf {"name":"projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-03-30T09:12:36.501148Z","createUser":{"email":"johnsedofiadakey@gmail.com"},"finalizeTime":"2026-03-30T09:12:43.152750Z","finalizeUser":{"email":"johnsedofiadakey@gmail.com"}}
+[debug] [2026-03-30T09:12:42.937Z] [hosting] finalized version for glasstechfab-635c2:[object Object]
+[info] ✔  hosting[glasstechfab-635c2]: version finalized 
+[info] i  hosting[glasstechfab-635c2]: releasing new version... 
+[debug] [2026-03-30T09:12:42.938Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:42.938Z] Checked if tokens are valid: true, expires at: 1774864814219
+[debug] [2026-03-30T09:12:42.939Z] >>> [apiv2][query] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/channels/live/releases versionName=projects%2F73124172603%2Fsites%2Fglasstechfab-635c2%2Fversions%2F66d8ea7c34e32edf
+[debug] [2026-03-30T09:12:42.940Z] >>> [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/channels/live/releases {}
+[debug] [2026-03-30T09:12:45.226Z] <<< [apiv2][status] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/channels/live/releases 200
+[debug] [2026-03-30T09:12:45.227Z] <<< [apiv2][body] POST https://firebasehosting.googleapis.com/v1beta1/projects/-/sites/glasstechfab-635c2/channels/live/releases {"name":"projects/73124172603/sites/glasstechfab-635c2/channels/live/releases/1774861964460000","version":{"name":"projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-03-30T09:12:36.501148Z","createUser":{"email":"johnsedofiadakey@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocLnj8N9ZaOKpP3wFZOwPwQ3yxMTvDxUitF3k1-FYU7c5Y8WLZTO=mo"},"finalizeTime":"2026-03-30T09:12:43.152750Z","finalizeUser":{"email":"johnsedofiadakey@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocLnj8N9ZaOKpP3wFZOwPwQ3yxMTvDxUitF3k1-FYU7c5Y8WLZTO=mo"}},"type":"DEPLOY","releaseTime":"2026-03-30T09:12:44.460Z","releaseUser":{"email":"johnsedofiadakey@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocLnj8N9ZaOKpP3wFZOwPwQ3yxMTvDxUitF3k1-FYU7c5Y8WLZTO=mo"}}
+[debug] [2026-03-30T09:12:45.228Z] [hosting] release: {"name":"projects/73124172603/sites/glasstechfab-635c2/channels/live/releases/1774861964460000","version":{"name":"projects/73124172603/sites/glasstechfab-635c2/versions/66d8ea7c34e32edf","status":"FINALIZED","config":{"rewrites":[{"glob":"**","path":"/index.html"}]},"labels":{"deployment-tool":"cli-firebase"},"createTime":"2026-03-30T09:12:36.501148Z","createUser":{"email":"johnsedofiadakey@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocLnj8N9ZaOKpP3wFZOwPwQ3yxMTvDxUitF3k1-FYU7c5Y8WLZTO=mo"},"finalizeTime":"2026-03-30T09:12:43.152750Z","finalizeUser":{"email":"johnsedofiadakey@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocLnj8N9ZaOKpP3wFZOwPwQ3yxMTvDxUitF3k1-FYU7c5Y8WLZTO=mo"}},"type":"DEPLOY","releaseTime":"2026-03-30T09:12:44.460Z","releaseUser":{"email":"johnsedofiadakey@gmail.com","imageUrl":"https://lh3.googleusercontent.com/a/ACg8ocLnj8N9ZaOKpP3wFZOwPwQ3yxMTvDxUitF3k1-FYU7c5Y8WLZTO=mo"}}
+[info] ✔  hosting[glasstechfab-635c2]: release complete 
+[info] 
+[info] ✔  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/glasstechfab-635c2/overview
+[info] Hosting URL: https://glasstechfab-635c2.web.app
