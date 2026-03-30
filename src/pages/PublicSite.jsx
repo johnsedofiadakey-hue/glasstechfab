@@ -68,8 +68,9 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: scrolled || menuOpen ? '#ffffff' : 'transparent',
-      borderBottom: scrolled || menuOpen ? '1px solid rgba(0,0,0,0.06)' : 'none',
+      background: scrolled || menuOpen ? 'rgba(255, 255, 255, 0.9)' : 'rgba(26, 20, 16, 0.35)',
+      backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+      borderBottom: scrolled || menuOpen ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.1)',
       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       height: scrolled ? 72 : 90, display: 'flex', alignItems: 'center',
       padding: '0 24px'
@@ -92,7 +93,18 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
             }}>{l.n}</button>
           ))}
           {onPortal && (
-            <button onClick={onPortal} className="pub-btn-gold lxf" style={{ padding: '10px 24px', fontSize: 11 }}>Client Portal</button>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button 
+                onClick={onPortal} 
+                className="lxf" 
+                style={{ 
+                  background: 'transparent', cursor: 'pointer', transition: 'all 0.3s',
+                  border: `1px solid ${scrolled ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.3)'}`,
+                  color: scrolled ? '#121212' : '#ffffff', borderRadius: 4, 
+                  padding: '10px 20px', fontSize: 11, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase' 
+                }}>Admin Login</button>
+              <button onClick={onPortal} className="pub-btn-gold lxf" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 4 }}>Client Portal</button>
+            </div>
           )}
         </div>
 
@@ -107,7 +119,8 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
 
         {/* Mobile menu overlay */}
         <div style={{
-          position: 'fixed', inset: 0, background: '#ffffff', zIndex: 1000,
+          position: 'fixed', inset: 0, background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', zIndex: 1000,
           transform: menuOpen ? 'translateY(0)' : 'translateY(-100%)',
           transition: 'transform 0.5s cubic-bezier(0.85, 0, 0.15, 1)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 32
@@ -119,7 +132,10 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
             }}>{l.n}</button>
           ))}
           {onPortal && (
-            <button onClick={() => { setMenuOpen(false); onPortal(); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, marginTop: 24 }}>Login to Portal</button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 24, width: '100%', maxWidth: 280 }}>
+              <button onClick={() => { setMenuOpen(false); onPortal(); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, width: '100%', borderRadius: 4 }}>Client Login</button>
+              <button onClick={() => { setMenuOpen(false); onPortal(); }} className="lxf" style={{ background: 'transparent', border: '1.5px solid rgba(0,0,0,0.1)', color: '#121212', padding: '16px 40px', fontSize: 14, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', cursor: 'pointer', width: '100%', borderRadius: 4 }}>Admin Portal</button>
+            </div>
           )}
           <div style={{ marginTop: 40, textAlign: 'center' }}>
             <div className="lxf" style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Ready to start a project?</div>
