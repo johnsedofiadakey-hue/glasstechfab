@@ -1,6 +1,25 @@
 import React from 'react';
 import { DollarSign, Eye, MessageSquare, CheckCircle, Users } from 'lucide-react';
 
+export const PROJECT_STAGES = [
+  { id: 1, name: 'Discovery & Consultation', days: 7, color: '#C8A96E' },
+  { id: 2, name: 'Concept & Moodboard', days: 14, color: '#9D845E' },
+  { id: 3, name: 'Technical Design/3D', days: 21, color: '#726045' },
+  { id: 4, name: 'Procurement & Logistics', days: 30, color: '#473C2C' },
+  { id: 5, name: 'On-Site Construction', days: 45, color: '#1A1410' },
+  { id: 6, name: 'Styling & Furniture', days: 10, color: '#B5AFA9' },
+  { id: 7, name: 'Handover & Final Reveal', days: 5, color: '#16A34A' }
+];
+
+export const ABOUT_DATA = {
+  founder: 'Ama Asante',
+  role: 'Founder & Creative Director',
+  storyTitle: 'Founded in Accra.',
+  story: 'LuxeSpace Interiors is a premier interior design company in Ghana, specialising in both interior and exterior design for commercial and residential projects. We believe that a space should not only be beautiful and inviting but also practical and user-friendly.',
+  bio: 'Our mission is to create bespoke interiors that combine comfort, style, sophistication, and practicality — fully reflecting our clients\' needs and dreams.',
+  image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=700&q=80'
+};
+
 export const BOOKING_SLOTS = ['9:00 AM','10:00 AM','11:00 AM','2:00 PM','3:00 PM','4:00 PM'];
 
 export const BOOKINGS_DATA = [
@@ -138,7 +157,25 @@ export const ROOM_GALLERY = {
   'Bathroom':['https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=700&q=80','https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=700&q=80'],
 };
 
-export const CLIENT_NAMES = ['Genesis Apartments','Minerals Dev. Fund','Qatar Airways Lounge','AfCFTA Secretariat','The Ivy Boutique','Ecobank Ghana','Hubtel Technologies','Exim Bank GH'];
+export const CLIENT_NAMES = ['Genesis Apartments', 'Minerals Dev. Fund', 'Qatar Airways Lounge', 'AfCFTA Secretariat', 'The Ivy Boutique', 'Ecobank Ghana', 'Hubtel Technologies', 'Exim Bank GH'];
+
+export const REV = [
+  { m: 'Oct', v: 28 },
+  { m: 'Nov', v: 34 },
+  { m: 'Dec', v: 42 },
+  { m: 'Jan', v: 38 },
+  { m: 'Feb', v: 51 },
+  { m: 'Mar', v: 61 }
+];
+
+export const PIE_D = [
+  { name: 'Residential', value: 45 },
+  { name: 'Commercial', value: 30 },
+  { name: 'Hospitality', value: 15 },
+  { name: 'Other', value: 10 }
+];
+
+export const PIE_C = ['#C8A96E', '#7B9E87', '#9E7B7B', '#555'];
 
 export const WHY_US = [
   {n:'01',title:'Tailored Designs for Unique Lifestyles',body:'We spend time truly understanding you — your lifestyle, your taste, your vision — before a single concept is drawn.'},

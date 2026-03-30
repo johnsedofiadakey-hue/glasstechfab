@@ -7,18 +7,18 @@ export default function LoginPage({ onLogin, onBack, brand }) {
   const [err, setErr] = useState('');
   const ac = brand.color || '#C8A96E';
 
-  const tryLogin = () => {
-    // Demo credentials logic from original monolith
-    if (email === 'admin@stormglide.com' && pw === 'admin123') { onLogin({ email, role: 'super', name: 'Stormglide Admin' }); return; }
-    if (email === 'admin@luxespace.com' && pw === 'admin123') { onLogin({ email, role: 'admin', name: 'LuxeSpace Admin' }); return; }
-    
-    const tm = TEAM_MEMBERS.find(m => m.email === email);
-    if (tm && pw === 'team123') { onLogin({ email, role: 'team', name: tm.name }); return; }
-    
-    const client = CLIENTS_DATA.find(c => c.email === email);
-    if (client && pw === 'client123') { onLogin({ email, role: 'client', name: client.name, clientId: client.id }); return; }
-    
-    setErr('Invalid credentials. See demo credentials below.');
+  const [loading, setLoading] = useState(false);
+
+  const tryLogin = async () => {
+    setLoading(true);
+    setErr('');
+    try {
+      await onLogin(email, pw);
+    } catch (e) {
+      setErr(e.message || 'Invalid credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

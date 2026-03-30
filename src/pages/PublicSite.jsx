@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ChevronLeft, ChevronRight, Star, Play, X, Menu, Phone, Mail, MapPin, 
-  MessageCircle, Link2, Award, SplitSquareHorizontal, 
+import {
+  ChevronLeft, ChevronRight, Star, Play, X, Menu, Phone, Mail, MapPin,
+  MessageCircle, Link2, Award, SplitSquareHorizontal,
   ArrowLeft, Check, CheckCircle, Calendar, Send, Upload, DollarSign, Eye, MessageSquare, Briefcase, Sparkles, TrendingUp
 } from 'lucide-react';
-import BA from '../components/BA';
-import { Av } from '../components/Shared';
-import { 
-  HERO_SLIDES, ROOM_GALLERY, PORTFOLIO_DATA, SERVICES_DATA, PROCESS_STEPS, 
-  WHY_US, CLIENT_NAMES, AWARDS, TEAM_MEMBERS 
+import {
+  HERO_SLIDES, ROOM_GALLERY, PORTFOLIO_DATA, SERVICES_DATA, PROCESS_STEPS,
+  WHY_US, CLIENT_NAMES, AWARDS, TEAM_MEMBERS
 } from '../data';
+import { Av, BA, printDoc } from '../components/Shared';
 
 // --- SHARED PUBLIC COMPONENTS ---
 
@@ -49,7 +48,9 @@ export function PubNav({ brand, page, setPage, onPortal }) {
               {label}
             </button>
           ))}
-          <button className="pub-btn-gold lxf" onClick={onPortal} style={{ padding: '9px 22px', borderRadius: 3 }}>{solid ? 'Client Portal' : 'Book Consult'}</button>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="pub-btn-gold lxf" onClick={onPortal} style={{ padding: '9px 22px', borderRadius: 3 }}>Portal Login</button>
+          </div>
         </div>
         <button onClick={() => setMob(!mob)} style={{ display: 'none', background: 'none', border: 'none', color: solid ? '#1A1410' : '#F9F7F4', cursor: 'pointer' }} className="hide-mob">{mob ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
@@ -57,7 +58,7 @@ export function PubNav({ brand, page, setPage, onPortal }) {
   );
 }
 
-export function PubFooter({ brand, setPage }) {
+export function PubFooter({ brand, setPage, onPortal }) {
   const ac = brand.color || '#C8A96E';
   return (
     <footer style={{ background: '#1A1410', padding: '72px 80px 32px', '--ac': ac }}>
@@ -81,6 +82,11 @@ export function PubFooter({ brand, setPage }) {
                 ))}
               </div>
             ))}
+            <div>
+              <div className="lxf" style={{ fontSize: 10, letterSpacing: '.22em', textTransform: 'uppercase', color: ac, marginBottom: 18, fontWeight: 600 }}>Portals</div>
+              <div onClick={onPortal} className="lxf" style={{ fontSize: 13, color: 'rgba(249,247,244,.32)', marginBottom: 10, cursor: 'pointer', transition: 'color .25s' }} onMouseOver={e => e.target.style.color = ac} onMouseOut={e => e.target.style.color = 'rgba(249,247,244,.32)'}>Client Portal</div>
+              <div onClick={onPortal} className="lxf" style={{ fontSize: 13, color: 'rgba(249,247,244,.32)', marginBottom: 10, cursor: 'pointer', transition: 'color .25s' }} onMouseOver={e => e.target.style.color = ac} onMouseOut={e => e.target.style.color = 'rgba(249,247,244,.32)'}>Admin Login</div>
+            </div>
           </div>
         </div>
         <div style={{ height: 1, background: 'rgba(255,255,255,.06)', marginBottom: 24 }} />
@@ -93,19 +99,186 @@ export function PubFooter({ brand, setPage }) {
   );
 }
 
-// --- PUBLIC PAGES ---
+// --- ABOUT PAGE ---
+function AboutPage({ brand, setPage, content }) {
+  const ac = brand.color || '#C8A96E';
+  const about = content.about;
+  useEffect(() => {
+    const ob = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('in', e.isIntersecting)), { threshold: .08 });
+    setTimeout(() => document.querySelectorAll('.rev').forEach(el => ob.observe(el)), 100);
+    return () => ob.disconnect();
+  }, []);
+  return (
+    <div className="pub-page" style={{ background: '#F9F7F4', color: '#1A1410', paddingTop: 68, '--ac': ac }}>
+      <section style={{ padding: '80px 80px 60px', background: '#1A1410', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=1400&q=80)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: .12 }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 900, margin: '0 auto' }}>
+          <div className="afu d1 eyebrow lxf" style={{ marginBottom: 20, color: ac }}>About Us</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px,7vw,96px)', fontWeight: 300, lineHeight: 1.04, color: '#F9F7F4' }}>Hello! I'm <em style={{ fontStyle: 'italic', color: ac }}>{about.founder.split(' ')[0]}</em><br />& This Is Our Story</h1>
+        </div>
+      </section>
 
-export function HomePage({ brand, setPage }) {
+      <section style={{ padding: '100px 80px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+          <div className="rev" style={{ position: 'relative' }}>
+            <img src={about.image} alt={about.founder} style={{ width: '100%', height: 520, objectFit: 'cover', objectPosition: 'center top' }} />
+            <div style={{ position: 'absolute', bottom: -24, right: -24, width: 180, height: 180, border: `2px solid ${ac}28`, zIndex: -1 }} />
+            <div style={{ position: 'absolute', bottom: 24, left: 24, background: 'rgba(249,247,244,.96)', padding: '16px 20px', backdropFilter: 'blur(8px)' }}>
+              <div className="lxfh" style={{ fontSize: 20, fontStyle: 'italic', color: '#1A1410' }}>{about.founder}</div>
+              <div className="lxf" style={{ fontSize: 12, color: '#7A6E62', marginTop: 2 }}>{about.role}</div>
+            </div>
+          </div>
+          <div>
+            <div className="rev eyebrow lxf" style={{ marginBottom: 20 }}>Our Story</div>
+            <h2 className="lxfh rev" style={{ fontSize: 'clamp(32px,4vw,50px)', fontWeight: 300, lineHeight: 1.1, marginBottom: 28, color: '#1A1410' }}>{about.storyTitle || 'Founded in Accra.'}<br /><em style={{ fontStyle: 'italic', color: ac }}>Inspired by Africa.</em></h2>
+            <p className="lxf rev" style={{ fontSize: 15, color: '#7A6E62', lineHeight: 1.9, marginBottom: 20 }}>{about.story}</p>
+            <p className="lxf rev" style={{ fontSize: 15, color: '#7A6E62', lineHeight: 1.9, marginBottom: 36 }}>{about.bio}</p>
+            <div className="rev" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              {[['235+', 'Work Projects'], ['420+', 'Happy Clients'], ['8 yrs', 'Experience'], ['$2M+', 'Value Delivered']].map(([n, l]) => (
+                <div key={l} style={{ textAlign: 'center', padding: '20px', background: '#fff', border: '1px solid rgba(0,0,0,.07)' }}>
+                  <div className="lxfh" style={{ fontSize: 40, fontWeight: 300, color: ac, lineHeight: 1 }}>{n}</div>
+                  <div className="lxf" style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#B5AFA9', marginTop: 8 }}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: '0 80px 100px', background: '#F9F7F4' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+          {[{ title: 'Mission', icon: '🎯', body: 'To enhance all residential and commercial spaces with designs that are beautiful, functional, practical, and stylish.' },
+          { title: 'Vision', icon: '🌍', body: 'To be a leading interior design firm, delivering bespoke finishes and excellent services of the highest international standards, locally and globally.' },
+          { title: 'Core Values', icon: '💎', body: 'Creativity, Integrity, and Innovation define us as a reliable interior design firm in Ghana and guide our every action and decision.' }].map(m => (
+            <div key={m.title} className="rev" style={{ padding: '44px 36px', background: '#fff', border: '1px solid rgba(0,0,0,.06)' }}>
+              <div style={{ fontSize: 36, marginBottom: 20 }}>{m.icon}</div>
+              <div className="eyebrow lxf" style={{ marginBottom: 12 }}>{m.title}</div>
+              <h3 className="lxfh" style={{ fontSize: 24, fontWeight: 400, color: '#1A1410', marginBottom: 14, lineHeight: 1.2 }}>{m.title}</h3>
+              <p className="lxf" style={{ fontSize: 14, color: '#7A6E62', lineHeight: 1.8 }}>{m.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section style={{ padding: '0 80px 100px', background: '#fff' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div className="rev eyebrow lxf" style={{ marginBottom: 16 }}>The People</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 52, flexWrap: 'wrap', gap: 20 }}>
+            <h2 className="lxfh rev" style={{ fontSize: 'clamp(34px,4.5vw,56px)', fontWeight: 300, color: '#1A1410' }}>Meet Our <em style={{ fontStyle: 'italic', color: ac }}>Team</em></h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+            {TEAM_MEMBERS.map((m, i) => (
+              <div key={m.id} className="rev" style={{ animationDelay: `${i * .1}s` }}>
+                <div style={{ height: 340, overflow: 'hidden', position: 'relative', marginBottom: 16 }}>
+                  <img src={m.img} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', transition: 'transform .6s ease' }} onMouseOver={e => e.target.style.transform = 'scale(1.05)'} onMouseOut={e => e.target.style.transform = 'scale(1)'} />
+                </div>
+                <div className="lxf" style={{ fontSize: 14, fontWeight: 600, color: '#1A1410', marginBottom: 2 }}>{m.name}</div>
+                <div className="lxf" style={{ fontSize: 12, color: ac, marginBottom: 8 }}>{m.role}</div>
+                <p className="lxf" style={{ fontSize: 13, color: '#7A6E62', lineHeight: 1.7 }}>{m.bio}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: '80px 80px', background: '#F9F7F4' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div className="rev eyebrow lxf" style={{ marginBottom: 16 }}>Recognition</div>
+          <h2 className="lxfh rev" style={{ fontSize: 'clamp(32px,4vw,50px)', fontWeight: 300, marginBottom: 48, color: '#1A1410' }}>Awards & <em style={{ fontStyle: 'italic', color: ac }}>Accolades</em></h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+            {AWARDS.map((a, i) => (
+              <div key={i} className="rev" style={{ display: 'flex', gap: 20, padding: '28px', background: '#fff', border: '1px solid rgba(0,0,0,.06)', alignItems: 'flex-start' }}>
+                <Award size={26} color={ac} style={{ flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <div className="lxf" style={{ fontSize: 11, color: ac, letterSpacing: '.14em', textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>{a.year}</div>
+                  <div className="lxfh" style={{ fontSize: 20, fontWeight: 400, color: '#1A1410', marginBottom: 4, lineHeight: 1.2 }}>{a.name}</div>
+                  <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>{a.org}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: '72px 80px', background: '#F9F7F4', textAlign: 'center', borderTop: '1px solid rgba(0,0,0,.06)' }}>
+        <div className="rev lxfh" style={{ fontSize: 11, letterSpacing: '.3em', textTransform: 'uppercase', color: ac, marginBottom: 16, fontFamily: "'DM Sans',sans-serif" }}>Hurry — Let's Make Something Great</div>
+        <h2 className="lxfh rev" style={{ fontSize: 'clamp(32px,4vw,52px)', fontWeight: 300, color: '#1A1410', marginBottom: 24 }}>Got a Project <em style={{ fontStyle: 'italic', color: ac }}>in Mind?</em></h2>
+        <button className="pub-btn-gold lxf rev" onClick={() => setPage('contact')} style={{ padding: '14px 36px', borderRadius: 3 }}>Get In Touch</button>
+      </section>
+    </div>
+  );
+}
+
+// --- SERVICES PAGE ---
+function ServicesPage({ brand, setPage, content }) {
+  const ac = brand.color || '#C8A96E';
+  const services = content.services;
+  useEffect(() => {
+    const ob = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('in', e.isIntersecting)), { threshold: .06 });
+    setTimeout(() => document.querySelectorAll('.rev').forEach(el => ob.observe(el)), 100);
+    return () => ob.disconnect();
+  }, []);
+  return (
+    <div className="pub-page" style={{ background: '#F9F7F4', color: '#1A1410', paddingTop: 68, '--ac': ac }}>
+      <section style={{ padding: '80px 80px 60px', background: '#1A1410', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1400&q=80)', backgroundSize: 'cover', opacity: .08 }} />
+        <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div className="afu d1 eyebrow lxf" style={{ marginBottom: 20, color: ac }}>Our Services</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px,7vw,96px)', fontWeight: 300, lineHeight: 1.04, color: '#F9F7F4', maxWidth: 700 }}>Design Services & <em style={{ fontStyle: 'italic', color: ac }}>Pricing</em></h1>
+        </div>
+      </section>
+      {services.map((s, si) => (
+        <section key={s.id} id={s.id} style={{ padding: '80px 80px', background: si % 2 === 0 ? '#F9F7F4' : '#fff', borderBottom: '1px solid rgba(0,0,0,.06)' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 3fr', gap: 80, marginBottom: 52, alignItems: 'start' }}>
+              <div>
+                <div className="eyebrow lxf rev" style={{ marginBottom: 14 }}>{s.catLabel}</div>
+                <div style={{ fontSize: 40, marginBottom: 14 }}>{s.icon}</div>
+                <h2 className="lxfh rev" style={{ fontSize: 'clamp(32px,3.5vw,48px)', fontWeight: 300, lineHeight: 1.1, marginBottom: 20, color: '#1A1410' }}>{s.name}</h2>
+                <p className="lxf rev" style={{ fontSize: 14, color: '#7A6E62', lineHeight: 1.85, marginBottom: 32 }}>{s.desc}</p>
+                <button className="pub-btn-dark lxf rev" onClick={() => setPage('contact')} style={{ padding: '12px 28px', borderRadius: 3 }}>Get a Quote</button>
+              </div>
+              <div>
+                <div className="rev lxf" style={{ fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: ac, marginBottom: 20, fontWeight: 600 }}>Packages</div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                  {s.packages.map((pkg, pi) => (
+                    <div key={pi} className="rev" style={{ border: `1.5px solid ${pkg.popular ? ac : 'rgba(0,0,0,.08)'}`, padding: '24px 18px', position: 'relative', background: pkg.popular ? `${ac}06` : '#fff', transition: 'all .3s' }}>
+                      {pkg.popular && <div className="lxf" style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: ac, color: '#1A1410', fontSize: 9, fontWeight: 700, padding: '3px 12px', letterSpacing: '.1em', whiteSpace: 'nowrap' }}>MOST POPULAR</div>}
+                      <div className="lxfh" style={{ fontSize: 20, fontWeight: 400, color: '#1A1410', marginBottom: 4 }}>{pkg.name}</div>
+                      <div className="lxfh" style={{ fontSize: 30, fontWeight: 300, color: ac, marginBottom: 18 }}>{pkg.price}</div>
+                      {pkg.includes.map((it, ii) => (
+                        <div key={ii} style={{ display: 'flex', gap: 8, marginBottom: 7, alignItems: 'flex-start' }}>
+                          <Check size={12} color={ac} style={{ marginTop: 3, flexShrink: 0 }} />
+                          <span className="lxf" style={{ fontSize: 12, color: '#7A6E62', lineHeight: 1.5 }}>{it}</span>
+                        </div>
+                      ))}
+                      <button className="lxf" onClick={() => setPage('contact')} style={{ width: '100%', marginTop: 18, padding: '9px', fontSize: 12, border: `1.5px solid ${pkg.popular ? ac : 'rgba(0,0,0,.1)'}`, background: pkg.popular ? ac : 'transparent', color: pkg.popular ? '#1A1410' : '#7A6E62', cursor: 'pointer', fontWeight: pkg.popular ? 600 : 400, transition: 'all .3s', fontFamily: "'DM Sans',sans-serif", letterSpacing: '.06em', textTransform: 'uppercase' }}>Get Started</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+// --- PORTFOLIO PAGE ---
+
+export function HomePage({ brand, setPage, content }) {
   const ac = brand.color || '#C8A96E';
   const [slide, setSlide] = useState(0);
   const [roomTab, setRoomTab] = useState('Living Room');
   const [videoOpen, setVideoOpen] = useState(false);
-  const roomKeys = Object.keys(ROOM_GALLERY);
+  const slides = content.hero.slides;
+  const roomKeys = Object.keys(content.gallery || ROOM_GALLERY);
 
   useEffect(() => {
-    const t = setInterval(() => setSlide(s => (s + 1) % HERO_SLIDES.length), 5500);
+    const t = setInterval(() => setSlide(s => (s + 1) % slides.length), 5500);
     return () => clearInterval(t);
-  }, []);
+  }, [slides.length]);
 
   useEffect(() => {
     const ob = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('in', e.isIntersecting)), { threshold: .08 });
@@ -113,12 +286,12 @@ export function HomePage({ brand, setPage }) {
     return () => ob.disconnect();
   }, []);
 
-  const S = HERO_SLIDES[slide];
+  const S = slides[slide];
 
   return (
     <div className="pub-page" style={{ background: '#F9F7F4', '--ac': ac, color: '#1A1410' }}>
       <section style={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        {HERO_SLIDES.map((s, i) => (
+        {slides.map((s, i) => (
           <div key={i} style={{ position: 'absolute', inset: 0, transition: 'opacity .9s ease', opacity: i === slide ? 1 : 0 }}>
             <img src={s.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', transform: i === slide ? 'scale(1.04)' : 'scale(1)', transition: 'transform 6s ease' }} />
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(15,12,8,.72) 40%, rgba(15,12,8,.3))' }} />
@@ -128,7 +301,7 @@ export function HomePage({ brand, setPage }) {
           <div style={{ maxWidth: 640 }}>
             <div className="afu d1 eyebrow lxf" style={{ color: ac, marginBottom: 24 }}>Interior Design Studio · Accra, Ghana</div>
             <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(52px,7.5vw,104px)', fontWeight: 300, lineHeight: 1.04, color: '#F9F7F4', whiteSpace: 'pre-line', marginBottom: 28 }}>
-              {S.headline}
+              {S.title || S.headline}
             </h1>
             <p className="lxf afu d3" style={{ fontSize: 17, lineHeight: 1.85, color: 'rgba(249,247,244,.58)', maxWidth: 460, marginBottom: 52, fontWeight: 300 }}>{S.sub}</p>
             <div className="afu d4" style={{ display: 'flex', gap: 14 }}>
@@ -138,17 +311,17 @@ export function HomePage({ brand, setPage }) {
           </div>
         </div>
         <div style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 10, zIndex: 3 }}>
-          {HERO_SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button key={i} onClick={() => setSlide(i)} className={`slider-dot${slide === i ? ' active' : ''}`} />
           ))}
         </div>
         <div style={{ position: 'absolute', bottom: 36, right: 80, zIndex: 3, display: 'flex', gap: 8, alignItems: 'center' }}>
           <span className="lxf" style={{ fontSize: 13, color: 'rgba(249,247,244,.5)', fontWeight: 600 }}>{String(slide + 1).padStart(2, '0')}</span>
           <div style={{ width: 32, height: 1, background: 'rgba(249,247,244,.25)' }} />
-          <span className="lxf" style={{ fontSize: 13, color: 'rgba(249,247,244,.3)' }}>{String(HERO_SLIDES.length).padStart(2, '0')}</span>
+          <span className="lxf" style={{ fontSize: 13, color: 'rgba(249,247,244,.3)' }}>{String(slides.length).padStart(2, '0')}</span>
         </div>
-        <button onClick={() => setSlide(s => (s - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)} style={{ position: 'absolute', left: 28, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.18)', color: '#F9F7F4', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', transition: 'all .25s' }} onMouseOver={e => e.currentTarget.style.background = ac} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,.08)'}><ChevronLeft size={18} /></button>
-        <button onClick={() => setSlide(s => (s + 1) % HERO_SLIDES.length)} style={{ position: 'absolute', right: 28, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.18)', color: '#F9F7F4', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', transition: 'all .25s' }} onMouseOver={e => e.currentTarget.style.background = ac} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,.08)'}><ChevronRight size={18} /></button>
+        <button onClick={() => setSlide(s => (s - 1 + slides.length) % slides.length)} style={{ position: 'absolute', left: 28, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.18)', color: '#F9F7F4', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', transition: 'all .25s' }} onMouseOver={e => e.currentTarget.style.background = ac} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,.08)'}><ChevronLeft size={18} /></button>
+        <button onClick={() => setSlide(s => (s + 1) % slides.length)} style={{ position: 'absolute', right: 28, top: '50%', transform: 'translateY(-50%)', zIndex: 3, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.18)', color: '#F9F7F4', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifySelf: 'center', transition: 'all .25s' }} onMouseOver={e => e.currentTarget.style.background = ac} onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,.08)'}><ChevronRight size={18} /></button>
       </section>
 
       <section style={{ background: '#1A1410', padding: '0 80px' }}>
@@ -211,7 +384,7 @@ export function HomePage({ brand, setPage }) {
             <button className="pub-btn-dark lxf rev" onClick={() => setPage('services')} style={{ padding: '12px 28px', borderRadius: 3 }}>All Services</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2 }}>
-            {SERVICES_DATA.map(s => (
+            {content.services.map(s => (
               <div key={s.id} className="service-lx-card rev" onClick={() => setPage(`service-${s.id}`)}
                 style={{ background: '#fff', border: '1px solid rgba(0,0,0,.06)' }}>
                 <div style={{ height: 200, overflow: 'hidden' }}>
@@ -236,7 +409,7 @@ export function HomePage({ brand, setPage }) {
             <h2 className="lxfh rev" style={{ fontSize: 'clamp(36px, 4.5vw, 58px)', fontWeight: 300, lineHeight: 1.1, color: '#F9F7F4' }}>Get Amazing Results in <em style={{ fontStyle: 'italic', color: ac }}>4 Simple Steps</em></h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
-            {PROCESS_STEPS.map((step, i) => (
+            {content.process.map((step, i) => (
               <div key={i} className="rev" style={{ animationDelay: `${i * .1}s` }}>
                 <div style={{ height: 240, overflow: 'hidden', marginBottom: 20, position: 'relative' }}>
                   <img src={step.img} alt={step.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform .6s ease' }} onMouseOver={e => e.target.style.transform = 'scale(1.06)'} onMouseOut={e => e.target.style.transform = 'scale(1)'} />
@@ -265,7 +438,7 @@ export function HomePage({ brand, setPage }) {
             ))}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3, minHeight: 280 }}>
-            {(ROOM_GALLERY[roomTab] || []).map((img, i) => (
+            {(content.gallery[roomTab] || []).map((img, i) => (
               <div key={i} className="hover-img rev" style={{ height: i === 0 ? 360 : 240, overflow: 'hidden', cursor: 'pointer' }} onClick={() => setPage('portfolio')}>
                 <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
@@ -297,6 +470,10 @@ export function HomePage({ brand, setPage }) {
                 <div className="lxfh" style={{ fontSize: 16, fontWeight: 400, color: '#1A1410', lineHeight: 1.5, marginBottom: 8 }}>"LuxeSpace completely transformed our home. Every corner reflects our family perfectly."</div>
                 <div className="lxf" style={{ fontSize: 12, color: '#7A6E62' }}>Abena Mensah · East Legon, Accra</div>
               </div>
+            </div>
+            <div className="rev" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, marginTop: 3 }}>
+              <div style={{ height: 160, overflow: 'hidden' }}><img src="https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=400&q=80" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
+              <div style={{ height: 160, overflow: 'hidden' }}><img src="https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=400&q=80" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
             </div>
           </div>
         </div>
@@ -376,11 +553,12 @@ export function HomePage({ brand, setPage }) {
   );
 }
 
-export function PortfolioPage({ brand, setPage }) {
+export function PortfolioPage({ brand, setPage, content }) {
   const ac = brand.color || '#C8A96E';
+  const portfolio = content.portfolio || PORTFOLIO_DATA;
   const [filter, setFilter] = useState('All');
   const cats = ['All', 'Residential', 'Commercial', 'Kitchen', 'Bathroom', 'Dining'];
-  const shown = filter === 'All' ? PORTFOLIO_DATA : PORTFOLIO_DATA.filter(p => p.cat === filter);
+  const shown = filter === 'All' ? portfolio : portfolio.filter(p => p.cat === filter);
 
   useEffect(() => {
     const ob = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('in', e.isIntersecting)), { threshold: .06 });
@@ -440,9 +618,10 @@ export function PortfolioPage({ brand, setPage }) {
   );
 }
 
-export function ProjectDetailPage({ projectId, brand, setPage }) {
+export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   const ac = brand.color || '#C8A96E';
-  const p = PORTFOLIO_DATA.find(x => x.id === parseInt(projectId));
+  const portfolio = content.portfolio || PORTFOLIO_DATA;
+  const p = portfolio.find(x => x.id === parseInt(projectId));
   const [imgIdx, setImgIdx] = useState(0);
   if (!p) return <div style={{ color: '#888', padding: 80, textAlign: 'center', paddingTop: 180 }}>Project not found</div>;
   return (
@@ -484,8 +663,9 @@ export function ProjectDetailPage({ projectId, brand, setPage }) {
   );
 }
 
-export function ContactPage({ brand }) {
+export function ContactPage({ brand, content }) {
   const ac = brand.color || '#C8A96E';
+  const services = content.services || SERVICES_DATA;
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' });
   const [sent, setSent] = useState(false);
   const [calDate, setCalDate] = useState(null);
@@ -534,8 +714,8 @@ export function ContactPage({ brand }) {
                 </div>
                 <input className="pub-inp lxf" placeholder="Phone Number" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} style={{ padding: '13px 15px', fontSize: 13 }} />
                 <select className="pub-inp lxf" value={form.service} onChange={e => setForm({ ...form, service: e.target.value })} style={{ padding: '13px 15px', fontSize: 13 }}>
-                  <option value="">Select a Service</option>
-                  {SERVICES_DATA.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                   <option value="">Select a Service</option>
+                  {services.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                 </select>
                 <textarea className="pub-inp lxf" rows={5} placeholder="Tell us about your project..." value={form.message} onChange={e => setForm({ ...form, message: e.target.value })} style={{ padding: '13px 15px', fontSize: 13, resize: 'vertical' }} />
                 <button className="pub-btn-dark lxf" onClick={() => form.name && form.email && setSent(true)} style={{ padding: '14px', borderRadius: 3 }}>Send Message</button>
@@ -602,24 +782,26 @@ export function ContactPage({ brand }) {
 
 // --- PUBLIC SITE SHELL ---
 
-export default function PublicSite({ brand, onPortal }) {
+export default function PublicSite({ brand, content, onPortal }) {
   const [page, setPageInner] = useState('home');
   const setPage = p => { setPageInner(p); window.scrollTo(0, 0); };
   const ac = brand.color || '#C8A96E';
   
   const renderPage = () => {
-    if (page === 'home') return <HomePage brand={brand} setPage={setPage} />;
-    if (page === 'portfolio') return <PortfolioPage brand={brand} setPage={setPage} />;
-    if (page === 'contact') return <ContactPage brand={brand} />;
-    if (page.startsWith('project-')) return <ProjectDetailPage projectId={page.replace('project-', '')} brand={brand} setPage={setPage} />;
-    return <HomePage brand={brand} setPage={setPage} />;
+    if (page === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
+    if (page === 'portfolio') return <PortfolioPage brand={brand} setPage={setPage} content={content} />;
+    if (page === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
+    if (page === 'about') return <AboutPage brand={brand} setPage={setPage} content={content} />;
+    if (page === 'contact') return <ContactPage brand={brand} content={content} />;
+    if (page.startsWith('project-')) return <ProjectDetailPage projectId={page.replace('project-', '')} brand={brand} setPage={setPage} content={content} />;
+    return <HomePage brand={brand} setPage={setPage} content={content} />;
   };
 
   return (
     <div style={{ '--ac': ac }} className="lx-scroll">
       <PubNav brand={brand} page={page} setPage={setPage} onPortal={onPortal} />
       {renderPage()}
-      <PubFooter brand={brand} setPage={setPage} />
+      <PubFooter brand={brand} setPage={setPage} onPortal={onPortal} />
       {brand.whatsapp && page !== 'home' && <a href={`https://wa.me/${brand.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="wa-btn"><MessageCircle size={23} color="#fff" fill="#fff" /></a>}
     </div>
   );

@@ -1,43 +1,33 @@
 import React, { useState } from 'react';
 import { 
-  LogOut, Check, Calendar
+  LogOut, Check, Calendar, Clock, User, 
+  Briefcase, Activity, Mail, Phone, MapPin
 } from 'lucide-react';
 import { 
-  PAv, PSBadge
+  PAv, PSBadge, NotificationBell
 } from '../components/Shared';
-import { 
-  TEAM_MEMBERS 
-} from '../data';
 
-export default function AccountManagerPortal({ user, brand, clients, onLogout }) {
+export default function AccountManagerPortal({ user, brand, onLogout, ...props }) {
   const ac = brand.color || '#C8A96E';
-  const [tab, setTab] = useState('projects');
-  const member = TEAM_MEMBERS.find(m => m.email === user.email) || TEAM_MEMBERS[0];
-  const myClients = clients.filter(c => c.status === 'Active');
+  const { clients, bookings, tasks, updateTask } = props;
+  const [tab, setTab] = useState('tasks');
+  const [fStage, setFStage] = useState('all');
+  const [fStatus, setFStatus] = useState('all');
+  
+  const member = user;
+  const myClients = clients.filter(c => c.managerId === user.id);
+  const myBookings = bookings.filter(b => b.pm_id === user.id || b.date.startsWith('2026-03'));
+  const myTasks = (tasks || []).filter(t => {
+    const isMe = (t.assignedTo || t.assigned_to) === user.id;
+    const isStage = fStage === 'all' || String(t.stage) === fStage;
+    const isStatus = fStatus === 'all' || t.status === fStatus;
+    return isMe && isStage && isStatus;
+  });
 
-  return (
-    <div className="lxf lx-scroll" style={{ minHeight: '100vh', background: '#F9F7F4', '--ac': ac }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28, objectFit: 'contain' }} /> : <div className="lxfh" style={{ fontSize: 22, color: '#1A1410', fontWeight: 400 }}>{brand.name}</div>}
-          <div style={{ height: 18, width: 1, background: 'rgba(0,0,0,.1)' }} />
-          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Design Team</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <PAv i={member.av} s={32} c={ac} />
-          <div><div className="lxf" style={{ fontSize: 13, color: '#1A1410', fontWeight: 500 }}>{member.name}</div><div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{member.role}</div></div>
-          <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#C0B9B0', padding: 4, display: 'flex', marginLeft: 8 }}><LogOut size={16} /></button>
-        </div>
-      </div>
-
-      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', display: 'flex', gap: 0 }}>
-        {[['projects', 'Active Projects'], ['tasks', 'My Tasks'], ['schedule', 'Schedule'], ['profile', 'My Profile']].map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} className={`p-tab lxf${tab === id ? ' active' : ''}`}>{label}</button>
-        ))}
-      </div>
-
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 32px' }}>
-        {tab === 'projects' && (
+  const renderContent = () => {
+    switch (tab) {
+      case 'projects':
+        return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300 }}>Active Projects</h1>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
@@ -55,11 +45,95 @@ export default function AccountManagerPortal({ user, brand, clients, onLogout })
               ))}
             </div>
           </div>
-        )}
-        
-        {tab === 'tasks' && (
-           <div style={{ padding: 40, textAlign: 'center', color: '#B5AFA9' }}>Task management coming soon.</div>
-        )}
+        );
+      case 'tasks':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20 }}>
+              <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300 }}>My Tasks</h1>
+              
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                 <select className="p-inp" style={{ fontSize: 11, padding: '6px 12px' }} value={fStage} onChange={e => setFStage(e.target.value)}>
+                    <option value="all">All Stages</option>
+                    {[1,2,3,4,5,6,7].map(s => <option key={s} value={s}>Stage {s}</option>)}
+                 </select>
+                 <select className="p-inp" style={{ fontSize: 11, padding: '6px 12px' }} value={fStatus} onChange={e => setFStatus(e.target.value)}>
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                 </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+              {myTasks.length === 0 && <div className="p-card lxf" style={{ padding: 40, textAlign: 'center', gridColumn: 'span 2', color: '#B5AFA9' }}>No matching tasks found.</div>}
+              {myTasks.map(t => (
+                <div key={t.id} className="p-card" style={{ padding: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <span className="eyebrow lxf" style={{ fontSize: 9 }}>Stage {t.stage} · {t.project_title}</span>
+                    <PSBadge s={t.status} />
+                  </div>
+                  <h3 className="lxfh" style={{ fontSize: 18, fontWeight: 500, marginBottom: 6 }}>{t.title}</h3>
+                  <p className="lxf" style={{ fontSize: 13, color: '#7A6E62', marginBottom: 16 }}>{t.description}</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> Due: {t.dueDate || t.due_date}</div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {t.status === 'pending' && <button onClick={() => updateTask(t.id, { status: 'in_progress' }, t.parentId)} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 11, cursor: 'pointer' }}>Start Task</button>}
+                      {t.status === 'in_progress' && <button onClick={() => updateTask(t.id, { status: 'completed' }, t.parentId)} className="lxf" style={{ background: 'none', border: 'none', color: '#16A34A', fontWeight: 600, fontSize: 11, cursor: 'pointer' }}>Complete</button>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'profile':
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24 }}>
+            <div className="p-card" style={{ padding: 24, textAlign: 'center' }}>
+              <PAv i={member.av} s={120} c={ac} />
+              <h2 className="lxfh" style={{ fontSize: 24, marginTop: 16 }}>{member.name}</h2>
+              <div className="lxf" style={{ fontSize: 14, color: ac, fontWeight: 600 }}>{member.role}</div>
+              <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ fontSize: 13, color: '#7A6E62', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}><Mail size={14} /> {member.email}</div>
+              </div>
+            </div>
+            <div className="p-card" style={{ padding: 24 }}>
+              <h3 className="eyebrow lxf" style={{ marginBottom: 16 }}>Bio</h3>
+              <p className="lxf" style={{ fontSize: 14, color: '#7A6E62', lineHeight: 1.8 }}>{member.bio || 'Premium designer focused on creating exceptional spaces.'}</p>
+            </div>
+          </div>
+        );
+      default:
+        return <div style={{ padding: 40, textAlign: 'center', color: '#B5AFA9' }}>Coming soon.</div>;
+    }
+  };
+
+  return (
+    <div className="lxf lx-scroll" style={{ minHeight: '100vh', background: '#F9F7F4', '--ac': ac }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 22 }}>{brand.name}</div>}
+          <div style={{ height: 18, width: 1, background: 'rgba(0,0,0,.1)' }} />
+          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Design Team Portal</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />
+          <PAv i={member.av} s={32} c={ac} />
+          <div><div className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{member.name}</div><div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{member.role}</div></div>
+          <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', marginLeft: 16 }}><LogOut size={16} /></button>
+        </div>
+      </div>
+
+      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', display: 'flex', gap: 0 }}>
+        {[['tasks', 'My Tasks'], ['projects', 'Projects'], ['schedule', 'Schedule'], ['profile', 'Profile']].map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)} className={`p-tab lxf${tab === id ? ' active' : ''}`}>{label}</button>
+        ))}
+      </div>
+
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 32px' }}>
+        {renderContent()}
       </div>
     </div>
   );

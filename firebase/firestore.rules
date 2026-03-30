@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    function isManagerOf(projectId) {
+      return request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.managerId;
+    }
+    
+    function isProjectOwner(projectId) {
+      return request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.clientId;
+    }
+
+    // Notifications (Global)
+    match /notifications/{notifId} {
+      allow read: if request.auth != null && (isAdmin() || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && (isAdmin() || request.auth.uid == request.resource.data.userId);
+    }
+
+    // Projects (Standardized Structure)
+    match /projects/{projectId} {
+      allow read: if isAdmin() || isManagerOf(projectId) || isProjectOwner(projectId);
+      allow write: if isAdmin() || isManagerOf(projectId);
+
+      // Subcollections (Standardized)
+      match /approvals/{apprId} {
+        allow read: if isAdmin() || isManagerOf(projectId) || isProjectOwner(projectId);
+        allow create: if isAdmin() || isManagerOf(projectId);
+        allow update: if (isAdmin() || isManagerOf(projectId)) && resource.data.status != 'approved';
+        allow update: if isProjectOwner(projectId) && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'comment', 'approvedAt']) &&
+                      resource.data.status == 'pending';
+        allow delete: if isAdmin();
+      }
+
+      match /change_requests/{crId} {
+        allow read: if isAdmin() || isManagerOf(projectId) || isProjectOwner(projectId);
+        allow create: if isProjectOwner(projectId);
+        allow update: if (isAdmin() || isManagerOf(projectId)) && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['costImpact', 'timelineImpact', 'status']);
+        allow update: if isProjectOwner(projectId) && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+                      resource.data.status == 'evaluated';
+        allow delete: if isAdmin();
+      }
+
+      match /{subcollection}/{docId} {
+        allow read: if isAdmin() || isManagerOf(projectId) || isProjectOwner(projectId);
+        allow write: if isAdmin() || isManagerOf(projectId);
+      }
+    }
+
+    // Collection Group Access (Optimized for Admins)
+    match /{path=**}/tasks/{taskId} { allow read: if isAdmin(); }
+    match /{path=**}/payments/{paymentId} { allow read: if isAdmin(); }
+    match /{path=**}/shipments/{shipmentId} { allow read: if isAdmin(); }
+    match /{path=**}/approvals/{apprId} { allow read: if isAdmin(); }
+    match /{path=**}/change_requests/{crId} { allow read: if isAdmin(); }
+    match /{path=**}/activity_logs/{logId} { allow read: if isAdmin(); }
+
+    // CMS & Brand
+    match /cms_content/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}
