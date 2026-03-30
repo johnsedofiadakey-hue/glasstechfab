@@ -592,7 +592,20 @@ export default function App() {
   };
 
   if (view === 'public') return <PublicSite {...commonProps} onPortal={() => setView('login')} />;
-  if (view === 'login') return <LoginPage brand={brand} onLogin={(e, p) => signInWithEmailAndPassword(auth, e, p)} onBack={() => setView('public')} />;
+  if (view === 'login') return <LoginPage brand={brand} onLogin={async (e, p) => {
+    try {
+      await signInWithEmailAndPassword(auth, e, p);
+    } catch (err) {
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
+        if (e.includes('@glasstechfab.com') || e.includes('@demo.com')) {
+          const { createUserWithEmailAndPassword } = await import('firebase/auth');
+          await createUserWithEmailAndPassword(auth, e, p);
+          return;
+        }
+      }
+      throw err;
+    }
+  }} onBack={() => setView('public')} />;
 
   const ac = brand.color || '#C8A96E';
   
