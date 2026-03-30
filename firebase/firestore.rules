@@ -15,6 +15,13 @@ service cloud.firestore {
       return request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.clientId;
     }
 
+    // Users (Essential for Auth mapping)
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow list: if request.auth != null && isAdmin();
+      allow write: if isAdmin();
+    }
+
     // Notifications (Global)
     match /notifications/{notifId} {
       allow read: if request.auth != null && (isAdmin() || request.auth.uid == resource.data.userId);

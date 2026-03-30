@@ -610,17 +610,20 @@ export default function App() {
     try {
       await signInWithEmailAndPassword(auth, e, p);
     } catch (err) {
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
-        const q = query(collection(db, 'users'), where('email', '==', e));
-        const snap = await getDocs(q);
-        
-        if (!snap.empty) {
+      // If user not found, try blind auto-registration
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        try {
           const { createUserWithEmailAndPassword } = await import('firebase/auth');
           await createUserWithEmailAndPassword(auth, e, p);
-          return;
+        } catch (signUpErr) {
+          if (signUpErr.code === 'auth/email-already-in-use') {
+            throw new Error("Invalid password for this account.");
+          }
+          throw signUpErr;
         }
+      } else {
+        throw err;
       }
-      throw err;
     }
   }} onBack={() => setView('public')} />;
 
