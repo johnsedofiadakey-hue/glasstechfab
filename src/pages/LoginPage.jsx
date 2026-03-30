@@ -47,9 +47,9 @@ export default function LoginPage({ onLogin, onBack, brand, onBootstrap, type = 
         <div style={{ marginTop: 32, padding: '18px', background: '#F9F7F4', borderRadius: 10, border: '1px solid rgba(0,0,0,.07)' }}>
           <div className="eyebrow lxf" style={{ marginBottom: 10, fontSize: 9 }}>Available Credentials</div>
           {[
-            ['Management Access', 'admin@glasstechfab.com', 'admin123', 'admin'],
-            ['Production Lead', 'manager@glasstechfab.com', 'admin123', 'admin'],
-            ['Client Portal', 'client@demo.com', 'client123', 'client']
+            ['Management Access', 'admin@stormglide.com', 'admin123', 'admin'],
+            ['Studio Admin', 'admin@luxespace.com', 'admin123', 'admin'],
+            ['Client Portal', 'client@luxespace.com', 'client123', 'client']
           ].filter(row => row[3] === type).map(([r, e, p]) => (
             <div key={r} style={{ marginBottom: 7, cursor: 'pointer' }} onClick={() => { setEmail(e); setPw(p); }}>
               <span className="lxf" style={{ fontSize: 10, color: '#B5AFA9', marginRight: 8, letterSpacing: '.08em' }}>{r}:</span>

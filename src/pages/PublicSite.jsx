@@ -108,27 +108,38 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
 
         {/* Mobile menu overlay */}
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', zIndex: 1000,
-          opacity: menuOpen ? 1 : 0, visibility: menuOpen ? 'visible' : 'hidden', pointerEvents: menuOpen ? 'auto' : 'none',
-          transform: menuOpen ? 'translateY(0)' : 'translateY(-20px)',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 32
+          position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: 400,
+          background: '#fff', zIndex: 2000, padding: '120px 40px',
+          boxShadow: '-10px 0 30px rgba(0,0,0,0.1)',
+          transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+          display: 'flex', flexDirection: 'column', gap: 24
         }}>
+          <button onClick={() => setMenuOpen(false)} style={{ position: 'absolute', top: 32, right: 32, background: 'none', border: 'none', cursor: 'pointer', color: '#121212' }}>
+            <X size={32} strokeWidth={1.5} />
+          </button>
+          
+          <div className="eyebrow lxf" style={{ color: ac, marginBottom: 8 }}>Navigation</div>
           {links.map(l => (
             <button key={l.id} onClick={() => { setPage(l.id); setMenuOpen(false); }} className="lxfh" style={{
-              background: 'none', border: 'none', cursor: 'pointer', fontSize: 42,
-              color: activePage === l.id ? ac : '#121212', fontWeight: 300
+              background: 'none', border: 'none', cursor: 'pointer', fontSize: 32,
+              color: activePage === l.id ? ac : '#121212', fontWeight: 300, textAlign: 'left', padding: 0
             }}>{l.n}</button>
           ))}
-          {onPortal && (
-            <button onClick={() => { setMenuOpen(false); onPortal('client'); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, width: '100%', maxWidth: 280, borderRadius: 4, marginTop: 24 }}>Client Login</button>
-          )}
-          <div style={{ marginTop: 40, textAlign: 'center' }}>
-            <div className="lxf" style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Ready to start a project?</div>
-            <div className="lxfh" style={{ fontSize: 20, color: ac }}>+233 24 555 0000</div>
+          <button onClick={() => { setMenuOpen(false); onPortal('client'); }} className="lxfh" style={{
+            background: 'none', border: 'none', cursor: 'pointer', fontSize: 32,
+            color: '#121212', fontWeight: 300, textAlign: 'left', padding: 0
+          }}>Login</button>
+
+          <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: 40 }}>
+            <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 12 }}>Contact Inquiry</div>
+            <div className="lxfh" style={{ fontSize: 24, color: '#121212' }}>+233 24 555 0000</div>
+            <div className="lxf" style={{ fontSize: 13, color: '#666', marginTop: 8 }}>Available 24/7 for urgent consultations</div>
           </div>
         </div>
+
+        {/* Backdrop */}
+        {menuOpen && <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(26,20,16,0.4)', backdropFilter: 'blur(4px)', zIndex: 1999 }} />}
       </div>
     </nav>
   );

@@ -14,6 +14,7 @@ import {
   Av, SBadge, Modal, FF as PFormField, PAv, PSBadge,
   Spinner, NotificationBell
 } from '../components/Shared';
+import PulseTargetCard from '../components/PulseTargetCard';
 import { uploadFile } from '../lib/firebase';
 import { compressImage } from '../lib/image-utils';
 import BA from '../components/BA';
@@ -46,25 +47,27 @@ function PModal({ open, onClose, title, children, w = 520 }) {
 function AdminDash({ clients, invoices, proposals, brand, ...props }) {
   const ac = brand.color || '#C8A96E';
   const totalRev = invoices.filter(i => i.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount.replace(/[$,]/g, '')), 0);
-  const stats = [
-    { label: 'Revenue', value: `$${(totalRev / 1000).toFixed(0)}k`, icon: <DollarSign size={18} />, sub: '+18% this month', color: ac },
-    { label: 'Active Clients', value: clients.filter(c => c.status === 'Active').length, icon: <Users size={18} />, color: '#16A34A' },
-    { label: 'Delayed Projects', value: clients.filter(c => props.getSLA(c).delayed).length, icon: <Clock size={18} />, color: '#ff4444' },
-    { label: 'Unpaid Invoices', value: invoices.filter(i => i.status === 'Pending').length, icon: <Receipt size={18} />, color: '#B45309' },
+  const dashboardStats = [
+    { label: 'Revenue', value: `$${(totalRev / 1000).toFixed(0)}k`, target: 100, icon: <DollarSign size={20} />, sub: 'On track to hit $100k', color: ac, trend: 18 },
+    { label: 'Active Clients', value: clients.filter(c => c.status === 'Active').length, target: 20, icon: <Users size={20} />, sub: 'Steady growth', color: '#16A34A', trend: 12 },
+    { label: 'Delayed Projects', value: clients.filter(c => props.getSLA(c).delayed).length, target: 2, icon: <Clock size={20} />, sub: 'High risk alerts', color: '#ff4444', trend: -5 },
+    { label: 'Unpaid Invoices', value: invoices.filter(i => i.status === 'Pending').length, target: 5, icon: <Receipt size={20} />, sub: 'Awaiting clearance', color: '#B45309', trend: 2 },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-        {stats.map(s => (
-          <div key={s.label} className="p-stat-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div className="lxf" style={{ fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: '#B5AFA9' }}>{s.label}</div>
-              <div style={{ color: s.color }}>{s.icon}</div>
-            </div>
-            <div className="lxfh" style={{ fontSize: 24, marginBottom: 4 }}>{s.value}</div>
-            <div className="lxf" style={{ fontSize: 11, color: '#16A34A' }}>{s.sub || 'Target achievement: 94%'}</div>
-          </div>
+        {dashboardStats.map(s => (
+          <PulseTargetCard 
+            key={s.label}
+            label={s.label}
+            value={s.value}
+            target={s.target}
+            icon={s.icon}
+            sub={s.sub}
+            color={s.color}
+            trend={s.trend}
+          />
         ))}
       </div>
 
@@ -728,18 +731,33 @@ function AdminAnalyticsPage({ clients, invoices, brand, getSLA }) {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-        <div className="p-stat-card">
-          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', marginBottom: 8 }}>TOTAL REVENUE</div>
-          <div className="lxfh" style={{ fontSize: 28, color: '#16A34A' }}>${(totalRev / 1000).toFixed(1)}k</div>
-        </div>
-        <div className="p-stat-card">
-          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', marginBottom: 8 }}>OUTSTANDING</div>
-          <div className="lxfh" style={{ fontSize: 28, color: '#ff4444' }}>${(outstanding / 1000).toFixed(1)}k</div>
-        </div>
-        <div className="p-stat-card">
-          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', marginBottom: 8 }}>AVG. PROJECT DELAY</div>
-          <div className="lxfh" style={{ fontSize: 28, color: '#1A1410' }}>{delayed} Projects</div>
-        </div>
+        <PulseTargetCard 
+          label="TOTAL REVENUE" 
+          value={`$${(totalRev / 1000).toFixed(1)}k`} 
+          target={500} 
+          icon={<DollarSign size={20} />} 
+          color="#16A34A" 
+          trend={22}
+          sub="Exceeding Q1 forecasts"
+        />
+        <PulseTargetCard 
+          label="OUTSTANDING" 
+          value={`$${(outstanding / 1000).toFixed(1)}k`} 
+          target={50} 
+          icon={<Receipt size={20} />} 
+          color="#ff4444" 
+          trend={-12}
+          sub="Requires follow-up"
+        />
+        <PulseTargetCard 
+          label="AVG. PROJECT DELAY" 
+          value={`${delayed} Projects`} 
+          target={0} 
+          icon={<AlertTriangle size={20} />} 
+          color="#1A1410" 
+          trend={5}
+          sub="System pressure high"
+        />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20 }}>

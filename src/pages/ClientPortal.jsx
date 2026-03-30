@@ -8,6 +8,7 @@ import {
   Av, SBadge, Modal, FF as PFormField, PAv, PSBadge,
   Modal as PModal, Spinner, NotificationBell
 } from '../components/Shared';
+import PulseTargetCard from '../components/PulseTargetCard';
 import { 
   TEAM_MEMBERS, BOOKING_SLOTS 
 } from '../data';
@@ -181,18 +182,29 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
-               <div className="p-card" style={{ padding: 20 }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Project Value</div>
-                  <div className="lxfh" style={{ fontSize: 24 }}>${total.toLocaleString()}</div>
-               </div>
-               <div className="p-card" style={{ padding: 20 }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#16A34A', textTransform: 'uppercase', marginBottom: 8 }}>Total Paid</div>
-                  <div className="lxfh" style={{ fontSize: 24, color: '#16A34A' }}>${paid.toLocaleString()}</div>
-               </div>
-               <div className="p-card" style={{ padding: 20 }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#ff4444', textTransform: 'uppercase', marginBottom: 8 }}>Outstanding</div>
-                  <div className="lxfh" style={{ fontSize: 24, color: '#ff4444' }}>${remaining.toLocaleString()}</div>
-               </div>
+               <PulseTargetCard 
+                 label="Project Value" 
+                 value={`$${total.toLocaleString()}`} 
+                 target={total} 
+                 icon={<FileText size={20} />} 
+                 color={ac} 
+               />
+               <PulseTargetCard 
+                 label="Total Paid" 
+                 value={`$${paid.toLocaleString()}`} 
+                 target={total} 
+                 icon={<CheckCircle size={20} />} 
+                 color="#16A34A" 
+                 sub="All payments verified"
+               />
+               <PulseTargetCard 
+                 label="Outstanding" 
+                 value={`$${remaining.toLocaleString()}`} 
+                 target={remaining > 0 ? total : 0} 
+                 icon={<AlertTriangle size={20} />} 
+                 color="#ff4444" 
+                 trend={remaining > 0 ? 100 : 0}
+               />
             </div>
 
             <div className="p-card" style={{ padding: 24 }}>

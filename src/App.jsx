@@ -39,6 +39,20 @@ const INITIAL_CONTENT = {
   gallery: ROOM_GALLERY
 };
 
+const ProtectedRoute = ({ user, role, children, setView }) => {
+  if (!user) return null;
+  if (role && user.role !== role) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9f7f4', color: '#1a1410', fontFamily: 'Inter' }}>
+        <h1 style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.1 }}>403</h1>
+        <p style={{ letterSpacing: '2px', textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 700 }}>Access Denied</p>
+        <button onClick={() => setView('public')} style={{ marginTop: '2rem', background: 'none', border: '1px solid #1a1410', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', textTransform: 'uppercase' }}>Return Home</button>
+      </div>
+    );
+  }
+  return children;
+};
+
 export default function App() {
   const [view, setView] = useState('public'); 
   const [page, setPage] = useState('home');
@@ -84,10 +98,28 @@ export default function App() {
     try {
       notify('pending', 'Initializing Glasstech CMS...');
       setLoading(true);
-      for (const m of TEAM_MEMBERS) await setDoc(doc(db, 'users', m.id || `STF_${Math.random()}`), m);
+      
+      const DEMO_ACCOUNTS = [
+        { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', uid: 'qRcOaTkJ6rYmjha9jNAadrYW6pK2' },
+        { email: 'admin@luxespace.com', role: 'admin', name: 'Studio Admin', uid: 'pBkrb38P9NaXXjIILQXlqxxC33p2' },
+        { email: 'client@luxespace.com', role: 'client', name: 'Elite Client', uid: 'GQL4qVw3NIe9XVq8gZFkuU4Q9dD3' },
+        { email: 'client@demo.com', role: 'client', name: 'Demo Client' }
+      ];
+
+      for (const acc of DEMO_ACCOUNTS) {
+        const id = acc.uid || acc.email.replace(/[.@]/g, '_');
+        await setDoc(doc(db, 'users', id), { 
+          id, name: acc.name, email: acc.email, role: acc.role, status: 'Active', joined: new Date().toISOString() 
+        });
+      }
+
+      for (const m of TEAM_MEMBERS) {
+        const uid = m.email ? m.email.replace(/[.@]/g, '_') : `STF_${m.id}`;
+        await setDoc(doc(db, 'users', uid), { ...m, id: uid });
+      }
       for (const item of CLIENTS_DATA) {
-        const pid = item.id || `PROJ_${Math.random().toString(36).substr(2, 5)}`;
-        const cid = `CL_${pid}`;
+        const pid = `PROJ_${item.id || Math.random().toString(36).substr(2, 5)}`;
+        const cid = item.email ? item.email.replace(/[.@]/g, '_') : `CL_${pid}`;
         await setDoc(doc(db, 'users', cid), { 
           id: cid, name: item.name, email: item.email || `${item.name.toLowerCase().replace(' ', '.')}@example.com`, 
           phone: '+233 24 000 0000', company: item.project.split(' ')[0] + ' Ltd', role: 'client', status: 'Active', joined: new Date().toISOString() 
@@ -98,7 +130,7 @@ export default function App() {
           { id: 'm3', name: 'Final Handover (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 7, paid: false }
         ];
         await setDoc(doc(db, 'projects', pid), { 
-          ...item, title: item.project, clientIds: [cid], milestones, managerId: 'EMP001', createdAt: new Date().toISOString() 
+          ...item, id: pid, title: item.project, clientIds: [cid], milestones, managerId: 'EMP001', createdAt: new Date().toISOString() 
         });
       }
       notify('success', 'Full Interior CMS Initialized');
@@ -161,28 +193,36 @@ export default function App() {
             profile = userSnap.data();
             profileId = userSnap.id;
           } else {
-            const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
+            // FALLBACK: Search by email (Case-insensitive-ish)
+            const q = query(collection(db, 'users'), where('email', '==', sessionUser.email.trim()));
             const snap = await getDocs(q);
             if (!snap.empty) {
               profile = snap.docs[0].data();
               profileId = snap.docs[0].id;
+              // Map the Auth UID to this profile for faster future lookups
+              await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
             }
           }
           
           if (profile) {
             setUser({ ...sessionUser, ...profile, id: profileId });
-            // STRICT ROLE ROUTING
-            if (profile.role === 'admin') setView('admin');
-            else if (profile.role === 'manager') setView('manager');
-            else if (profile.role === 'client') setView('portal');
-            else {
-              console.warn("Unauthorized role access:", profile.role);
-              setView('public');
+            const targetedRole = profile.role || 'client';
+            
+            // Explicit view switching based on role
+            if (targetedRole === 'admin') setView('admin');
+            else if (targetedRole === 'manager') setView('manager');
+            else if (targetedRole === 'client') {
+              setLoginType('client');
+              setView('portal');
             }
           } else {
-            console.error("No profile found for:", sessionUser.email);
+            console.error("No profile found for email:", sessionUser.email);
+            // If we are on the login page, show an error instead of a direct redirect
+            if (view === 'login') {
+              notify('error', 'Authentication successful, but no account record found.');
+            }
             setUser(null); 
-            setView('public'); // Block if no profile
+            setView('public');
           }
         } else {
           setUser(null);
@@ -258,27 +298,41 @@ export default function App() {
     </div>
   );
 
-  if (view === 'public') return <PublicSite {...commonProps} onPortal={(type) => { setLoginType(type); setView('login'); }} />;
+  const renderCurrentView = () => {
+    // If no user is logged in, show Public Site or Login Page
+    if (!user) {
+      if (view === 'login') return (
+        <LoginPage 
+          brand={brand} 
+          type={loginType} 
+          onBootstrap={migrateToFirebase} 
+          onBack={() => setView('public')}
+          onLogin={async (e, p) => {
+            try { await signInWithEmailAndPassword(auth, e, p); }
+            catch (err) {
+              if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                const { createUserWithEmailAndPassword } = await import('firebase/auth');
+                await createUserWithEmailAndPassword(auth, e, p);
+              } else throw err;
+            }
+          }} 
+        />
+      );
+      return <PublicSite {...commonProps} onPortal={(type) => { setLoginType(type); setView('login'); }} />;
+    }
 
-  if (view === 'login') return (
-    <LoginPage brand={brand} type={loginType} onBootstrap={migrateToFirebase} onBack={() => setView('public')}
-      onLogin={async (e, p) => {
-        try { await signInWithEmailAndPassword(auth, e, p); }
-        catch (err) {
-          if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-            const { createUserWithEmailAndPassword } = await import('firebase/auth');
-            await createUserWithEmailAndPassword(auth, e, p);
-          } else throw err;
-        }
-      }} 
-    />
-  );
+    // Role-based rendering
+    if (user.role === 'admin') return <AdminPortal user={user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
+    if (user.role === 'manager') return <AccountManagerPortal user={user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
+    if (user.role === 'client') return <ClientPortal client={clients.find(c => c.email === user.email) || user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
+
+    // Fallback
+    return <PublicSite {...commonProps} onPortal={(type) => { setLoginType(type); setView('login'); }} />;
+  };
 
   return (
     <div className="lxf-platform">
-      {view === 'admin' && user && <AdminPortal user={user} onLogout={() => signOut(auth)} onPreview={() => setView('public')} {...commonProps} />}
-      {view === 'manager' && user && <AccountManagerPortal user={user} onLogout={() => signOut(auth)} onPreview={() => setView('public')} {...commonProps} />}
-      {view === 'portal' && user && <ClientPortal client={clients.find(c => c.email === user.email) || { name: 'Client' }} onLogout={() => signOut(auth)} onPreview={() => setView('public')} {...commonProps} />}
+      {renderCurrentView()}
       {notification && (
         <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, padding: '12px 24px', borderRadius: 100, background: notification.type === 'error' ? '#EF4444' : '#1A1410', color: '#fff', fontSize: 13, boxShadow: '0 8px 32px rgba(0,0,0,.15)' }}>
            {notification.msg}

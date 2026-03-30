@@ -11,6 +11,11 @@ html{scroll-behavior:smooth;}
   --border: rgba(0,0,0,.04);
   --sh: 0 10px 30px rgba(0,0,0,0.03);
   
+  /* Glassmorphism Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-sh: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  
   /* Breakpoints */
   --mb: 480px;
   --tb: 768px;
@@ -89,6 +94,44 @@ p, .lxf { font-family: 'DM Sans', sans-serif; line-height: 1.6; }
 .p-btn-gold{background:var(--ac);color:#1A1410;font-weight:600;letter-spacing:.06em;font-size:12px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .3s;text-transform:uppercase;border-radius:6px;} .p-btn-gold:hover{filter:brightness(1.08);}
 .p-btn-light{background:#F9F7F4;color:#7A6E62;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .25s;font-size:12px;letter-spacing:.06em;text-transform:uppercase;border:1px solid rgba(0,0,0,.08);border-radius:6px;} .p-btn-light:hover{background:#F0EDE8;border-color:rgba(0,0,0,.12);}
 .p-stat-card{background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:10px;padding:20px;transition:all .3s;} .p-stat-card:hover{border-color:rgba(200,169,110,.3);box-shadow:0 4px 20px rgba(200,169,110,.08);}
+
+/* Premium Pulse Glassmorphism */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-sh);
+  border-radius: 16px;
+}
+
+.pulse-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.pulse-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(200,169,110,0.1) 0%, transparent 70%);
+  animation: pulse-glow-move 8s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes pulse-glow-move {
+  0%, 100% { transform: translate(-10%, -10%); opacity: 0.3; }
+  50% { transform: translate(10%, 10%); opacity: 0.6; }
+}
+
+.pulse-inner {
+  position: relative;
+  z-index: 1;
+}
 /* ── MOBILE FIRST CORE ── */
 .p-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 @media (min-width: 768px) { .p-grid-2 { grid-template-columns: 1fr 1fr; } .p-grid-3 { grid-template-columns: repeat(3, 1fr); } }
