@@ -59,6 +59,88 @@ export default function App() {
   });
   
   const [clients, setClients] = useState([]);
+  
+  const migrateToFirebase = async () => {
+    try {
+      notify('pending', 'Initializing Glasstech CMS...');
+      setLoading(true);
+      // USERS
+      for (const m of TEAM_MEMBERS) await setDoc(doc(db, 'users', m.id), m);
+      
+      // CLIENTS & PROJECTS
+      for (const item of CLIENTS_DATA) {
+        const pid = item.id || `PROJ_${Math.random().toString(36).substr(2, 5)}`;
+        const cid = `CL_${pid}`;
+        
+        // Register Client User
+        await setDoc(doc(db, 'users', cid), { 
+          id: cid, name: item.name, email: item.email || `${item.name.toLowerCase().replace(' ', '.')}@example.com`, 
+          phone: '+233 24 000 0000', company: item.project.split(' ')[0] + ' Ltd', role: 'client', status: 'Active', joined: new Date().toISOString() 
+        });
+
+        // Define Milestones
+        const milestones = [
+          { id: 'm1', name: 'Deposit (40%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.4).toLocaleString(), stageId: 1, paid: true },
+          { id: 'm2', name: 'Fabrication Commencement (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 4, paid: false },
+          { id: 'm3', name: 'Final Handover (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 7, paid: false }
+        ];
+
+        await setDoc(doc(db, 'projects', pid), { 
+          ...item, 
+          title: item.project, 
+          clientIds: [cid], 
+          milestones,
+          managerId: 'EMP001', 
+          createdAt: new Date().toISOString() 
+        });
+
+        // Create initial Invoices for the Paid milestones
+        for (const m of milestones.filter(x => x.paid)) {
+          await addDoc(collection(db, 'projects', pid, 'payments'), {
+            title: m.name, amount: m.amount, status: 'Paid', date: new Date().toLocaleDateString(), type: 'Milestone', milestoneId: m.id
+          });
+        }
+
+        const initialTasks = [{ title: 'Site Survey & Dimensioning', stage: 1, status: 'completed', assignedTo: 'EMP001' }];
+        for (const t of initialTasks) await addDoc(collection(db, 'projects', pid, 'tasks'), { ...t, createdAt: new Date().toISOString() });
+        await addDoc(collection(db, 'projects', pid, 'activity_logs'), { action: 'Project Initiated: ' + item.project, type: 'System', created_at: new Date().toISOString() });
+      }
+
+      // CMS CONTENT
+      const CMS_SHEET = {
+        brand: BRAND0,
+        hero: { slides: HERO_SLIDES },
+        services: SERVICES_DATA,
+        portfolio: PORTFOLIO_DATA,
+        about: ABOUT_DATA,
+        team: TEAM_MEMBERS,
+        why_us: WHY_US,
+        process: PROCESS_STEPS,
+        testimonials: [
+          { name: 'Abena Mensah', role: 'Developer', text: 'Glasstech transformed our development beyond expectation. The structural glazing is precise.', rating: 5 },
+          { name: 'Kofi Asante', role: 'CEO', text: 'Our new headquarters facade is world-class glass engineering.', rating: 5 }
+        ],
+        products: [
+          { id: 'p1', name: 'Low-E Toughened Glass', desc: 'High thermal efficiency panes for facades.', img: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=500&q=80', cat: 'Glass' },
+          { id: 'p2', name: 'Structural Aluminum Profiles', desc: 'Heavy-duty frames for commercial glazing.', img: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500&q=80', cat: 'Structural' }
+        ],
+        footer: {
+          links: [
+            { label: 'Privacy Policy', url: '#' },
+            { label: 'Terms of Service', url: '#' },
+            { label: 'Quality Policy', url: '#' }
+          ]
+        }
+      };
+
+      for (const [k, v] of Object.entries(CMS_SHEET)) {
+        await setDoc(doc(db, 'cms_content', k), { content: v });
+      }
+
+      notify('success', 'Full Interior CMS Initialized');
+      fetchData();
+    } catch (err) { console.error(err); notify('error', 'Initialization failed'); } finally { setLoading(false); }
+  };
   const [proposals, setProposals] = useState(PROPOSALS_DATA);
   const [invoices, setInvoices] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -533,90 +615,10 @@ export default function App() {
     approvals, updateApproval: syncApproval, createApproval,
     changeRequests, updateChangeRequest: syncChangeRequest, createChangeRequest,
     userNotifications, markNotificationRead,
+    migrateToFirebase,
     getSLA,
     content, syncCMS,
     brand: content.brand,
-    migrateToFirebase: async () => {
-      try {
-        notify('pending', 'Initializing Glasstech CMS...');
-        setLoading(true);
-        // USERS
-        for (const m of TEAM_MEMBERS) await setDoc(doc(db, 'users', m.id), m);
-        
-        // CLIENTS & PROJECTS
-        for (const item of CLIENTS_DATA) {
-          const pid = item.id || `PROJ_${Math.random().toString(36).substr(2, 5)}`;
-          const cid = `CL_${pid}`;
-          
-          // Register Client User
-          await setDoc(doc(db, 'users', cid), { 
-            id: cid, name: item.name, email: item.email || `${item.name.toLowerCase().replace(' ', '.')}@example.com`, 
-            phone: '+233 24 000 0000', company: item.project.split(' ')[0] + ' Ltd', role: 'client', status: 'Active', joined: new Date().toISOString() 
-          });
-
-          // Define Milestones
-          const milestones = [
-            { id: 'm1', name: 'Deposit (40%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.4).toLocaleString(), stageId: 1, paid: true },
-            { id: 'm2', name: 'Fabrication Commencement (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 4, paid: false },
-            { id: 'm3', name: 'Final Handover (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 7, paid: false }
-          ];
-
-          await setDoc(doc(db, 'projects', pid), { 
-            ...item, 
-            title: item.project, 
-            clientIds: [cid], 
-            milestones,
-            managerId: 'EMP001', 
-            createdAt: new Date().toISOString() 
-          });
-
-          // Create initial Invoices for the Paid milestones
-          for (const m of milestones.filter(x => x.paid)) {
-            await addDoc(collection(db, 'projects', pid, 'payments'), {
-              title: m.name, amount: m.amount, status: 'Paid', date: new Date().toLocaleDateString(), type: 'Milestone', milestoneId: m.id
-            });
-          }
-
-          const initialTasks = [{ title: 'Site Survey & Dimensioning', stage: 1, status: 'completed', assignedTo: 'EMP001' }];
-          for (const t of initialTasks) await addDoc(collection(db, 'projects', pid, 'tasks'), { ...t, createdAt: new Date().toISOString() });
-          await addDoc(collection(db, 'projects', pid, 'activity_logs'), { action: 'Project Initiated: ' + item.project, type: 'System', created_at: new Date().toISOString() });
-        }
-
-        // CMS CONTENT
-        const CMS_SHEET = {
-          brand: BRAND0,
-          hero: { slides: HERO_SLIDES },
-          services: SERVICES_DATA,
-          portfolio: PORTFOLIO_DATA,
-          about: ABOUT_DATA,
-          team: TEAM_MEMBERS,
-          why_us: WHY_US,
-          process: PROCESS_STEPS,
-          testimonials: [
-            { name: 'Abena Mensah', role: 'Developer', text: 'Glasstech transformed our development beyond expectation. The structural glazing is precise.', rating: 5 },
-            { name: 'Kofi Asante', role: 'CEO', text: 'Our new headquarters facade is world-class glass engineering.', rating: 5 }
-          ],
-          products: [
-            { id: 'p1', name: 'Low-E Toughened Glass', desc: 'High thermal efficiency panes for facades.', img: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=500&q=80', cat: 'Glass' },
-            { id: 'p2', name: 'Structural Aluminum Profiles', desc: 'Heavy-duty frames for commercial glazing.', img: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500&q=80', cat: 'Structural' }
-          ],
-          footer: {
-            links: [
-              { label: 'Privacy Policy', url: '#' },
-              { label: 'Terms of Service', url: '#' },
-              { label: 'Quality Policy', url: '#' }
-            ]
-          }
-        };
-
-        for (const [k, v] of Object.entries(CMS_SHEET)) {
-          await setDoc(doc(db, 'cms_content', k), { content: v });
-        }
-
-        notify('success', 'Full Interior CMS Initialized');
-        fetchData();
-      } catch (err) { console.error(err); notify('error', 'Initialization failed'); } finally { setLoading(false); }
-    }
   };
 
   if (view === 'public') return (
