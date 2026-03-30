@@ -646,7 +646,13 @@ export default function App() {
     <>
       <div className="lxf-platform">
         {view === 'admin' && user && <AdminPortal user={user} onLogout={() => signOut(auth)} onPreview={() => setView('public')} {...commonProps} />}
-        {view === 'portal' && user && <ClientPortal client={clients.find(c => c.email === user.email) || clients[0]} onLogout={() => signOut(auth)} {...commonProps} />}
+        {view === 'portal' && user && (
+          <ClientPortal 
+            client={clients.find(c => c.email === (user.email || '')) || { name: user.displayName || 'Client', email: user.email || '', av: 'CL' }} 
+            onLogout={() => signOut(auth)} 
+            {...commonProps} 
+          />
+        )}
         {view === 'team' && user && <AccountManagerPortal user={user} onLogout={() => signOut(auth)} {...commonProps} />}
       </div>
       

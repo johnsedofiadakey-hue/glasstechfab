@@ -103,18 +103,18 @@ export const AWARDS = [
 ];
 
 export const CLIENTS_DATA = [
-  {id:1,name:'Abena Mensah',email:'client@luxespace.com',phone:'+233 24 111 2222',loc:'East Legon',status:'Active',project:'Facade Installation',budget:'$45,000',joined:'2024-01-15',av:'AM',progress:65,milestones:[{label:'Measurement',done:true,date:'Jan 15'},{label:'Design Sign-off',done:true,date:'Jan 28'},{label:'Fabrication',done:true,date:'Feb 10'},{label:'Site Ready',done:false,date:'Mar 05'},{label:'Installation',done:false,date:'Mar 20'}],tasks:[{id:1,title:'Finalise glass thickness',priority:'High',status:'Pending',assignee:'KO',due:'2025-03-28'}],files:[],moodboards:[],messages:[]},
+  {id:1,name:'Abena Mensah',email:'client@demo.com',phone:'+233 24 111 2222',loc:'East Legon',status:'Active',project:'Facade Installation',budget:'$45,000',joined:'2024-01-15',av:'AM',progress:65,milestones:[{label:'Measurement',done:true,date:'Jan 15'},{label:'Design Sign-off',done:true,date:'Jan 28'},{label:'Fabrication',done:true,date:'Feb 10'},{label:'Site Ready',done:false,date:'Mar 05'},{label:'Installation',done:false,date:'Mar 20'}],tasks:[{id:1,title:'Finalise glass thickness',priority:'High',status:'Pending',assignee:'KO',due:'2025-03-28'}],files:[],moodboards:[],messages:[]},
 ];
 export const PROPOSALS_DATA = [
-  {id:'PRO-001',client:'Abena Mensah',clientEmail:'client@luxespace.com',title:'Facade Installation — East Legon',amount:'$45,000',status:'Accepted',date:'2024-01-20',valid:'2024-02-20',items:[{desc:'On-Site Measurement & CAD',qty:1,rate:'$5,000',total:'$5,000'},{desc:'Structural Glazing System',qty:1,rate:'$25,000',total:'$25,000'},{desc:'Aluminum Frame Fabrication',qty:1,rate:'$10,000',total:'$10,000'},{desc:'Installation & Sealing',qty:1,rate:'$5,000',total:'$5,000'}],notes:'50% deposit required to commence fabrication.'},
+  {id:'PRO-001',client:'Abena Mensah',clientEmail:'client@demo.com',title:'Facade Installation — East Legon',amount:'$45,000',status:'Accepted',date:'2024-01-20',valid:'2024-02-20',items:[{desc:'On-Site Measurement & CAD',qty:1,rate:'$5,000',total:'$5,000'},{desc:'Structural Glazing System',qty:1,rate:'$25,000',total:'$25,000'},{desc:'Aluminum Frame Fabrication',qty:1,rate:'$10,000',total:'$10,000'},{desc:'Installation & Sealing',qty:1,rate:'$5,000',total:'$5,000'}],notes:'50% deposit required to commence fabrication.'},
 ];
 
 export const INVOICES_DATA = [
-  {id:'INV-001',client:'Abena Mensah',clientEmail:'client@luxespace.com',title:'Facade Installation — 50% Deposit',amount:'$22,500',status:'Paid',date:'2024-01-25',due:'2024-02-25'},
+  {id:'INV-001',client:'Abena Mensah',clientEmail:'client@demo.com',title:'Facade Installation — 50% Deposit',amount:'$22,500',status:'Paid',date:'2024-01-25',due:'2024-02-25'},
 ];
 
 export const WORKSPACES_DATA = [
-  {id:'ws1',name:'LuxeSpace Interiors',owner:'admin@luxespace.com',plan:'Pro',status:'Active',since:'Jan 2024',clients:28,revenue:'$245,000',color:'#C8A96E'},
+  {id:'ws1',name:'LuxeSpace Interiors',owner:'admin@glasstechfab.com',plan:'Pro',status:'Active',since:'Jan 2024',clients:28,revenue:'$245,000',color:'#C8A96E'},
   {id:'ws2',name:'Volta Interiors',owner:'hello@volta.gh',plan:'Starter',status:'Active',since:'Jun 2024',clients:11,revenue:'$89,000',color:'#7B9E87'},
   {id:'ws3',name:'Accra Design Co.',owner:'info@accradesign.com',plan:'Pro',status:'Active',since:'Jan 2025',clients:6,revenue:'$41,000',color:'#C85A5A'},
 ];
