@@ -44,7 +44,7 @@ function PModal({ open, onClose, title, children, w = 520 }) {
 
 // --- MODULES ---
 
-function AdminDash({ clients, invoices, proposals, brand, ...props }) {
+function AdminDash({ clients, invoices, proposals, brand, getSLA, ...props }) {
   const ac = brand.color || '#C8A96E';
   const totalRev = (invoices || []).filter(i => i?.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
   const dashboardStats = [
