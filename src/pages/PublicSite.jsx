@@ -68,9 +68,9 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: scrolled || menuOpen ? 'rgba(255, 255, 255, 0.9)' : 'rgba(26, 20, 16, 0.35)',
+      background: scrolled || menuOpen ? 'rgba(255, 255, 255, 0.95)' : 'rgba(0, 0, 0, 0.15)',
       backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-      borderBottom: scrolled || menuOpen ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.1)',
+      borderBottom: scrolled || menuOpen ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.05)',
       transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
       height: scrolled ? 72 : 90, display: 'flex', alignItems: 'center',
       padding: '0 24px'
@@ -98,7 +98,7 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
         </div>
 
         {/* Mobile menu toggle */}
-        <button onClick={() => setMenuOpen(!menuOpen)} style={{
+        <button className="mob-only" onClick={() => setMenuOpen(!menuOpen)} style={{
           background: 'none', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 5, zIndex: 1001
         }}>
           <div style={{ width: 24, height: 2, background: menuOpen || scrolled ? '#121212' : '#ffffff', transition: '0.3s', transform: menuOpen ? 'rotate(45deg) translate(5px, 5px)' : 'none' }} />
@@ -110,8 +110,9 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(255, 255, 255, 0.95)',
           backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', zIndex: 1000,
-          transform: menuOpen ? 'translateY(0)' : 'translateY(-100%)',
-          transition: 'transform 0.5s cubic-bezier(0.85, 0, 0.15, 1)',
+          opacity: menuOpen ? 1 : 0, visibility: menuOpen ? 'visible' : 'hidden', pointerEvents: menuOpen ? 'auto' : 'none',
+          transform: menuOpen ? 'translateY(0)' : 'translateY(-20px)',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 32
         }}>
           {links.map(l => (
