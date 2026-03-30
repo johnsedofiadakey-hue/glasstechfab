@@ -50,7 +50,7 @@ function AdminDash({ clients, invoices, proposals, brand, ...props }) {
   const dashboardStats = [
     { label: 'Revenue', value: `$${(totalRev / 1000).toFixed(0)}k`, target: 100, icon: <DollarSign size={20} />, sub: 'On track to hit $100k', color: ac, trend: 18 },
     { label: 'Active Clients', value: (clients || []).filter(c => c?.status === 'Active').length, target: 20, icon: <Users size={20} />, sub: 'Steady growth', color: '#16A34A', trend: 12 },
-    { label: 'Delayed Projects', value: (clients || []).filter(c => props.getSLA && c ? props.getSLA(c).delayed : false).length, target: 2, icon: <Clock size={20} />, sub: 'High risk alerts', color: '#ff4444', trend: -5 },
+    { label: 'Delayed Projects', value: (clients || []).filter(c => (getSLA || props.getSLA) && c ? (getSLA || props.getSLA)(c).delayed : false).length, target: 2, icon: <Clock size={20} />, sub: 'High risk alerts', color: '#ff4444', trend: -5 },
     { label: 'Unpaid Invoices', value: (invoices || []).filter(i => i?.status === 'Pending').length, target: 5, icon: <Receipt size={20} />, sub: 'Awaiting clearance', color: '#B45309', trend: 2 },
   ];
 
@@ -707,7 +707,7 @@ function AdminAnalyticsPage({ clients, invoices, brand, getSLA }) {
   const ac = brand.color || '#C8A96E';
   const totalRev = (invoices || []).filter(i => i.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
   const outstanding = (invoices || []).filter(i => i.status === 'Pending').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
-  const delayed = (clients || []).filter(c => props.getSLA && c ? props.getSLA(c).delayed : false).length;
+  const delayed = (clients || []).filter(c => getSLA && c ? getSLA(c).delayed : false).length;
 
   const exportCSV = () => {
     const headers = ['Project', 'Client', 'Stage', 'Deadline', 'Status'];

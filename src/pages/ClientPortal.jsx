@@ -165,7 +165,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
         const myProj = props.clients.find(c => c.clientIds?.includes(client.id) || c.id === client.id);
         const totalRaw = myProj?.budget?.replace(/[$,]/g, '') || 0;
         const total = parseFloat(totalRaw);
-        const paid = myInvs.filter(i => i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
+        const paid = (myInvs || []).filter(i => i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
         const remaining = total - paid;
         
         return (
@@ -177,7 +177,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                </div>
                <div style={{ textAlign: 'right' }}>
                   <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>Current Stage</div>
-                  <div className="lxfh" style={{ fontSize: 20 }}>{props.PROJECT_STAGES?.find(s => s.id === (myProj?.stage || 1))?.name || 'Inquiry'}</div>
+                  <div className="lxfh" style={{ fontSize: 20 }}>{PROJECT_STAGES?.find(s => s.id === (myProj?.stage || 1))?.name || 'Inquiry'}</div>
                </div>
             </div>
             
@@ -223,7 +223,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
             <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Project Roadmap</h2>
             <div className="p-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {(props.PROJECT_STAGES || []).map(s => {
+                {(PROJECT_STAGES || []).map(s => {
                   const isCurrent = (p?.stage || 1) === s.id;
                   const isPast = (p?.stage || 1) > s.id;
                   const milestone = (p?.milestones || []).find(m => m.stageId === s.id);
