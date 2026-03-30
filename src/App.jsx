@@ -611,7 +611,10 @@ export default function App() {
       await signInWithEmailAndPassword(auth, e, p);
     } catch (err) {
       if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') {
-        if (e.includes('@glasstechfab.com') || e.includes('@demo.com')) {
+        const q = query(collection(db, 'users'), where('email', '==', e));
+        const snap = await getDocs(q);
+        
+        if (!snap.empty) {
           const { createUserWithEmailAndPassword } = await import('firebase/auth');
           await createUserWithEmailAndPassword(auth, e, p);
           return;
