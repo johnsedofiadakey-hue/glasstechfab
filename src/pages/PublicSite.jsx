@@ -93,7 +93,7 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
             }}>{l.n}</button>
           ))}
           {onPortal && (
-            <button onClick={onPortal} className="pub-btn-gold lxf" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 4 }}>Client Portal</button>
+            <button onClick={() => onPortal('client')} className="pub-btn-gold lxf" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 4 }}>Client Portal</button>
           )}
         </div>
 
@@ -122,7 +122,7 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
             }}>{l.n}</button>
           ))}
           {onPortal && (
-            <button onClick={() => { setMenuOpen(false); onPortal(); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, width: '100%', maxWidth: 280, borderRadius: 4, marginTop: 24 }}>Client Login</button>
+            <button onClick={() => { setMenuOpen(false); onPortal('client'); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, width: '100%', maxWidth: 280, borderRadius: 4, marginTop: 24 }}>Client Login</button>
           )}
           <div style={{ marginTop: 40, textAlign: 'center' }}>
             <div className="lxf" style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Ready to start a project?</div>
@@ -173,7 +173,7 @@ export function Footer({ brand, setPage, onPortal }) {
           <div className="lxf" style={{ fontSize: 12, color: '#666' }}>© 2026 Glasstech Fabrications Ltd. All rights reserved.</div>
           <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
             {['Instagram', 'LinkedIn', 'Behance'].map(s => <div key={s} style={{ fontSize: 12, color: '#666', cursor: 'pointer' }}>{s}</div>)}
-            {onPortal && <button onClick={onPortal} style={{ background: 'none', border: 'none', color: '#333', fontSize: 10, cursor: 'pointer', marginLeft: 20 }} className="lxf">Admin</button>}
+            {onPortal && <button onClick={() => onPortal('admin')} style={{ background: 'none', border: 'none', color: '#333', fontSize: 10, cursor: 'pointer', marginLeft: 20 }} className="lxf">Admin</button>}
           </div>
         </div>
       </div>

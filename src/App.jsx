@@ -43,6 +43,7 @@ export default function App() {
   const [view, setView] = useState('public'); 
   const [page, setPage] = useState('home');
   const [user, setUser] = useState(null);
+  const [loginType, setLoginType] = useState('client'); // 'client' or 'admin'
   const [brand, setBrand] = useState(BRAND0);
   const [content, setContent] = useState({
     brand: BRAND0,
@@ -618,8 +619,22 @@ export default function App() {
     }
   };
 
-  if (view === 'public') return <PublicSite {...commonProps} onPortal={() => setView('login')} />;
-  if (view === 'login') return <LoginPage brand={brand} onBootstrap={migrateToFirebase} onLogin={async (e, p) => {
+  if (view === 'public') return (
+    <PublicSite 
+      {...commonProps} 
+      onPortal={(type = 'client') => { 
+        setLoginType(type); 
+        setView('login'); 
+      }} 
+    />
+  );
+
+  if (view === 'login') return (
+    <LoginPage 
+      brand={brand} 
+      type={loginType}
+      onBootstrap={migrateToFirebase} 
+      onLogin={async (e, p) => {
     try {
       await signInWithEmailAndPassword(auth, e, p);
     } catch (err) {
@@ -638,7 +653,8 @@ export default function App() {
         throw err;
       }
     }
-  }} onBack={() => setView('public')} />;
+  }} onBack={() => setView('public')} />
+  );
 
   const ac = brand.color || '#C8A96E';
   

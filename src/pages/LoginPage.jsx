@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TEAM_MEMBERS, CLIENTS_DATA } from '../data';
 
-export default function LoginPage({ onLogin, onBack, brand, onBootstrap }) {
+export default function LoginPage({ onLogin, onBack, brand, onBootstrap, type = 'client' }) {
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
@@ -29,9 +29,9 @@ export default function LoginPage({ onLogin, onBack, brand, onBootstrap }) {
         </button>
         {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 36, objectFit: 'contain', marginBottom: 36, objectPosition: 'left' }} />
           : <div className="lxfh" style={{ fontSize: 28, fontWeight: 400, color: '#1A1410', marginBottom: 36 }}>{brand.name}</div>}
-        <div className="eyebrow lxf" style={{ marginBottom: 10 }}>Secure Access</div>
-        <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300, color: '#1A1410', lineHeight: 1.1, marginBottom: 8 }}>Welcome<br />Back</h1>
-        <p className="lxf" style={{ fontSize: 14, color: '#B5AFA9', marginBottom: 36 }}>Sign in to your workspace or portal</p>
+        <div className="eyebrow lxf" style={{ marginBottom: 10 }}>{type === 'admin' ? 'Internal Management' : 'Project Registry'}</div>
+        <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300, color: '#1A1410', lineHeight: 1.1, marginBottom: 8 }}>{type === 'admin' ? <>Console<br />Access</> : <>Client<br />Portal</>}</h1>
+        <p className="lxf" style={{ fontSize: 14, color: '#B5AFA9', marginBottom: 36 }}>{type === 'admin' ? 'Sign in to the Glasstech operations hub' : 'Manage your installation, payments & feedback'}</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <div style={{ marginBottom: 14 }}>
             <label style={{ display: 'block', fontSize: 10, color: '#484848', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 5 }}>Email Address</label>
@@ -45,8 +45,12 @@ export default function LoginPage({ onLogin, onBack, brand, onBootstrap }) {
           <button onClick={tryLogin} className="p-btn-gold lxf" style={{ padding: '14px', fontSize: 14, marginTop: 4, width: '100%', borderRadius: 8 }}>Sign In</button>
         </div>
         <div style={{ marginTop: 32, padding: '18px', background: '#F9F7F4', borderRadius: 10, border: '1px solid rgba(0,0,0,.07)' }}>
-          <div className="eyebrow lxf" style={{ marginBottom: 10, fontSize: 9 }}>Demo Credentials</div>
-          {[['Site Supervisor', 'admin@glasstechfab.com', 'admin123'], ['Operations Manager', 'manager@glasstechfab.com', 'admin123'], ['Fabrication Team', 'lead@glasstechfab.com', 'team123'], ['Client Access', 'client@demo.com', 'client123']].map(([r, e, p]) => (
+          <div className="eyebrow lxf" style={{ marginBottom: 10, fontSize: 9 }}>Available Credentials</div>
+          {[
+            ['Management Access', 'admin@glasstechfab.com', 'admin123', 'admin'],
+            ['Production Lead', 'manager@glasstechfab.com', 'admin123', 'admin'],
+            ['Client Portal', 'client@demo.com', 'client123', 'client']
+          ].filter(row => row[3] === type).map(([r, e, p]) => (
             <div key={r} style={{ marginBottom: 7, cursor: 'pointer' }} onClick={() => { setEmail(e); setPw(p); }}>
               <span className="lxf" style={{ fontSize: 10, color: '#B5AFA9', marginRight: 8, letterSpacing: '.08em' }}>{r}:</span>
               <span className="lxf" style={{ fontSize: 11, color: '#7A6E62', fontFamily: 'monospace' }}>{e} / {p}</span>
