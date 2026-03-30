@@ -14,7 +14,7 @@ import { auth, db, storage } from './lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { 
   collection, query, onSnapshot, getDocs, getDoc, doc, 
-  updateDoc, addDoc, setDoc, deleteDoc, orderBy, collectionGroup, limit
+  updateDoc, addDoc, setDoc, deleteDoc, orderBy, collectionGroup, limit, where
 } from 'firebase/firestore';
 
 const BRAND0 = {
@@ -180,14 +180,28 @@ export default function App() {
   useEffect(() => {
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
       if (sessionUser) {
+        let profile = { role: 'client' };
+        let profileId = sessionUser.uid;
+
         const userRef = doc(db, 'users', sessionUser.uid);
         const userSnap = await getDoc(userRef);
-        const profile = userSnap.exists() ? userSnap.data() : { role: 'client' };
         
-        setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
+        if (userSnap.exists()) {
+          profile = userSnap.data();
+        } else {
+          // Fallback to email matching
+          const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
+          const snap = await getDocs(q);
+          if (!snap.empty) {
+            profile = snap.docs[0].data();
+            profileId = snap.docs[0].id;
+          }
+        }
+        
+        setUser({ ...sessionUser, ...profile, id: profileId });
         if (profile?.role === 'client') setView('portal');
-        else if (profile?.role === 'manager') setView('team');
-        else if (profile?.role === 'admin') setView('admin');
+        else if (profile?.role === 'manager' || profile?.role === 'Technical Lead' || profile?.role === 'Site Supervisor') setView('team');
+        else setView('admin'); // catch-all for staff including Admin
       } else {
         setUser(null);
         setView('public');

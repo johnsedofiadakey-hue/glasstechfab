@@ -437,6 +437,82 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   );
 }
 
+export function AboutPage({ brand, content }) {
+  const ac = brand.color || '#B08D57';
+  const about = content.about || {};
+  return (
+    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
+      <section style={{ padding: '80px 24px', background: '#121212' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 20 }}>About Us</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 6vw, 96px)', color: '#fff', fontWeight: 300, lineHeight: 1.1 }}>{about.storyTitle || 'Our Story'}</h1>
+        </div>
+      </section>
+      <section style={{ padding: '120px 24px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 80, alignItems: 'center' }}>
+          <div>
+            <h2 className="lxfh" style={{ fontSize: 48, marginBottom: 32 }}>Industrial Precision meets Architectural Luxury.</h2>
+            <p className="lxf" style={{ fontSize: 18, color: '#4A4A4A', lineHeight: 1.8, marginBottom: 24 }}>{about.story}</p>
+            <p className="lxf" style={{ fontSize: 18, color: '#4A4A4A', lineHeight: 1.8 }}>{about.bio}</p>
+            <div style={{ marginTop: 40, borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: 40, display: 'flex', gap: 24, alignItems: 'center' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: ac, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 'bold' }}>{about.founder?.[0] || 'A'}</div>
+              <div>
+                <div className="lxfh" style={{ fontSize: 24 }}>{about.founder}</div>
+                <div className="lxf" style={{ color: '#666' }}>{about.role}</div>
+              </div>
+            </div>
+          </div>
+          <div><img src={about.image} alt="About Us" style={{ width: '100%', height: 'auto', borderRadius: 4 }} /></div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export function ContactPage({ brand }) {
+  const ac = brand.color || '#B08D57';
+  return (
+    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
+      <section style={{ padding: '80px 24px', background: '#121212' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 20 }}>Contact Us</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 6vw, 96px)', color: '#fff', fontWeight: 300, lineHeight: 1.1 }}>Let's talk about your <em style={{ fontStyle: 'italic', color: ac }}>Project</em>.</h1>
+        </div>
+      </section>
+      <section style={{ padding: '120px 24px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 80 }}>
+          <div>
+            <h2 className="lxfh" style={{ fontSize: 40, marginBottom: 40 }}>Get in Touch</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+              <div>
+                <div className="eyebrow lxf" style={{ color: '#666', marginBottom: 8 }}>Ghana Office</div>
+                <div className="lxf" style={{ fontSize: 18, color: '#121212' }}>{brand.location}</div>
+              </div>
+              <div>
+                <div className="eyebrow lxf" style={{ color: '#666', marginBottom: 8 }}>Phone</div>
+                <div className="lxf" style={{ fontSize: 18, color: '#121212' }}>{brand.phone}</div>
+              </div>
+              <div>
+                <div className="eyebrow lxf" style={{ color: '#666', marginBottom: 8 }}>Email</div>
+                <div className="lxf" style={{ fontSize: 18, color: '#121212' }}>{brand.email}</div>
+              </div>
+            </div>
+          </div>
+          <div style={{ background: '#fff', padding: 48, border: '1px solid rgba(0,0,0,0.06)', borderRadius: 4 }}>
+            <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 32 }}>Send a Message</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <input type="text" placeholder="Your Name" className="pub-inp" style={{ padding: '16px', borderRadius: 4 }} />
+              <input type="email" placeholder="Email Address" className="pub-inp" style={{ padding: '16px', borderRadius: 4 }} />
+              <textarea placeholder="Tell us about your project" className="pub-inp" rows={5} style={{ padding: '16px', borderRadius: 4, resize: 'vertical' }}></textarea>
+              <button className="pub-btn-dark lxf" style={{ padding: '18px', fontSize: 14 }}>Send Inquiry</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export default function PublicSite({ page, setPage, brand, content, onPortal }) {
   const p = page || 'home';
 
@@ -448,6 +524,8 @@ export default function PublicSite({ page, setPage, brand, content, onPortal }) 
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
     if (p === 'portfolio') return <PortfolioPage brand={brand} setPage={setPage} content={content} />;
+    if (p === 'about') return <AboutPage brand={brand} content={content} />;
+    if (p === 'contact') return <ContactPage brand={brand} />;
     if (p.startsWith('project-')) return <ProjectDetailPage projectId={p.split('-')[1]} brand={brand} setPage={setPage} content={content} />;
     return <div style={{ paddingTop: 200, textAlign: 'center' }}>Coming Soon: {p}</div>;
   };
