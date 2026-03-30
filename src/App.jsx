@@ -292,8 +292,7 @@ export default function App() {
           
           setUser({ ...sessionUser, ...profile, id: profileId });
           if (profile?.role === 'client') setView('portal');
-          else if (profile?.role === 'admin' || profile?.role === 'Managing Director') setView('admin');
-          else setView('team'); 
+          else setView('admin'); // All staff roles see the management console
         } else {
           setUser(null);
           setView('public');
