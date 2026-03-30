@@ -182,32 +182,42 @@ export default function App() {
 
   useEffect(() => {
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
-      if (sessionUser) {
-        let profile = { role: 'client' };
-        let profileId = sessionUser.uid;
+      try {
+        if (sessionUser) {
+          console.log("Auth session detected:", sessionUser.email);
+          let profile = { role: 'client' };
+          let profileId = sessionUser.uid;
 
-        const userRef = doc(db, 'users', sessionUser.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (userSnap.exists()) {
-          profile = userSnap.data();
-        } else {
-          // Fallback to email matching
-          const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
-          const snap = await getDocs(q);
-          if (!snap.empty) {
-            profile = snap.docs[0].data();
-            profileId = snap.docs[0].id;
+          const userRef = doc(db, 'users', sessionUser.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (userSnap.exists()) {
+            profile = userSnap.data();
+            console.log("Profile found by UID:", profile.role);
+          } else {
+            console.log("UID not found, matching email...");
+            const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
+            const snap = await getDocs(q);
+            if (!snap.empty) {
+              profile = snap.docs[0].data();
+              profileId = snap.docs[0].id;
+              console.log("Profile found by email:", profile.role);
+            } else {
+              console.warn("No Firestore profile for email:", sessionUser.email);
+            }
           }
+          
+          setUser({ ...sessionUser, ...profile, id: profileId });
+          if (profile?.role === 'client') setView('portal');
+          else if (profile?.role === 'admin' || profile?.role === 'Managing Director') setView('admin');
+          else setView('team'); 
+        } else {
+          setUser(null);
+          setView('public');
         }
-        
-        setUser({ ...sessionUser, ...profile, id: profileId });
-        if (profile?.role === 'client') setView('portal');
-        else if (profile?.role === 'admin' || profile?.role === 'Managing Director') setView('admin');
-        else setView('team'); 
-      } else {
-        setUser(null);
-        setView('public');
+      } catch (e) {
+        console.error("Auth listener error:", e);
+        notify('error', 'Login sync failed. Please refresh.');
       }
     });
     return () => authSub();
