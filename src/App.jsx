@@ -8,7 +8,7 @@ import {
   CLIENTS_DATA, PROPOSALS_DATA, INVOICES_DATA, 
   BOOKINGS_DATA, EMAIL_QUEUE, HERO_SLIDES,
   SERVICES_DATA, ABOUT_DATA, PROCESS_STEPS, ROOM_GALLERY,
-  PORTFOLIO_DATA, TEAM_MEMBERS, PROJECT_STAGES
+  PORTFOLIO_DATA, TEAM_MEMBERS, PROJECT_STAGES, WHY_US
 } from './data.jsx';
 import { auth, db, storage } from './lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
