@@ -190,91 +190,122 @@ function AdminInstallations({ clients, updateProject, dbClients, brand, ...props
 
   if (sel) {
     const proj = clients.find(x => x.id === sel);
+    const paidAmount = (props.invoices || []).filter(i => i.parentId === sel && i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
+    const totalBudget = parseFloat(proj.budget?.replace(/[$,]/g, '') || 0);
+    
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => setSel(null)} className="p-btn-light lxf" style={{ padding: '8px 12px' }}><ArrowLeft size={16} /></button>
-          <h2 className="lxfh" style={{ fontSize: 28, fontWeight: 400 }}>Installation: {proj.project}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={() => setSel(null)} className="p-btn-light" style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowLeft size={18} /></button>
+            <div>
+              <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 400 }}>{proj.project}</h2>
+              <div className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>{proj.cat || 'Full Interior Finishing'} • {proj.name}</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.1em' }}>Project Progress</div>
+            <div className="lxfh" style={{ fontSize: 20, color: ac }}>{proj.progress || 0}%</div>
+          </div>
         </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {/* STAGES WITH FINANCIAL ENFORCEMENT */}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 32, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            
+            {/* TIMELINE EDITOR */}
             <div className="p-card" style={{ padding: 24 }}>
-              <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Workflow & Milestones</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {PROJECT_STAGES.map(s => {
+              <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 24 }}>Project Journey</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 15, top: 0, bottom: 0, width: 2, background: '#F0EBE5' }} />
+                
+                {PROJECT_STAGES.map((s, idx) => {
                   const isCurrent = (proj.stage || 1) === s.id;
                   const isPast = (proj.stage || 1) > s.id;
-                  const milestone = (proj.milestones || []).find(m => m.stageId === s.id);
-                  const isLocked = s.id > 1 && (proj.milestones || []).some(m => m.stageId < s.id && !m.paid);
+                  const isLast = idx === PROJECT_STAGES.length - 1;
                   
                   return (
-                    <div key={s.id} 
-                      onClick={() => !isLocked && updateProject(proj.id, { stage: s.id })}
-                      style={{ 
-                        display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', 
-                        background: isCurrent ? `${s.color}10` : '#F9F7F4', 
-                        border: isCurrent ? `1px solid ${s.color}30` : '1px solid transparent', 
-                        borderRadius: 10, cursor: isLocked ? 'not-allowed' : 'pointer', opacity: isLocked ? 0.6 : 1,
-                        transition: 'all .2s'
-                      }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: isPast ? s.color : isCurrent ? s.color : '#DFD9D1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
-                        {isPast ? <CheckCircle size={14} /> : s.id}
+                    <div key={s.id} style={{ display: 'flex', gap: 20, marginBottom: isLast ? 0 : 32, position: 'relative' }}>
+                      <div 
+                        onClick={() => props.updateStage(proj.id, s.id)}
+                        style={{ 
+                          width: 32, height: 32, borderRadius: '50%', 
+                          background: isPast ? s.color : isCurrent ? '#fff' : '#fff',
+                          border: isPast ? `2px solid ${s.color}` : isCurrent ? `2px solid ${s.color}` : '2px solid #DFD9D1',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          zIndex: 2, cursor: 'pointer', transition: 'all .3s'
+                        }}
+                      >
+                        {isPast ? <Check size={16} color="#fff" strokeWidth={3} /> : <div style={{ width: 8, height: 8, borderRadius: '50%', background: isCurrent ? s.color : '#DFD9D1' }} />}
                       </div>
-                      <div style={{ flex: 1 }}>
-                        <div className="lxf" style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : '#7A6E62' }}>{s.name}</div>
-                        {milestone && <div className="lxf" style={{ fontSize: 11, color: milestone.paid ? '#16A34A' : '#B45309', fontWeight: 600 }}>Financial Goal: {milestone.name} ({milestone.paid ? 'Paid' : 'Awaiting Payment'})</div>}
+
+                      <div style={{ flex: 1, paddingTop: 4 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <div className="lxf" style={{ fontSize: 15, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : isPast ? '#7A6E62' : '#B5AFA9' }}>{s.name}</div>
+                            {isCurrent && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginTop: 4 }}>Active stage • Estimated {s.days} days remaining</div>}
+                          </div>
+                          {isCurrent && (
+                            <div style={{ display: 'flex', gap: 8 }}>
+                               <button onClick={() => props.updateStage(proj.id, s.id + 1)} className="p-btn-gold" style={{ padding: '6px 12px', fontSize: 11 }}>Next Stage</button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {isLocked && <AlertTriangle size={16} color="#ff4444" />}
                     </div>
                   );
                 })}
               </div>
             </div>
 
+            {/* TASKS & PROCUREMENT (SIMPLIFIED) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+               <AdminTasks projectId={sel} projectTitle={proj.project} {...props} brand={brand} />
+               <AdminProcurement projectId={sel} procurements={props.procurements} createProcurement={props.createProcurement} updateProcurement={props.updateProcurement} deleteProcurement={props.deleteProcurement} brand={brand} />
+            </div>
+
             <AdminGovernance projectId={sel} {...props} brand={brand} />
-            <AdminTasks projectId={sel} projectTitle={proj.project} {...props} brand={brand} />
-            <AdminProcurement projectId={sel} procurements={props.procurements} createProcurement={props.createProcurement} updateProcurement={props.updateProcurement} deleteProcurement={props.deleteProcurement} brand={brand} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {/* CLIENTS ASSIGNMENT */}
+            {/* PAYMENTS MILESTONES */}
             <div className="p-card" style={{ padding: 24 }}>
-               <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Project Stakeholders</h3>
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {(proj.clientIds || [proj.clientId]).map(cid => {
-                    const c = dbClients.find(u => u.id === cid) || clients.find(cl => cl.id === cid);
-                    return (
-                      <div key={cid} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F9F7F4', padding: 8, borderRadius: 8 }}>
-                        <PAv i={c?.name?.split(' ').map(n=>n[0]).join('') || 'CU'} s={32} c={ac} />
-                        <div style={{ flex: 1 }}>
-                          <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{c?.name || 'Unknown Client'}</div>
-                          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{c?.company || 'Stakeholder'}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <button className="p-btn-light lxf" style={{ width: '100%', borderStyle: 'dashed', fontSize: 12 }}><Plus size={14} style={{ marginRight: 6 }} /> Assign Stakeholder</button>
+               <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Payment Milestones</h3>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {[
+                    { label: 'Deposit (40%)', amount: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.4 ? 'Paid' : 'Pending' },
+                    { label: 'Production (40%)', amount: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.8 ? 'Paid' : 'Pending' },
+                    { label: 'Final Payment (20%)', amount: totalBudget * 0.2, status: paidAmount >= totalBudget ? 'Paid' : 'Pending' }
+                  ].map((m, i) => (
+                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#F9F7F4', borderRadius: 8 }}>
+                       <div>
+                          <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</div>
+                          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>${m.amount.toLocaleString()}</div>
+                       </div>
+                       <SBadge s={m.status === 'Paid' ? 'PAID' : 'DUE'} />
+                    </div>
+                  ))}
+               </div>
+               <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(0,0,0,.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Total Paid</span>
+                    <span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#16A34A' }}>${paidAmount.toLocaleString()}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Outstanding</span>
+                    <span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#ff4444' }}>${(totalBudget - paidAmount).toLocaleString()}</span>
+                  </div>
                </div>
             </div>
 
-            {/* FINANCIALS */}
-            <div className="p-card" style={{ padding: 24 }}>
-               <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Financial Balance</h3>
-               {(() => {
-                 const total = parseFloat(proj.budget.replace(/[$,]/g, '')) || 0;
-                 const paid = (props.invoices || []).filter(i => i.parentId === sel && i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
-                 const bal = total - paid;
-                 return (
-                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Total Contract</span><span className="lxf" style={{ fontSize: 14, fontWeight: 700 }}>${total.toLocaleString()}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Confirmed Payments</span><span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#16A34A' }}>${paid.toLocaleString()}</span></div>
-                      <div style={{ height: 1, background: 'rgba(0,0,0,.05)' }} />
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Outstanding Balance</span><span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#ff4444' }}>${bal.toLocaleString()}</span></div>
-                   </div>
-                 );
-               })()}
+            {/* QUICK ACTIONS */}
+            <div className="p-card" style={{ padding: 24, background: ac, color: '#fff' }}>
+               <h3 className="lxfh" style={{ fontSize: 16, marginBottom: 16, color: '#fff' }}>Quick Actions</h3>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><Plus size={14} /> Task</button>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><Camera size={14} /> Photo</button>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><FileText size={14} /> Approval</button>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><DollarSign size={14} /> Invoice</button>
+               </div>
             </div>
           </div>
         </div>
@@ -300,8 +331,8 @@ function AdminInstallations({ clients, updateProject, dbClients, brand, ...props
                 <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>{c.project}</div></td>
                 <td style={{ padding: '14px 16px' }}><span className="lxf" style={{ fontSize: 12, color: ac, fontWeight: 600 }}>{c.cat || 'Full Interior'}</span></td>
                 <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 13, color: '#7A6E62' }}>{c.name}</div></td>
-                <td style={{ padding: '14px 16px' }}><PSBadge s={PROJECT_STAGES.find(s=>s.id === (c.stage || 1))?.name || 'Inquiry'} /></td>
-                <td style={{ padding: '14px 16px' }}><div className="prog" style={{ width: 80 }}><div className="prog-f" style={{ width: `${c.progress}%`, background: ac }} /></div></td>
+                <td style={{ padding: '14px 16px' }}><PSBadge s={PROJECT_STAGES.find(s=>s.id === (c.stage || 1))?.name || 'Order Confirmed'} /></td>
+                <td style={{ padding: '14px 16px' }}><div className="prog" style={{ width: 80 }}><div className="prog-f" style={{ width: `${c.progress || 0}%`, background: ac }} /></div></td>
                 <td style={{ padding: '14px 16px' }}><button onClick={() => setSel(c.id)} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>Manage Operations</button></td>
               </tr>
             ))}
@@ -390,135 +421,42 @@ function AdminProcurement({ projectId, procurements = [], createProcurement, upd
   );
 }
 
-function AdminGovernance({ projectId, approvals, changeRequests, createApproval, updateChangeRequest, brand }) {
+function AdminGovernance({ projectId, approvals, createApproval, brand }) {
   const ac = brand.color || '#C8A96E';
-  const [showAddApp, setShowAddApp] = useState(false);
-  const [na, setNa] = useState({ itemName: '', desc: '', specs: '', imageUrl: '' });
-  
-  const [evalModal, setEvalModal] = useState(null);
-  const [evalData, setEvalData] = useState({ costImpact: '', timelineImpact: '' });
-
+  const [showAdd, setShowAdd] = useState(false);
+  const [na, setNa] = useState({ itemName: '', description: '', specifications: '', imageUrl: '' });
   const myApprovals = (approvals || []).filter(a => a.parentId === projectId);
-  const myCRs = (changeRequests || []).filter(r => r.parentId === projectId);
-
-  const handleAddApp = async () => {
-    if (!na.itemName || !na.desc) return alert('Name and Description required');
-    await createApproval(projectId, {
-      itemName: na.itemName,
-      description: na.desc,
-      specifications: na.specs,
-      imageUrl: na.imageUrl,
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    });
-    setNa({ itemName: '', desc: '', specs: '', imageUrl: '' });
-    setShowAddApp(false);
-  };
-
-  const handleEvaluate = async () => {
-    await updateChangeRequest(evalModal.id, { 
-      ...evalData, 
-      status: 'evaluated' 
-    }, projectId);
-    setEvalModal(null);
-    setEvalData({ costImpact: '', timelineImpact: '' });
-  };
 
   return (
     <div className="p-card" style={{ padding: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h3 className="lxfh" style={{ fontSize: 18 }}>Project Governance</h3>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={() => setShowAddApp(!showAddApp)} className="p-btn-gold lxf" style={{ padding: '6px 14px', fontSize: 11 }}>
-            {showAddApp ? 'Cancel' : <><Plus size={14} style={{ marginRight: 6 }} /> Add Technical Item</>}
-          </button>
-        </div>
-      </div>
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+         <h3 className="lxfh" style={{ fontSize: 18 }}>Approvals Pipeline</h3>
+         <button onClick={() => setShowAdd(!showAdd)} className="lxf" style={{ fontSize: 13, background: 'none', border: 'none', color: ac, fontWeight: 600, cursor: 'pointer' }}>+ Request Approval</button>
+       </div>
 
-      {showAddApp && (
-        <div style={{ background: '#F9F7F4', padding: 16, borderRadius: 8, marginBottom: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div style={{ gridColumn: 'span 2' }}>
-            <label className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Item Name</label>
-            <input className="p-inp" value={na.itemName} onChange={e => setNa({...na, itemName: e.target.value})} placeholder="e.g. Low-E Insulated Glass" />
-          </div>
-          <div style={{ gridColumn: 'span 2' }}>
-            <label className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Technical Specs / JSON</label>
-            <input className="p-inp" value={na.specs} onChange={e => setNa({...na, specs: e.target.value})} placeholder="e.g. 12mm thick, Charcoal Tint" />
-          </div>
-          <div style={{ gridColumn: 'span 2' }}>
-            <label className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Image URL</label>
-            <input className="p-inp" value={na.imageUrl} onChange={e => setNa({...na, imageUrl: e.target.value})} placeholder="https://..." />
-          </div>
-          <div style={{ gridColumn: 'span 2' }}>
-            <label className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Description</label>
-            <textarea className="p-inp" value={na.desc} onChange={e => setNa({...na, desc: e.target.value})} placeholder="Compliance details..." rows={2} />
-          </div>
-          <div style={{ gridColumn: 'span 2' }}>
-             <button onClick={handleAddApp} className="p-btn-dark lxf" style={{ width: '100%', marginTop: 8 }}>Add to Approval Pipeline</button>
-          </div>
-        </div>
-      )}
+       {showAdd && (
+         <div style={{ padding: 16, background: '#F9F7F4', borderRadius: 8, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <PFormField label="Item/Material Name"><input className="p-inp" value={na.itemName} onChange={e => setNa({...na, itemName: e.target.value})} /></PFormField>
+            <PFormField label="Specifications"><input className="p-inp" value={na.specifications} onChange={e => setNa({...na, specifications: e.target.value})} /></PFormField>
+            <PFormField label="Image URL"><input className="p-inp" value={na.imageUrl} onChange={e => setNa({...na, imageUrl: e.target.value})} /></PFormField>
+            <PFormField label="Description"><textarea className="p-inp" rows={2} value={na.description} onChange={e => setNa({...na, description: e.target.value})} /></PFormField>
+            <button onClick={() => { createApproval(projectId, na); setShowAdd(false); setNa({itemName:'', description:'', specifications:'', imageUrl:''}); }} className="p-btn-dark lxf">Send to Client</button>
+         </div>
+       )}
 
-      {/* APPROVALS LIST */}
-      <div style={{ marginBottom: 24 }}>
-        <div className="lxf" style={{ fontSize: 12, fontWeight: 600, color: '#B5AFA9', marginBottom: 12 }}>Technical Sign-offs ({myApprovals.length})</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           {myApprovals.map(a => (
-            <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 10, border: '1px solid rgba(0,0,0,.04)', borderRadius: 8 }}>
-              {a.imageUrl && <img src={a.imageUrl} style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover' }} alt="spec" />}
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>{a.itemName}</div>
-                <div style={{ fontSize: 11, color: '#B5AFA9' }}>Created: {new Date(a.createdAt).toLocaleDateString()}</div>
-              </div>
-              <SBadge s={a.status} />
+            <div key={a.id} style={{ padding: 12, border: '1px solid rgba(0,0,0,.05)', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
+               {a.imageUrl && <img src={a.imageUrl} style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} alt="" />}
+               <div style={{ flex: 1 }}>
+                  <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{a.itemName}</div>
+                  <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>{a.status.toUpperCase()}</div>
+               </div>
+               <div style={{ width: 8, height: 8, borderRadius: '50%', background: a.status === 'approved' ? '#16A34A' : a.status === 'rejected' ? '#ff4444' : '#FF9800' }} />
             </div>
           ))}
-          {myApprovals.length === 0 && <div style={{ fontSize: 12, color: '#B5AFA9', textAlign: 'center', py: 8 }}>No technical items created</div>}
-        </div>
-      </div>
-
-      {/* CHANGE REQUESTS LIST */}
-      <div>
-        <div className="lxf" style={{ fontSize: 12, fontWeight: 600, color: '#B5AFA9', marginBottom: 12 }}>Change Requests ({myCRs.length})</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {myCRs.map(r => (
-            <div key={r.id} style={{ padding: 12, border: '1px solid rgba(0,0,0,.04)', borderRadius: 8 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>{r.description}</div>
-                <SBadge s={r.status} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: 11, color: '#B5AFA9' }}>{new Date(r.createdAt).toLocaleDateString()}</div>
-                {r.status === 'pending' && (
-                  <button 
-                    onClick={() => setEvalModal(r)}
-                    className="p-btn-light" style={{ padding: '4px 8px', fontSize: 10 }}
-                  >Evaluate Impact</button>
-                )}
-                {r.status === 'evaluated' && <div style={{ fontSize: 10, color: ac, fontWeight: 600 }}>Awaiting Client Approval</div>}
-              </div>
-            </div>
-          ))}
-          {myCRs.length === 0 && <div style={{ fontSize: 12, color: '#B5AFA9', textAlign: 'center', py: 8 }}>No change requests</div>}
-        </div>
-      </div>
-
-      {evalModal && (
-        <div className="overlay-modal" onClick={() => setEvalModal(null)}>
-          <div className="modal-box lxf" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
-            <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 20 }}>Impact Evaluation</h3>
-            <PFormField label="Cost Impact ($)">
-              <input className="p-inp" placeholder="e.g. +$2,500" value={evalData.costImpact} onChange={e => setEvalData({...evalData, costImpact: e.target.value})} />
-            </PFormField>
-            <div style={{ marginTop: 12 }}>
-              <PFormField label="Timeline Impact (Days)">
-                <input className="p-inp" placeholder="e.g. +7 Days" value={evalData.timelineImpact} onChange={e => setEvalData({...evalData, timelineImpact: e.target.value})} />
-              </PFormField>
-            </div>
-            <button onClick={handleEvaluate} className="p-btn-gold" style={{ width: '100%', marginTop: 24, padding: 12 }}>Send to Client</button>
-          </div>
-        </div>
-      )}
+          {myApprovals.length === 0 && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic', gridColumn: 'span 2' }}>No items in approval pipeline.</div>}
+       </div>
     </div>
   );
 }
@@ -559,77 +497,53 @@ function AdminTasks({ projectId, projectTitle, tasks, createTask, deleteTask, up
   return (
     <div className="p-card" style={{ padding: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h3 className="lxfh" style={{ fontSize: 18 }}>Project Tasks</h3>
-        <button onClick={() => setShowAdd(!showAdd)} className="p-btn-gold lxf" style={{ padding: '6px 14px', fontSize: 11 }}>
-          {showAdd ? 'Cancel' : <><Plus size={14} style={{ marginRight: 6 }} /> Add Task</>}
-        </button>
+        <h3 className="lxfh" style={{ fontSize: 18 }}>Tasks</h3>
+        <button onClick={() => setShowAdd(!showAdd)} className="lxf" style={{ fontSize: 13, background: 'none', border: 'none', color: ac, fontWeight: 600, cursor: 'pointer' }}>+ New Task</button>
       </div>
 
       {showAdd && (
-        <div style={{ background: '#F9F7F4', padding: 16, borderRadius: 8, marginBottom: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div style={{ gridColumn: 'span 2' }}>
-            <label className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Task Title</label>
-            <input className="p-inp" value={nt.title} onChange={e => setNt({...nt, title: e.target.value})} placeholder="e.g. Design Kitchen Layout" />
-          </div>
-          <div>
-            <label className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Assign To</label>
-            <select className="p-inp" value={nt.assignedTo} onChange={e => setNt({...nt, assignedTo: e.target.value})}>
-              <option value="">Select Staff</option>
-              {teamMembers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Project Stage</label>
-            <select className="p-inp" value={nt.stage} onChange={e => setNt({...nt, stage: e.target.value})}>
-              {[1,2,3,4,5,6,7].map(s => <option key={s} value={s}>Stage {s}</option>)}
-            </select>
-          </div>
-          <div style={{ gridColumn: 'span 2' }}>
-             <button onClick={handleAdd} className="p-btn-dark lxf" style={{ width: '100%', marginTop: 8 }}>Create Task</button>
-          </div>
+        <div style={{ background: '#F9F7F4', padding: 16, borderRadius: 8, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <PFormField label="Task Title"><input className="p-inp" value={nt.title} onChange={e => setNt({...nt, title: e.target.value})} /></PFormField>
+            <PFormField label="Assign To">
+              <select className="p-inp" value={nt.assignedTo} onChange={e => setNt({...nt, assignedTo: e.target.value})}>
+                <option value="">Select Staff</option>
+                {teamMembers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+            </PFormField>
+            <PFormField label="Stage">
+              <select className="p-inp" value={nt.stage} onChange={e => setNt({...nt, stage: e.target.value})}>
+                {PROJECT_STAGES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </PFormField>
+            <button onClick={handleAdd} className="p-btn-dark lxf">Create Task</button>
         </div>
       )}
 
-      {/* Filters Row */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
-        <select className="p-inp" style={{ flex: 1, minWidth: 100, fontSize: 11 }} value={fStage} onChange={e => setFStage(e.target.value)}>
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <select className="p-inp" style={{ fontSize: 10, padding: '4px 8px' }} value={fStage} onChange={e => setFStage(e.target.value)}>
           <option value="all">All Stages</option>
-          {[1,2,3,4,5,6,7].map(s => <option key={s} value={s}>Stage {s}</option>)}
+          {PROJECT_STAGES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <select className="p-inp" style={{ flex: 1, minWidth: 100, fontSize: 11 }} value={fUser} onChange={e => setFUser(e.target.value)}>
-          <option value="all">All Users</option>
-          {teamMembers.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-        </select>
-        <select className="p-inp" style={{ flex: 1, minWidth: 100, fontSize: 11 }} value={fStatus} onChange={e => setFStatus(e.target.value)}>
-          <option value="all">All Status</option>
+        <select className="p-inp" style={{ fontSize: 10, padding: '4px 8px' }} value={fStatus} onChange={e => setFStatus(e.target.value)}>
+          <option value="all">Status</option>
           <option value="pending">Pending</option>
-          <option value="in_progress">In Progress</option>
-          <option value="completed">Completed</option>
+          <option value="completed">Done</option>
         </select>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {projectTasks.length === 0 && <div className="lxf" style={{ color: '#B5AFA9', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>No matching tasks found.</div>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {projectTasks.length === 0 && <div className="lxf" style={{ color: '#B5AFA9', fontSize: 12, textAlign: 'center', padding: '10px 0' }}>No tasks found</div>}
         {projectTasks.map(t => (
-          <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, border: '1px solid rgba(0,0,0,.05)', borderRadius: 8 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <span className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{t.title}</span>
-                <span className="lxf" style={{ fontSize: 10, color: '#B5AFA9', padding: '2px 6px', background: '#F3F4F6', borderRadius: 4 }}>Stage {t.stage}</span>
-              </div>
-              <div className="lxf" style={{ fontSize: 11, color: '#7A6E62' }}>Assigned to: {teamMembers.find(m => m.id === t.assignedTo)?.name || 'Unknown'}</div>
-            </div>
-            <select 
-              value={t.status} 
-              onChange={e => updateTask(t.id, { status: e.target.value }, projectId)}
-              className="lxf"
-              style={{ padding: '4px 8px', borderRadius: 6, fontSize: 10, border: '1px solid rgba(0,0,0,.1)', background: '#fff', cursor: 'pointer', outline: 'none' }}
-            >
-              <option value="pending">Pending</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-            </select>
-            <button onClick={() => deleteTask(t.id, projectId)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: 4 }}><Trash2 size={14} /></button>
+          <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px', background: '#F9F7F4', borderRadius: 8 }}>
+             <button onClick={() => updateTask(t.id, { status: t.status === 'completed' ? 'pending' : 'completed' }, projectId)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: t.status === 'completed' ? '#16A34A' : '#DFD9D1' }}>
+                <CheckCircle size={18} />
+             </button>
+             <div style={{ flex: 1 }}>
+                <div className="lxf" style={{ fontSize: 13, fontWeight: 500, textDecoration: t.status === 'completed' ? 'line-through' : 'none', color: t.status === 'completed' ? '#B5AFA9' : '#1A1410' }}>{t.title}</div>
+                <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>{teamMembers.find(m=>m.id === t.assignedTo)?.name || 'Unassigned'} • Stage {t.stage}</div>
+             </div>
+             <button onClick={() => deleteTask && deleteTask(t.id, projectId)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', opacity: 0.4 }}><Trash2 size={14} /></button>
           </div>
         ))}
       </div>

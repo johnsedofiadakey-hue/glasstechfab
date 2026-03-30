@@ -2,13 +2,18 @@ import React from 'react';
 import { DollarSign, Eye, MessageSquare, CheckCircle, Users } from 'lucide-react';
 
 export const PROJECT_STAGES = [
-  { id: 1, name: 'Measurement & Quotation', days: 7, color: '#473C2C' },
-  { id: 2, name: 'Design & Specification', days: 14, color: '#726045' },
-  { id: 3, name: 'Client Approval', days: 7, color: '#9D845E' },
-  { id: 4, name: 'Fabrication', days: 25, color: '#1A1410' },
-  { id: 5, name: 'Delivery / Logistics', days: 7, color: '#B5AFA9' },
-  { id: 6, name: 'Installation', days: 14, color: '#C8A96E' },
-  { id: 7, name: 'Handover', days: 5, color: '#16A34A' }
+  { id: 1, name: 'Order Confirmed', days: 1, color: '#4CAF50' },
+  { id: 2, name: 'Materials Selection', days: 7, color: '#FF9800' },
+  { id: 3, name: 'Client Approval', days: 3, color: '#2196F3' },
+  { id: 4, name: 'Payment (Deposit / Partial)', days: 2, color: '#00BCD4' },
+  { id: 5, name: 'Procurement (Local / China)', days: 14, color: '#9C27B0' },
+  { id: 6, name: 'Production', days: 21, color: '#1A1410' },
+  { id: 7, name: 'Inspection', days: 3, color: '#3F51B5' },
+  { id: 8, name: 'Shipping', days: 30, color: '#607D8B' },
+  { id: 9, name: 'Arrival in Ghana', days: 5, color: '#795548' },
+  { id: 10, name: 'Delivery to Site', days: 2, color: '#FF5722' },
+  { id: 11, name: 'Installation', days: 10, color: '#C8A96E' },
+  { id: 12, name: 'Handover', days: 2, color: '#16A34A' }
 ];
 
 export const ABOUT_DATA = {

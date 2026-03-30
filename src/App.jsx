@@ -279,11 +279,55 @@ export default function App() {
     const notifSub = onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)), (snap) => {
       setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
     });
-    const procurementSub = onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
-      setProcurements(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    const approvalSub = onSnapshot(query(collectionGroup(db, 'approvals')), (snap) => {
+      setApprovals(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
-    return () => { projectSub(); userSub(); paymentSub(); logSub(); taskSub(); notifSub(); procurementSub(); };
+    const crSub = onSnapshot(query(collectionGroup(db, 'change_requests')), (snap) => {
+      setChangeRequests(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    });
+    return () => { 
+      projectSub(); userSub(); paymentSub(); logSub(); taskSub(); notifSub(); procurementSub(); 
+      approvalSub(); crSub();
+    };
   }, [user?.id]);
+
+  const updateStage = async (projectId, stageId) => {
+    try {
+      await updateDoc(doc(db, 'projects', projectId), { stage: stageId, progress: Math.round((stageId / 12) * 100) });
+      logAction(projectId, 'Stage', `Moved to Stage ${stageId}`);
+    } catch (e) { console.error(e); }
+  };
+
+  const createApproval = async (projectId, data) => {
+    try {
+      await addDoc(collection(db, 'projects', projectId, 'approvals'), { ...data, status: 'pending', createdAt: new Date().toISOString() });
+      notifyUser(dbClients.find(c => c.id === clients.find(p => p.id === projectId)?.clientId)?.id, "New technical item requires your approval", "approval");
+    } catch (e) { console.error(e); }
+  };
+
+  const updateApproval = async (id, data, projectId) => {
+    try {
+      await updateDoc(doc(db, 'projects', projectId, 'approvals', id), data);
+      logAction(projectId, 'Approval', `Item ${id} marked as ${data.status}`);
+    } catch (e) { console.error(e); }
+  };
+
+  const createChangeRequest = async (projectId, data) => {
+    try {
+      await addDoc(collection(db, 'projects', projectId, 'change_requests'), { ...data, status: 'pending', createdAt: new Date().toISOString() });
+      // Notify Admin
+      teamMembers.filter(m => m.role === 'admin').forEach(admin => {
+        notifyUser(admin.id, "New change request submitted by client", "change_request");
+      });
+    } catch (e) { console.error(e); }
+  };
+
+  const updateChangeRequest = async (id, data, projectId) => {
+    try {
+      await updateDoc(doc(db, 'projects', projectId, 'change_requests', id), data);
+      logAction(projectId, 'ChangeRequest', `Request ${id} updated to ${data.status}`);
+    } catch (e) { console.error(e); }
+  };
 
   const syncProjects = async (id, fields) => {
     try {
@@ -340,7 +384,9 @@ export default function App() {
     shipments, setShipments,
     procurements, createProcurement, updateProcurement, deleteProcurement,
     tasks, updateTask: (id, f, pid) => updateDoc(doc(db, 'projects', pid, 'tasks', id), f),
-    approvals: [], changeRequests: [],
+    approvals, createApproval, updateApproval,
+    changeRequests, createChangeRequest, updateChangeRequest,
+    updateStage,
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS
   };

@@ -135,6 +135,8 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
   
   const [payModal, setPayModal] = useState(null);
   const [paidIds, setPaidIds] = useState([]);
+  const [crModal, setCrModal] = useState(false);
+  const [crData, setCrData] = useState({ description: '' });
 
   const tabs = [
     ['overview', 'Overview'], 
@@ -161,97 +163,127 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
 
   const renderContent = () => {
     switch (tab) {
-      case 'overview':
+      case 'overview': {
         const myProj = props.clients.find(c => c.clientIds?.includes(client.id) || c.id === client.id);
-        const totalRaw = myProj?.budget?.replace(/[$,]/g, '') || 0;
-        const total = parseFloat(totalRaw);
-        const paid = (myInvs || []).filter(i => i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
-        const remaining = total - paid;
+        const totalBudget = parseFloat(myProj?.budget?.replace(/[$,]/g, '') || 0);
+        const paidAmount = (myInvs || []).filter(i => i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
+        const remaining = totalBudget - paidAmount;
         
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            {/* PROJECT HEADER */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                <div>
-                  <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300, marginBottom: 8 }}>Welcome, {client.name.split(' ')[0]}</h1>
-                  <div className="lxf" style={{ fontSize: 13, color: ac, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>{myProj?.cat || 'Full Interior Finishing'}</div>
+                  <h1 className="lxfh" style={{ fontSize: 48, fontWeight: 300, marginBottom: 8, color: '#1A1410' }}>Hello, {client.name.split(' ')[0]}</h1>
+                  <div className="lxf" style={{ fontSize: 14, color: ac, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>{myProj?.project || 'Your Project'} Story</div>
                </div>
                <div style={{ textAlign: 'right' }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>Current Stage</div>
-                  <div className="lxfh" style={{ fontSize: 20 }}>{PROJECT_STAGES?.find(s => s.id === (myProj?.stage || 1))?.name || 'Inquiry'}</div>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.1em' }}>Consistency Score</div>
+                  <div className="lxfh" style={{ fontSize: 24, color: '#16A34A' }}>Excellent</div>
                </div>
             </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
-               <PulseTargetCard 
-                 label="Project Value" 
-                 value={`$${total.toLocaleString()}`} 
-                 target={total} 
-                 icon={<FileText size={20} />} 
-                 color={ac} 
-               />
-               <PulseTargetCard 
-                 label="Total Paid" 
-                 value={`$${paid.toLocaleString()}`} 
-                 target={total} 
-                 icon={<CheckCircle size={20} />} 
-                 color="#16A34A" 
-                 sub="All payments verified"
-               />
-               <PulseTargetCard 
-                 label="Outstanding" 
-                 value={`$${remaining.toLocaleString()}`} 
-                 target={remaining > 0 ? total : 0} 
-                 icon={<AlertTriangle size={20} />} 
-                 color="#ff4444" 
-                 trend={remaining > 0 ? 100 : 0}
-               />
+
+            {/* QUICK STATS */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+               <div className="p-card" style={{ padding: 20 }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Overall Progress</div>
+                  <div className="lxfh" style={{ fontSize: 24 }}>{myProj?.progress || 0}%</div>
+                  <div className="prog" style={{ height: 4, marginTop: 12 }}><div className="prog-f" style={{ width: `${myProj?.progress || 0}%`, background: ac }} /></div>
+               </div>
+               <div className="p-card" style={{ padding: 20 }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Project Value</div>
+                  <div className="lxfh" style={{ fontSize: 24 }}>${totalBudget.toLocaleString()}</div>
+               </div>
+               <div className="p-card" style={{ padding: 20 }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Confirmed Paid</div>
+                  <div className="lxfh" style={{ fontSize: 24, color: '#16A34A' }}>${paidAmount.toLocaleString()}</div>
+               </div>
+               <div className="p-card" style={{ padding: 20, background: ac, color: '#fff' }}>
+                  <div className="lxf" style={{ fontSize: 11, color: 'rgba(255,255,255,.7)', textTransform: 'uppercase', marginBottom: 8 }}>Active Stage</div>
+                  <div className="lxfh" style={{ fontSize: 18, color: '#fff' }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
+               </div>
             </div>
 
-            <div className="p-card" style={{ padding: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>Project Progress: {myProj?.project}</div>
-                <div className="lxf" style={{ fontSize: 13, color: ac }}>{myProj?.progress || 0}%</div>
-              </div>
-              <div className="prog"><div className="prog-f" style={{ width: `${myProj?.progress || 0}%`, background: ac }} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 32, alignItems: 'start' }}>
+               {/* VERTICAL TIMELINE STORY */}
+               <div className="p-card" style={{ padding: 32 }}>
+                  <h3 className="lxfh" style={{ fontSize: 22, marginBottom: 32 }}>The Project Story</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 19, top: 0, bottom: 0, width: 2, background: '#F0EBE5' }} />
+                    
+                    {PROJECT_STAGES.map((s, idx) => {
+                      const isCurrent = (myProj?.stage || 1) === s.id;
+                      const isPast = (myProj?.stage || 1) > s.id;
+                      const isLast = idx === PROJECT_STAGES.length - 1;
+                      
+                      return (
+                        <div key={s.id} style={{ display: 'flex', gap: 24, marginBottom: isLast ? 0 : 40, position: 'relative' }}>
+                          <div style={{ 
+                            width: 40, height: 40, borderRadius: '50%', 
+                            background: isPast ? s.color : isCurrent ? '#fff' : '#fff',
+                            border: isPast ? `2.5px solid ${s.color}` : isCurrent ? `2.5px solid ${s.color}` : '2.5px solid #DFD9D1',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 2, transition: 'all .4s cubic-bezier(0.4, 0, 0.2, 1)'
+                          }}>
+                            {isPast ? <Check size={20} color="#fff" strokeWidth={3} /> : <div style={{ width: 10, height: 10, borderRadius: '50%', background: isCurrent ? s.color : '#DFD9D1' }} />}
+                          </div>
+
+                          <div style={{ flex: 1, paddingTop: 6 }}>
+                             <div className="lxf" style={{ fontSize: 18, fontWeight: isCurrent ? 700 : 400, color: isCurrent ? '#1A1410' : isPast ? '#7A6E62' : '#B5AFA9' }}>{s.name}</div>
+                             {isCurrent && (
+                               <div style={{ marginTop: 12, padding: 20, background: '#F9F7F4', borderRadius: 12, border: '1px solid rgba(0,0,0,.04)' }}>
+                                  <div className="lxf" style={{ fontSize: 13, lineHeight: 1.6, color: '#473C2C' }}>We are currently processing this stage. Our team is working on the deliverables to ensure everything meets Glasstech standards.</div>
+                                  <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+                                     <button onClick={() => setTab('governance')} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12 }}>Check Approvals</button>
+                                     <button className="p-btn-light" style={{ padding: '8px 16px', fontSize: 12 }}>Message Team</button>
+                                  </div>
+                               </div>
+                             )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+               </div>
+
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                  {/* FINANCIAL HEALTH */}
+                  <div className="p-card" style={{ padding: 24 }}>
+                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Financial Milestone</h3>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        {[
+                          { label: 'Deposit (40%)', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.4 ? 'PAID' : 'DUE' },
+                          { label: 'Production (40%)', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.8 ? 'PAID' : 'DUE' },
+                          { label: 'Final (20%)', val: totalBudget * 0.2, status: paidAmount >= totalBudget ? 'PAID' : 'DUE' }
+                        ].map((m, i) => (
+                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div>
+                                 <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</div>
+                                 <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>${m.val.toLocaleString()}</div>
+                              </div>
+                              <SBadge s={m.status} />
+                           </div>
+                        ))}
+                     </div>
+                     <button onClick={() => setTab('invoices')} className="p-btn-dark lxf" style={{ width: '100%', marginTop: 24 }}>View Invoices</button>
+                  </div>
+
+                  {/* RECENT ACTIVITY */}
+                  <div className="p-card" style={{ padding: 24 }}>
+                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Recent Photos</h3>
+                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                        <div style={{ aspectRatio: '1', background: '#eee', borderRadius: 8 }} />
+                        <div style={{ aspectRatio: '1', background: '#eee', borderRadius: 8 }} />
+                     </div>
+                     <button className="lxf" style={{ width: '100%', background: 'none', border: 'none', color: ac, fontSize: 12, fontWeight: 700, marginTop: 16, cursor: 'pointer' }}>View Gallery</button>
+                  </div>
+               </div>
             </div>
           </div>
         );
-      case 'project':
-        const p = props.clients.find(c => c.clientIds?.includes(client.id) || c.id === client.id);
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Project Roadmap</h2>
-            <div className="p-card" style={{ padding: 24 }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {(PROJECT_STAGES || []).map(s => {
-                  const isCurrent = (p?.stage || 1) === s.id;
-                  const isPast = (p?.stage || 1) > s.id;
-                  const milestone = (p?.milestones || []).find(m => m.stageId === s.id);
-                  const isLocked = s.id > 1 && (p?.milestones || []).some(m => m.stageId < s.id && !m.paid);
-                  
-                  return (
-                    <div key={s.id} style={{ 
-                      display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', 
-                      background: isCurrent ? `${s.color}10` : isPast ? '#fff' : '#F9F7F4', 
-                      border: isCurrent ? `1px solid ${s.color}30` : '1px solid transparent', 
-                      borderRadius: 10, opacity: isLocked ? 0.5 : 1
-                    }}>
-                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: isPast ? s.color : isCurrent ? s.color : '#DFD9D1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
-                        {isPast ? <CheckCircle size={14} /> : s.id}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div className="lxf" style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : '#7A6E62' }}>{s.name}</div>
-                        {isCurrent && <div className="lxf" style={{ fontSize: 11, color: ac }}>You are currently at this stage</div>}
-                        {isLocked && <div className="lxf" style={{ fontSize: 11, color: '#ff4444' }}>Locked: Awaiting milestone payment</div>}
-                      </div>
-                      {milestone && <SBadge s={milestone.paid ? 'PAID' : 'DUE'} />}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        );
+      }
+      case 'project': 
+        return <div className="lxf" style={{ padding: 40, textAlign: 'center', opacity: .5 }}>Consolidated into Dashboard Overview.</div>;
       case 'invoices':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -317,8 +349,8 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
              {/* CHANGE REQUESTS */}
              <section>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <h2 className="lxfh" style={{ fontSize: 24 }}>Change Requests</h2>
-                  <button className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 13 }}><Plus size={16} /> New Request</button>
+                   <h2 className="lxfh" style={{ fontSize: 24 }}>Change Requests</h2>
+                   <button onClick={() => setCrModal(true)} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 13 }}><Plus size={16} /> New Request</button>
                 </div>
                 <div className="p-card" style={{ overflow: 'hidden' }}>
                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -335,7 +367,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                          {myCRs.length === 0 && <tr><td colSpan={5} style={{ padding: 32, textAlign: 'center', color: '#B5AFA9' }}>No change requests submitted</td></tr>}
                          {myCRs.map(r => (
                            <tr key={r.id} style={{ borderTop: '1px solid rgba(0,0,0,.05)' }}>
-                              <td style={{ padding: 12, fontSize: 13 }}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                              <td style={{ padding: 12, fontSize: 13 }}>{new Date(r.createdAt || new Date()).toLocaleDateString()}</td>
                               <td style={{ padding: 12, fontSize: 13 }}>{r.description}</td>
                               <td style={{ padding: 12, fontSize: 13 }}>
                                  {r.costImpact ? <div>Cost: {r.costImpact}</div> : <span style={{ color: '#B5AFA9' }}>TBD</span>}
@@ -349,7 +381,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                                         onClick={() => props.updateChangeRequest(r.id, { status: 'approved' }, myProject.id)}
                                         className="p-btn-gold" style={{ padding: '6px 12px', fontSize: 12 }}
                                       >Approve</button>
-                                      <button className="glass-btn" style={{ padding: '6px 12px', fontSize: 12 }}>Decline</button>
+                                      <button onClick={() => props.updateChangeRequest(r.id, { status: 'rejected' }, myProject.id)} className="glass-btn" style={{ padding: '6px 12px', fontSize: 12 }}>Reject</button>
                                    </div>
                                  )}
                               </td>
@@ -359,6 +391,24 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                    </table>
                 </div>
              </section>
+
+             {crModal && (
+               <div className="overlay-modal" onClick={() => setCrModal(false)}>
+                 <div className="modal-box lxf" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()}>
+                    <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 20 }}>Request a Change</h3>
+                    <p className="lxf" style={{ color: '#7A6E62', fontSize: 13, marginBottom: 20 }}>Need to modify a design or specification? Describe your request below and our team will evaluate the impact.</p>
+                    <textarea 
+                      className="p-inp" rows={4} placeholder="e.g. Change the glass tint to Bronze..." 
+                      value={crData.description} 
+                      onChange={e => setCrData({ ...crData, description: e.target.value })} 
+                    />
+                    <button 
+                      onClick={() => { props.createChangeRequest(myProject.id, crData); setCrModal(false); setCrData({ description: '' }); }}
+                      className="p-btn-gold" style={{ width: '100%', marginTop: 24, padding: 12 }}
+                    >Submit Request</button>
+                 </div>
+               </div>
+             )}
           </div>
         );
       default:
