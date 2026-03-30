@@ -46,12 +46,12 @@ function PModal({ open, onClose, title, children, w = 520 }) {
 
 function AdminDash({ clients, invoices, proposals, brand, ...props }) {
   const ac = brand.color || '#C8A96E';
-  const totalRev = invoices.filter(i => i.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount.replace(/[$,]/g, '')), 0);
+  const totalRev = (invoices || []).filter(i => i?.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
   const dashboardStats = [
     { label: 'Revenue', value: `$${(totalRev / 1000).toFixed(0)}k`, target: 100, icon: <DollarSign size={20} />, sub: 'On track to hit $100k', color: ac, trend: 18 },
-    { label: 'Active Clients', value: clients.filter(c => c.status === 'Active').length, target: 20, icon: <Users size={20} />, sub: 'Steady growth', color: '#16A34A', trend: 12 },
-    { label: 'Delayed Projects', value: clients.filter(c => props.getSLA(c).delayed).length, target: 2, icon: <Clock size={20} />, sub: 'High risk alerts', color: '#ff4444', trend: -5 },
-    { label: 'Unpaid Invoices', value: invoices.filter(i => i.status === 'Pending').length, target: 5, icon: <Receipt size={20} />, sub: 'Awaiting clearance', color: '#B45309', trend: 2 },
+    { label: 'Active Clients', value: (clients || []).filter(c => c?.status === 'Active').length, target: 20, icon: <Users size={20} />, sub: 'Steady growth', color: '#16A34A', trend: 12 },
+    { label: 'Delayed Projects', value: (clients || []).filter(c => props.getSLA && c ? props.getSLA(c).delayed : false).length, target: 2, icon: <Clock size={20} />, sub: 'High risk alerts', color: '#ff4444', trend: -5 },
+    { label: 'Unpaid Invoices', value: (invoices || []).filter(i => i?.status === 'Pending').length, target: 5, icon: <Receipt size={20} />, sub: 'Awaiting clearance', color: '#B45309', trend: 2 },
   ];
 
   return (
@@ -112,7 +112,7 @@ function AdminClients({ dbClients, createClient, updateClient, brand, ...props }
   const [editing, setEditing] = useState(null);
   const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '', notes: '', status: 'Active' });
 
-  const filtered = dbClients.filter(c => 
+  const filtered = (dbClients || []).filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
     c.company?.toLowerCase().includes(search.toLowerCase())
   );
@@ -186,7 +186,7 @@ function AdminInstallations({ clients, updateProject, dbClients, brand, ...props
   const ac = brand.color || '#C8A96E';
   const [search, setSearch] = useState('');
   const [sel, setSel] = useState(null);
-  const filtered = clients.filter(c => c.project.toLowerCase().includes(search.toLowerCase()));
+  const filtered = (clients || []).filter(c => (c.project || '').toLowerCase().includes(search.toLowerCase()));
 
   if (sel) {
     const proj = clients.find(x => x.id === sel);
@@ -705,9 +705,9 @@ function AdminStaff({ team, setTeam, brand }) {
 
 function AdminAnalyticsPage({ clients, invoices, brand, getSLA }) {
   const ac = brand.color || '#C8A96E';
-  const totalRev = invoices.filter(i => i.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount.replace(/[$,]/g, '')), 0);
-  const outstanding = invoices.filter(i => i.status === 'Pending').reduce((a, i) => a + parseFloat(i.amount.replace(/[$,]/g, '')), 0);
-  const delayed = clients.filter(c => getSLA(c).delayed).length;
+  const totalRev = (invoices || []).filter(i => i.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
+  const outstanding = (invoices || []).filter(i => i.status === 'Pending').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
+  const delayed = (clients || []).filter(c => props.getSLA && c ? props.getSLA(c).delayed : false).length;
 
   const exportCSV = () => {
     const headers = ['Project', 'Client', 'Stage', 'Deadline', 'Status'];

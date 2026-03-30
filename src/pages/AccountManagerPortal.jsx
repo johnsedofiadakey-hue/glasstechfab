@@ -14,13 +14,13 @@ export default function AccountManagerPortal({ user, brand, onLogout, ...props }
   const [fStage, setFStage] = useState('all');
   const [fStatus, setFStatus] = useState('all');
   
-  const member = user;
-  const myClients = clients.filter(c => c.managerId === user.id);
-  const myBookings = bookings.filter(b => b.pm_id === user.id || b.date.startsWith('2026-03'));
+  const member = user || {};
+  const myClients = (clients || []).filter(c => c?.managerId === user?.id);
+  const myBookings = (bookings || []).filter(b => b?.pm_id === user?.id || (b?.date && b.date.startsWith('2026-03')));
   const myTasks = (tasks || []).filter(t => {
-    const isMe = (t.assignedTo || t.assigned_to) === user.id;
-    const isStage = fStage === 'all' || String(t.stage) === fStage;
-    const isStatus = fStatus === 'all' || t.status === fStatus;
+    const isMe = (t?.assignedTo || t?.assigned_to) === user?.id;
+    const isStage = fStage === 'all' || String(t?.stage) === fStage;
+    const isStatus = fStatus === 'all' || t?.status === fStatus;
     return isMe && isStage && isStatus;
   });
 

@@ -130,8 +130,8 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
   const ac = brand.color || '#C8A96E';
   const { proposals, invoices, bookings } = props;
   
-  const myProps = proposals.filter(p => p.clientEmail === client.email || p.client === client.name);
-  const myInvs = invoices.filter(i => i.clientEmail === client.email || i.client === client.name);
+  const myProps = (proposals || []).filter(p => p?.clientEmail === client?.email || p?.client === client?.name);
+  const myInvs = (invoices || []).filter(i => i?.clientEmail === client?.email || i?.client === client?.name);
   
   const [payModal, setPayModal] = useState(null);
   const [paidIds, setPaidIds] = useState([]);
