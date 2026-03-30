@@ -72,6 +72,15 @@ export default function App() {
     process: PROCESS_STEPS,
     products: []
   });
+
+  // Inject dynamic CSS variables based on brand settings
+  useEffect(() => {
+    const root = document.documentElement;
+    if (brand.bgPrimary) root.style.setProperty('--bg', brand.bgPrimary);
+    if (brand.textColor) root.style.setProperty('--fg', brand.textColor);
+    if (brand.color || brand.accent) root.style.setProperty('--ac', brand.accent || brand.color);
+    if (brand.fontFamily) root.style.setProperty('--font-primary', brand.fontFamily);
+  }, [brand]);
   
   const [clients, setClients] = useState([]);
   const [proposals, setProposals] = useState(PROPOSALS_DATA);
@@ -88,6 +97,7 @@ export default function App() {
   const [userNotifications, setUserNotifications] = useState([]);
   const [notification, setNotification] = useState(null); 
   const [loading, setLoading] = useState(true);
+  const [procurements, setProcurements] = useState([]);
 
   const notify = (type, msg) => {
     setNotification({ type, msg });
@@ -269,7 +279,10 @@ export default function App() {
     const notifSub = onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)), (snap) => {
       setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
     });
-    return () => { projectSub(); userSub(); paymentSub(); logSub(); taskSub(); notifSub(); };
+    const procurementSub = onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
+      setProcurements(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    });
+    return () => { projectSub(); userSub(); paymentSub(); logSub(); taskSub(); notifSub(); procurementSub(); };
   }, [user?.id]);
 
   const syncProjects = async (id, fields) => {
@@ -288,6 +301,19 @@ export default function App() {
     return { date: deadline.toLocaleDateString(), delayed: new Date() > deadline };
   };
 
+  const createProcurement = async (projectId, data) => {
+    try { await setDoc(doc(collection(db, 'projects', projectId, 'procurements')), data); notify('success', 'Tracker Updated'); } 
+    catch(e) { notify('error', 'Failed to update procurement'); }
+  };
+  const updateProcurement = async (projectId, id, data) => {
+    try { await updateDoc(doc(db, 'projects', projectId, 'procurements', id), data); notify('success', 'Tracker Updated'); } 
+    catch(e) { notify('error', 'Failed to update procurement'); }
+  };
+  const deleteProcurement = async (projectId, id) => {
+    try { await deleteDoc(doc(db, 'projects', projectId, 'procurements', id)); notify('success', 'Tracker Item Deleted'); } 
+    catch(e) { notify('error', 'Failed to delete tracking item'); }
+  };
+
   const commonProps = {
     page, setPage,
     brand, setBrand, content, setContent,
@@ -299,6 +325,7 @@ export default function App() {
     proposals, setProposals,
     bookings, setBookings,
     shipments, setShipments,
+    procurements, createProcurement, updateProcurement, deleteProcurement,
     tasks, updateTask: (id, f, pid) => updateDoc(doc(db, 'projects', pid, 'tasks', id), f),
     approvals: [], changeRequests: [],
     userNotifications, markNotificationRead,

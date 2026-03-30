@@ -235,6 +235,7 @@ function AdminInstallations({ clients, updateProject, dbClients, brand, ...props
 
             <AdminGovernance projectId={sel} {...props} brand={brand} />
             <AdminTasks projectId={sel} projectTitle={proj.project} {...props} brand={brand} />
+            <AdminProcurement projectId={sel} procurements={props.procurements} createProcurement={props.createProcurement} updateProcurement={props.updateProcurement} deleteProcurement={props.deleteProcurement} brand={brand} />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -307,6 +308,84 @@ function AdminInstallations({ clients, updateProject, dbClients, brand, ...props
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function AdminProcurement({ projectId, procurements = [], createProcurement, updateProcurement, deleteProcurement, brand }) {
+  const ac = brand.color || '#C8A96E';
+  const myProcs = procurements.filter(p => p.parentId === projectId);
+  
+  const [showAdd, setShowAdd] = useState(false);
+  const [na, setNa] = useState({ itemName: '', source: '', estimatedCost: '', actualCost: '', status: 'To Buy' });
+
+  const totalEst = myProcs.reduce((acc, p) => acc + (parseFloat(p.estimatedCost) || 0), 0);
+  const totalAct = myProcs.reduce((acc, p) => acc + (parseFloat(p.actualCost) || 0), 0);
+
+  const handleAdd = async () => {
+    if (!na.itemName || !na.estimatedCost) return alert('Name and Estimated Cost required');
+    if (createProcurement) {
+      await createProcurement(projectId, {
+        itemName: na.itemName, source: na.source, estimatedCost: na.estimatedCost, 
+        actualCost: na.actualCost, status: na.status, createdAt: new Date().toISOString()
+      });
+      setNa({ itemName: '', source: '', estimatedCost: '', actualCost: '', status: 'To Buy' });
+      setShowAdd(false);
+    }
+  };
+
+  return (
+    <div className="p-card" style={{ padding: 24 }}>
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+         <h3 className="lxfh" style={{ fontSize: 18 }}>Procurement Tracker</h3>
+         <button onClick={() => setShowAdd(!showAdd)} className="lxf" style={{ fontSize: 13, background: 'none', border: 'none', color: ac, fontWeight: 600, cursor: 'pointer' }}>+ Add Item</button>
+       </div>
+       
+       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+          <div style={{ pading: 12, background: '#F9F7F4', borderRadius: 8, padding: 12 }}>
+             <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>Total Estimated</div>
+             <div className="lxf" style={{ fontSize: 18, fontWeight: 700 }}>${totalEst.toLocaleString()}</div>
+          </div>
+          <div style={{ pading: 12, background: '#F9F7F4', borderRadius: 8, padding: 12 }}>
+             <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>Actual Spent</div>
+             <div className="lxf" style={{ fontSize: 18, fontWeight: 700, color: totalAct > totalEst ? '#ff4444' : '#16A34A' }}>${totalAct.toLocaleString()}</div>
+          </div>
+       </div>
+
+       {showAdd && (
+         <div style={{ padding: 16, border: '1px solid rgba(0,0,0,.05)', borderRadius: 8, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+             <PFormField label="Item Name"><input className="p-inp" placeholder="e.g. Dining Chairs (x6)" value={na.itemName} onChange={e => setNa({...na, itemName: e.target.value})} /></PFormField>
+             <PFormField label="Source/Vendor"><input className="p-inp" placeholder="e.g. Foshan, China" value={na.source} onChange={e => setNa({...na, source: e.target.value})} /></PFormField>
+           </div>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+             <PFormField label="Est. Cost ($)"><input type="number" className="p-inp" value={na.estimatedCost} onChange={e => setNa({...na, estimatedCost: e.target.value})} /></PFormField>
+             <PFormField label="Actual Cost ($)"><input type="number" className="p-inp" value={na.actualCost} onChange={e => setNa({...na, actualCost: e.target.value})} /></PFormField>
+             <PFormField label="Status">
+               <select className="p-inp" value={na.status} onChange={e => setNa({...na, status: e.target.value})}>
+                 <option>To Buy</option><option>Ordered</option><option>Received</option>
+               </select>
+             </PFormField>
+           </div>
+           <button onClick={handleAdd} className="p-btn-dark lxf" style={{ marginTop: 8 }}>Save Item</button>
+         </div>
+       )}
+
+       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+         {myProcs.map(p => (
+           <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, border: '1px solid rgba(0,0,0,.05)', borderRadius: 8 }}>
+             <div>
+               <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{p.itemName}</div>
+               <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{p.source} · {p.status}</div>
+             </div>
+             <div style={{ textAlign: 'right' }}>
+                <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>${parseFloat(p.actualCost || p.estimatedCost).toLocaleString()}</div>
+                <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>{p.actualCost ? 'Actual' : 'Estimated'}</div>
+             </div>
+           </div>
+         ))}
+         {myProcs.length === 0 && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic' }}>No procurement items tracked yet.</div>}
+       </div>
     </div>
   );
 }
@@ -995,28 +1074,51 @@ function AdminCMS({ content, syncCMS, brand, onPreview, ...props }) {
 }
 
 function CMSBranding({ brand, onSave, ac }) {
-  const [f, setF] = useState(brand);
+  const [f, setF] = useState(brand || {});
+
+  const handleImageUpload = (e, field) => {
+    // Note: since Firebase storage is not yet initialized by the user, we will alert.
+    // In the future this should use uploadBytesResumable from firebase/storage
+    alert("Firebase Storage is not enabled on this project. Please go to your Firebase Console, click 'Storage', and 'Get Started'. Once done, this feature will work.");
+  };
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <h3 className="lxfh" style={{ fontSize: 20 }}>Identity & Colors</h3>
-        <PFormField label="Company Name"><input className="p-inp" value={f.name} onChange={e => setF({...f, name: e.target.value})} /></PFormField>
-        <PFormField label="Tagline"><input className="p-inp" value={f.tagline} onChange={e => setF({...f, tagline: e.target.value})} /></PFormField>
+        <PFormField label="Company Name"><input className="p-inp" value={f.name || ''} onChange={e => setF({...f, name: e.target.value})} /></PFormField>
+        <PFormField label="Tagline"><input className="p-inp" value={f.tagline || ''} onChange={e => setF({...f, tagline: e.target.value})} /></PFormField>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <PFormField label="Primary Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.color} onChange={e => setF({...f, color: e.target.value})} /></PFormField>
-          <PFormField label="Accent Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.accent || '#C8A96E'} onChange={e => setF({...f, accent: e.target.value})} /></PFormField>
+          <PFormField label="Primary Background"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.bgPrimary || '#FDFCFB'} onChange={e => setF({...f, bgPrimary: e.target.value})} /></PFormField>
+          <PFormField label="Secondary Surface"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.bgSecondary || '#FFFFFF'} onChange={e => setF({...f, bgSecondary: e.target.value})} /></PFormField>
+          <PFormField label="Accent Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.color || '#C8A96E'} onChange={e => setF({...f, color: e.target.value})} /></PFormField>
+          <PFormField label="Global Text Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.textColor || '#121212'} onChange={e => setF({...f, textColor: e.target.value})} /></PFormField>
         </div>
+        <PFormField label="Typography Style">
+          <select className="p-inp" value={f.fontFamily || 'Inter, sans-serif'} onChange={e => setF({...f, fontFamily: e.target.value})}>
+             <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
+             <option value="'Playfair Display', serif">Elegant Serif (Playfair)</option>
+             <option value="'Space Mono', monospace">Technical Mono (Space Mono)</option>
+          </select>
+        </PFormField>
         <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Changes</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <h3 className="lxfh" style={{ fontSize: 20 }}>Contact Information</h3>
-        <PFormField label="Official Phone"><input className="p-inp" value={f.phone} onChange={e => setF({...f, phone: e.target.value})} /></PFormField>
-        <PFormField label="Official Email"><input className="p-inp" value={f.email} onChange={e => setF({...f, email: e.target.value})} /></PFormField>
-        <PFormField label="Physical Location"><input className="p-inp" value={f.location} onChange={e => setF({...f, location: e.target.value})} /></PFormField>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>Logo & Contact</h3>
+        <PFormField label="Company Logo">
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+             <input type="file" accept="image/*" onChange={e => handleImageUpload(e, 'logo')} />
+             <input className="p-inp" placeholder="Or paste Image URL" style={{ flex: 1 }} value={f.logo || ''} onChange={e => setF({...f, logo: e.target.value})} />
+          </div>
+        </PFormField>
+        <PFormField label="Official Phone"><input className="p-inp" value={f.phone || ''} onChange={e => setF({...f, phone: e.target.value})} /></PFormField>
+        <PFormField label="Official Email"><input className="p-inp" value={f.email || ''} onChange={e => setF({...f, email: e.target.value})} /></PFormField>
+        <PFormField label="Physical Location"><input className="p-inp" value={f.location || ''} onChange={e => setF({...f, location: e.target.value})} /></PFormField>
       </div>
     </div>
   );
 }
+
 
 function CMSHomepage({ hero, onSave, ac }) {
   const [slides, setSlides] = useState(hero.slides || []);
