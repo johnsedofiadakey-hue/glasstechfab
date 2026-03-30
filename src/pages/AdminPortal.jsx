@@ -102,114 +102,175 @@ function AdminDash({ clients, invoices, proposals, brand, ...props }) {
   );
 }
 
-function AdminCRM({ clients, setClients, brand, ...props }) {
+function AdminClients({ dbClients, createClient, updateClient, brand, ...props }) {
+  const ac = brand.color || '#C8A96E';
+  const [search, setSearch] = useState('');
+  const [showAdd, setShowAdd] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '', notes: '', status: 'Active' });
+
+  const filtered = dbClients.filter(c => 
+    c.name.toLowerCase().includes(search.toLowerCase()) || 
+    c.company?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleSave = async () => {
+    if (editing) await updateClient(editing.id, newC);
+    else await createClient(newC);
+    setShowAdd(false);
+    setEditing(null);
+    setNewC({ name: '', email: '', phone: '', company: '', notes: '', status: 'Active' });
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400 }}>Client Directory</h2>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} />
+            <input className="p-inp" placeholder="Search clients..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 34, width: 240 }} />
+          </div>
+          <button onClick={() => setShowAdd(true)} className="p-btn-dark lxf" style={{ padding: '10px 20px' }}><Plus size={16} /> New Client</button>
+        </div>
+      </div>
+
+      <div className="p-card" style={{ overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr>{['Client', 'Company', 'Contact', 'Status', 'Joined', 'Actions'].map(h => <th key={h} className="t-head">{h}</th>)}</tr></thead>
+          <tbody>
+            {filtered.map(c => (
+              <tr key={c.id} className="t-row">
+                <td style={{ padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <PAv i={c.name.split(' ').map(n=>n[0]).join('')} s={36} c={ac} />
+                    <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{c.name}</div>
+                  </div>
+                </td>
+                <td style={{ padding: '14px 16px' }}><span className="lxf" style={{ fontSize: 13 }}>{c.company || 'Private'}</span></td>
+                <td style={{ padding: '14px 16px' }}>
+                  <div className="lxf" style={{ fontSize: 12 }}>{c.email}</div>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{c.phone}</div>
+                </td>
+                <td style={{ padding: '14px 16px' }}><PSBadge s={c.status} /></td>
+                <td style={{ padding: '14px 16px' }}><span className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>{new Date(c.joined).toLocaleDateString()}</span></td>
+                <td style={{ padding: '14px 16px' }}>
+                  <button onClick={() => { setEditing(c); setNewC(c); setShowAdd(true); }} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>Edit</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <PModal open={showAdd} onClose={() => { setShowAdd(false); setEditing(null); }} title={editing ? 'Edit Client' : 'Add New Client'}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <PFormField label="Full Name"><input className="p-inp" value={newC.name} onChange={e => setNewC({...newC, name: e.target.value})} /></PFormField>
+          <PFormField label="Email Address"><input className="p-inp" value={newC.email} onChange={e => setNewC({...newC, email: e.target.value})} /></PFormField>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <PFormField label="Phone Number"><input className="p-inp" value={newC.phone} onChange={e => setNewC({...newC, phone: e.target.value})} /></PFormField>
+            <PFormField label="Company Name"><input className="p-inp" value={newC.company} onChange={e => setNewC({...newC, company: e.target.value})} /></PFormField>
+          </div>
+          <PFormField label="Internal Notes"><textarea className="p-inp" value={newC.notes} onChange={e => setNewC({...newC, notes: e.target.value})} rows={3} /></PFormField>
+          <button onClick={handleSave} className="p-btn-dark lxf" style={{ marginTop: 8, padding: '12px' }}>{editing ? 'Update Profile' : 'Register Client'}</button>
+        </div>
+      </PModal>
+    </div>
+  );
+}
+
+function AdminInstallations({ clients, updateProject, dbClients, brand, ...props }) {
   const ac = brand.color || '#C8A96E';
   const [search, setSearch] = useState('');
   const [sel, setSel] = useState(null);
-  const filtered = clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-  
+  const filtered = clients.filter(c => c.project.toLowerCase().includes(search.toLowerCase()));
 
   if (sel) {
-    const c = clients.find(x => x.id === sel);
+    const proj = clients.find(x => x.id === sel);
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button onClick={() => setSel(null)} className="p-btn-light lxf" style={{ padding: '8px 12px' }}><ArrowLeft size={16} /></button>
-          <h2 className="lxfh" style={{ fontSize: 28, fontWeight: 400 }}>Project Control: {c.project}</h2>
+          <h2 className="lxfh" style={{ fontSize: 28, fontWeight: 400 }}>Installation: {proj.project}</h2>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', gap: 24 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* STAGES WITH FINANCIAL ENFORCEMENT */}
             <div className="p-card" style={{ padding: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <h3 className="lxfh" style={{ fontSize: 18 }}>Lifecycle Stages (1–7)</h3>
-                <PSBadge s={`Stage ${c.stage || 1}`} />
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Workflow & Milestones</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {PROJECT_STAGES.map(s => {
-                  const isCurrent = (c.stage || 1) === s.id;
-                  const isPast = (c.stage || 1) > s.id;
+                  const isCurrent = (proj.stage || 1) === s.id;
+                  const isPast = (proj.stage || 1) > s.id;
+                  const milestone = (proj.milestones || []).find(m => m.stageId === s.id);
+                  const isLocked = s.id > 1 && (proj.milestones || []).some(m => m.stageId < s.id && !m.paid);
+                  
                   return (
-                    <div key={s.id} onClick={() => {
-                        props.updateProject(c.id, { stage: s.id });
-                        props.logAction(props.user.name ?? props.user.email, 'Stage', `Updated project stage to: ${s.name}`, c.project);
-                    }} 
-                      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: isCurrent ? `${s.color}15` : '#F9F7F4', border: isCurrent ? `1px solid ${s.color}40` : '1px solid transparent', borderRadius: 8, cursor: 'pointer', transition: 'all .2s' }}>
-                      <div style={{ width: 24, height: 24, borderRadius: '50%', background: isPast ? s.color : isCurrent ? s.color : '#eee', color: isPast || isCurrent ? '#fff' : '#B5AFA9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>
+                    <div key={s.id} 
+                      onClick={() => !isLocked && updateProject(proj.id, { stage: s.id })}
+                      style={{ 
+                        display: 'flex', alignItems: 'center', gap: 16, padding: '14px 20px', 
+                        background: isCurrent ? `${s.color}10` : '#F9F7F4', 
+                        border: isCurrent ? `1px solid ${s.color}30` : '1px solid transparent', 
+                        borderRadius: 10, cursor: isLocked ? 'not-allowed' : 'pointer', opacity: isLocked ? 0.6 : 1,
+                        transition: 'all .2s'
+                      }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: isPast ? s.color : isCurrent ? s.color : '#DFD9D1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
                         {isPast ? <CheckCircle size={14} /> : s.id}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div className="lxf" style={{ fontSize: 13, fontWeight: isCurrent ? 600 : 400, color: isCurrent ? '#1A1410' : isPast ? '#B5AFA9' : '#1A1410' }}>{s.name}</div>
-                        <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>SLA: {s.days} Days</div>
+                        <div className="lxf" style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : '#7A6E62' }}>{s.name}</div>
+                        {milestone && <div className="lxf" style={{ fontSize: 11, color: milestone.paid ? '#16A34A' : '#B45309', fontWeight: 600 }}>Financial Goal: {milestone.name} ({milestone.paid ? 'Paid' : 'Awaiting Payment'})</div>}
                       </div>
-                      {isCurrent && <div style={{ fontSize: 10, color: s.color, fontWeight: 700 }}>ACTIVE</div>}
+                      {isLocked && <AlertTriangle size={16} color="#ff4444" />}
                     </div>
                   );
                 })}
               </div>
             </div>
 
-            <div className="p-card" style={{ padding: 24 }}>
-               <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Internal Notes & Visibility</h3>
-               <textarea className="p-inp" placeholder="Add an internal note..." rows={3} style={{ resize: 'none' }} />
-               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-                  <label className="lxf" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, color: '#B5AFA9' }}><input type="checkbox" /> Client Visible</label>
-                  <button className="p-btn-dark lxf" style={{ padding: '6px 12px', fontSize: 11 }}>Post Note</button>
-               </div>
-            </div>
+            <AdminGovernance projectId={sel} {...props} brand={brand} />
+            <AdminTasks projectId={sel} projectTitle={proj.project} {...props} brand={brand} />
           </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* CLIENTS ASSIGNMENT */}
             <div className="p-card" style={{ padding: 24 }}>
-              <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Project Metadata</h3>
-              <PFormField label="Assigned Project Manager">
-                <select className="p-inp" value={c.pmId || ''} onChange={e => {
-                    const tid = parseInt(e.target.value);
-                    props.updateProject(c.id, { pmId: tid });
-                    const pm = props.teamMembers.find(t => t.id === tid);
-                    props.logAction(props.user.name ?? props.user.email, 'Staff', `Assigned ${pm?.name} as PM for ${c.project}`);
-                  }}>
-                  <option value="">Select Manager</option>
-                  {props.teamMembers.filter(t => t.role === 'Admin' || t.role === 'Manager').map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
-              </PFormField>
-              <div style={{ marginTop: 20 }}>
-                <PFormField label="Project Start Date"><input type="date" className="p-inp" value={c.startDate || ''} onChange={e => {
-                    props.updateProject(c.id, { startDate: e.target.value });
-                    props.logAction(props.user.name ?? props.user.email, 'Project', `Updated start date for ${c.project}`);
-                  }} /></PFormField>
-              </div>
-              <div style={{ marginTop: 20 }}>
-                <PFormField label="SLA Deadline">
-                  {(() => {
-                    const sla = props.getSLA(c);
+               <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Project Stakeholders</h3>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {(proj.clientIds || [proj.clientId]).map(cid => {
+                    const c = dbClients.find(u => u.id === cid) || clients.find(cl => cl.id === cid);
                     return (
-                      <div className="lxf" style={{ fontSize: 13, color: sla.delayed ? '#ff4444' : '#16A34A', fontWeight: 600 }}>
-                        <Clock size={14} style={{ marginRight: 6 }} /> 
-                        {sla.date} {sla.delayed ? '(Delayed)' : '(On Track)'}
+                      <div key={cid} style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F9F7F4', padding: 8, borderRadius: 8 }}>
+                        <PAv i={c?.name?.split(' ').map(n=>n[0]).join('') || 'CU'} s={32} c={ac} />
+                        <div style={{ flex: 1 }}>
+                          <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{c?.name || 'Unknown Client'}</div>
+                          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{c?.company || 'Stakeholder'}</div>
+                        </div>
                       </div>
                     );
-                  })()}
-                </PFormField>
-              </div>
+                  })}
+                  <button className="p-btn-light lxf" style={{ width: '100%', borderStyle: 'dashed', fontSize: 12 }}><Plus size={14} style={{ marginRight: 6 }} /> Assign Stakeholder</button>
+               </div>
             </div>
 
+            {/* FINANCIALS */}
             <div className="p-card" style={{ padding: 24 }}>
-              <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Associated Clients</h3>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
-                <PAv i={c.av} s={32} c={ac} />
-                <div className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{c.name} (Primary)</div>
-              </div>
-              <button className="p-btn-light lxf" style={{ width: '100%', borderStyle: 'dashed' }}><Plus size={14} style={{ marginRight: 6 }} /> Add Partner/Client</button>
-            </div>
-
-            <div className="p-card" style={{ padding: 24 }}>
-               <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 16 }}>Financial Overview</h3>
-               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Contract Value</span><span className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{c.budget}</span></div>
-               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Paid to Date</span><span className="lxf" style={{ fontSize: 13, fontWeight: 600, color: '#16A34A' }}>$12,500</span></div>
-               <div style={{ height: 1, background: '#eee', margin: '8px 0' }} />
-               <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Outstanding Balance</span><span className="lxf" style={{ fontSize: 13, fontWeight: 700, color: '#ff4444' }}>$3,500</span></div>
+               <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Financial Balance</h3>
+               {(() => {
+                 const total = parseFloat(proj.budget.replace(/[$,]/g, '')) || 0;
+                 const paid = (props.invoices || []).filter(i => i.parentId === sel && i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
+                 const bal = total - paid;
+                 return (
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Total Contract</span><span className="lxf" style={{ fontSize: 14, fontWeight: 700 }}>${total.toLocaleString()}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Confirmed Payments</span><span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#16A34A' }}>${paid.toLocaleString()}</span></div>
+                      <div style={{ height: 1, background: 'rgba(0,0,0,.05)' }} />
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Outstanding Balance</span><span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#ff4444' }}>${bal.toLocaleString()}</span></div>
+                   </div>
+                 );
+               })()}
             </div>
           </div>
         </div>
@@ -220,58 +281,29 @@ function AdminCRM({ clients, setClients, brand, ...props }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div><h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400, color: '#1A1410' }}>Clients</h2></div>
+        <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400 }}>Fabrication & Installations</h2>
         <div style={{ position: 'relative' }}>
-          <Search size={13} style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} />
-          <input className="p-inp lxf" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search..." style={{ paddingLeft: 32, width: 220 }} />
+          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} />
+          <input className="p-inp" placeholder="Search projects..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 34, width: 240 }} />
         </div>
       </div>
-      <div className="p-card" style={{ overflow: 'hidden' }}>
+      <div className="p-card overflow-hidden">
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Client', 'Project', 'Progress', 'Status', 'Joined', 'Actions'].map(h => <th key={h} className="t-head">{h}</th>)}</tr></thead>
+          <thead><tr>{['Installation', 'Category', 'Client(s)', 'Current Stage', 'Progress', 'Actions'].map(h => <th key={h} className="t-head">{h}</th>)}</tr></thead>
           <tbody>
             {filtered.map(c => (
               <tr key={c.id} className="t-row">
-                <td style={{ padding: '12px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <PAv i={c.av} s={34} c={ac} />
-                    <div>
-                      <div className="lxf" style={{ fontSize: 13, color: '#1A1410', fontWeight: 500 }}>{c.name}</div>
-                      <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{c.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: '12px 16px' }}><span className="lxf" style={{ fontSize: 13 }}>{c.project}</span></td>
-                <td style={{ padding: '12px 16px' }}><div className="prog" style={{ width: 80 }}><div className="prog-f" style={{ width: `${c.progress}%`, background: ac }} /></div></td>
-                <td style={{ padding: '12px 16px' }}><PSBadge s={c.status} /></td>
-                <td style={{ padding: '12px 16px' }}><span className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>{c.joined}</span></td>
-                <td style={{ padding: '12px 16px' }}><button onClick={() => setSel(c.id)} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>Manage</button></td>
+                <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>{c.project}</div></td>
+                <td style={{ padding: '14px 16px' }}><span className="lxf" style={{ fontSize: 12, color: ac, fontWeight: 600 }}>{c.cat || 'Full Interior'}</span></td>
+                <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 13, color: '#7A6E62' }}>{c.name}</div></td>
+                <td style={{ padding: '14px 16px' }}><PSBadge s={PROJECT_STAGES.find(s=>s.id === (c.stage || 1))?.name || 'Inquiry'} /></td>
+                <td style={{ padding: '14px 16px' }}><div className="prog" style={{ width: 80 }}><div className="prog-f" style={{ width: `${c.progress}%`, background: ac }} /></div></td>
+                <td style={{ padding: '14px 16px' }}><button onClick={() => setSel(c.id)} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>Manage Operations</button></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-
-      {sel && (
-        <div className="lxf-overlay" onClick={() => setSel(null)}>
-          <div className="lxf-modal lx-scroll" onClick={e => e.stopPropagation()} style={{ maxWidth: 1000, maxHeght: '90vh', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h2 className="lxfh" style={{ fontSize: 24 }}>Manage Project: {clients.find(c => c.id === sel)?.project}</h2>
-              <button onClick={() => setSel(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9' }}><X size={20} /></button>
-            </div>
-             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 32 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-                   <AdminCRMDetail c={clients.find(c => c.id === sel)} brand={brand} {...props} />
-                   <AdminGovernance projectId={sel} {...props} brand={brand} />
-                   <AdminTasks projectId={sel} projectTitle={clients.find(c => c.id === sel)?.project} {...props} brand={brand} />
-                </div>
-                <div>
-                   <AdminCRMStatus c={clients.find(c => c.id === sel)} brand={brand} {...props} />
-                </div>
-             </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -518,88 +550,6 @@ function AdminTasks({ projectId, projectTitle, tasks, createTask, deleteTask, up
             <button onClick={() => deleteTask(t.id, projectId)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: 4 }}><Trash2 size={14} /></button>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function AdminCRMDetail({ c, brand, ...props }) {
-  const ac = brand.color || '#C8A96E';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div className="p-card" style={{ padding: 24 }}>
-        <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 24 }}>Project Timeline & Stages</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {PROJECT_STAGES.map(s => {
-            const isCurrent = c.stage === s.id;
-            const isPast = c.stage > s.id;
-            return (
-              <div key={s.id} onClick={() => props.updateProject(c.id, { stage: s.id })} 
-                   style={{ display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', padding: '10px 14px', borderRadius: 8, background: isCurrent ? `${ac}08` : 'transparent', border: isCurrent ? `1px solid ${ac}30` : '1px solid transparent' }}>
-                <div style={{ width: 28, height: 28, borderRadius: '50%', background: isCurrent ? ac : isPast ? `${ac}22` : '#eee', color: isCurrent || isPast ? (isCurrent ? '#fff' : ac) : '#B5AFA9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>
-                  {isPast ? <CheckCircle size={14} /> : s.id}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div className="lxf" style={{ fontSize: 13, fontWeight: isCurrent ? 600 : 400, color: isCurrent ? '#1A1410' : isPast ? '#B5AFA9' : '#1A1410' }}>{s.name}</div>
-                  <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>SLA: {s.days} Days</div>
-                </div>
-                {isCurrent && <div style={{ fontSize: 10, color: ac, fontWeight: 700 }}>ACTIVE</div>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="p-card" style={{ padding: 24 }}>
-         <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Internal Notes</h3>
-         <textarea className="p-inp" placeholder="Add an internal note..." rows={3} style={{ resize: 'none' }} />
-         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 12 }}>
-            <label className="lxf" style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, color: '#B5AFA9' }}><input type="checkbox" /> Client Visible</label>
-            <button className="p-btn-dark lxf" style={{ padding: '6px 12px', fontSize: 11 }}>Post Note</button>
-         </div>
-      </div>
-    </div>
-  );
-}
-
-function AdminCRMStatus({ c, brand, ...props }) {
-  const ac = brand.color || '#C8A96E';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-      <div className="p-card" style={{ padding: 24 }}>
-        <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Project Management</h3>
-        <PFormField label="Assigned Manager">
-          <select className="p-inp" value={c.managerId || ''} onChange={e => {
-              const tid = e.target.value;
-              props.updateProject(c.id, { managerId: tid });
-              const pm = props.teamMembers.find(t => String(t.id) === tid);
-              props.logAction(c.id, 'Staff', `Assigned ${pm?.name || pm?.email} as PM`, c.project);
-            }}>
-            <option value="">Select Manager</option>
-            {props.teamMembers.filter(t => t.role === 'Admin' || t.role === 'Manager').map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </PFormField>
-        <div style={{ marginTop: 20 }}>
-          <PFormField label="Start Date">
-            <input type="date" className="p-inp" value={c.startDate || ''} onChange={e => props.updateProject(c.id, { startDate: e.target.value })} />
-          </PFormField>
-        </div>
-        <div style={{ marginTop: 20 }}>
-          <PFormField label="SLA Status">
-            {(() => {
-              const sla = props.getSLA(c);
-              return <div className="lxf" style={{ fontSize: 13, color: sla.delayed ? '#ff4444' : '#16A34A', fontWeight: 600 }}>{sla.date} {sla.delayed && '(Delayed)'}</div>;
-            })()}
-          </PFormField>
-        </div>
-      </div>
-
-      <div className="p-card" style={{ padding: 24 }}>
-        <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 16 }}>Financials</h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Contract</span><span className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{c.budget}</span></div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}><span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Paid</span><span className="lxf" style={{ fontSize: 13, fontWeight: 600, color: '#16A34A' }}>$12,500</span></div>
-        <div style={{ height: 1, background: '#eee', margin: '8px 0' }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}><span className="lxf" style={{ fontSize: 13, fontWeight: 700, color: '#ff4444' }}>Balance: $3,500</span></div>
       </div>
     </div>
   );
@@ -860,127 +810,6 @@ function AdminEmailCenter({ emails, setEmails, brand }) {
   );
 }
 
-function AdminCMS({ brand, setBrand, content, setContent }) {
-  const [sub, setSub] = useState('identity');
-  const ac = brand.color || '#C8A96E';
-  
-  const onLogoChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        const compressed = await compressImage(file, { maxWidth: 500, quality: 0.8 });
-        const url = await uploadFile('assets', `logos/${Date.now()}_${file.name}`, compressed);
-        setBrand({ ...brand, logo: url });
-      } catch (err) { alert('Upload failed: ' + err.message); }
-    }
-  };
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400, color: '#1A1410' }}>Content Manager</h2>
-        <div style={{ fontSize: 12, color: '#B5AFA9' }}>Changes are saved automatically to your workspace.</div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 32, borderBottom: '1px solid rgba(0,0,0,.07)', marginBottom: 8 }}>
-        {[['identity', 'Brand Identity'], ['hero', 'Hero Section'], ['about', 'About Page'], ['services', 'Services'], ['portfolio', 'Portfolio']].map(([id, label]) => (
-          <button key={id} onClick={() => setSub(id)} className={`lxf`} style={{ paddingBottom: 14, background: 'none', border: 'none', borderBottom: sub === id ? `2px solid ${ac}` : '2px solid transparent', color: sub === id ? '#1A1410' : '#B5AFA9', fontWeight: sub === id ? 600 : 400, cursor: 'pointer', transition: 'all .3s' }}>{label}</button>
-        ))}
-      </div>
-
-      <div className="p-card" style={{ padding: 28 }}>
-        {sub === 'identity' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <PFormField label="Company Name"><input className="p-inp" value={brand.name} onChange={e => setBrand({ ...brand, name: e.target.value })} /></PFormField>
-            <PFormField label="Brand Color"><input type="color" value={brand.color} onChange={e => setBrand({ ...brand, color: e.target.value })} style={{ width: 60, height: 40, border: 'none', background: 'none' }} /></PFormField>
-            <PFormField label="Company Logo">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 40, maxWidth: 200, objectFit: 'contain' }} /> : <div style={{ height: 40, width: 120, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#B5AFA9', border: '1px dashed #C0B9B0' }}>No Logo Uploaded</div>}
-                <div style={{ position: 'relative', overflow: 'hidden' }}>
-                  <button className="p-btn-light lxf" style={{ padding: '8px 16px', fontSize: 12 }}><Upload size={14} style={{ marginRight: 6 }} /> Upload Logo</button>
-                  <input type="file" accept="image/*" onChange={onLogoChange} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
-                </div>
-              </div>
-            </PFormField>
-          </div>
-        )}
-
-        {sub === 'hero' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {content.hero.slides.map((s, i) => (
-              <div key={i} style={{ padding: 20, border: '1px solid #efefef', borderRadius: 10, background: '#F9F7F4' }}>
-                <div style={{ fontWeight: 600, marginBottom: 16, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}><ImgIcon size={16} /> Hero Slide {i + 1}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      <PFormField label="Large Title">
-                        <input className="p-inp" value={s.title} onChange={e => {
-                          const newSlides = [...content.hero.slides];
-                          newSlides[i].title = e.target.value;
-                          setContent('hero', { ...content.hero, slides: newSlides });
-                        }} />
-                      </PFormField>
-                      <PFormField label="Slide Image">
-                        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                          <img src={s.img} style={{ width: 60, height: 40, borderRadius: 4, objectFit: 'cover' }} />
-                          <div style={{ position: 'relative', overflow: 'hidden' }}>
-                            <button className="p-btn-light lxf" style={{ padding: '6px 12px', fontSize: 11 }}>Replace Image</button>
-                            <input type="file" accept="image/*" onChange={e => {
-                              const file = e.target.files[0];
-                              if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  const newSlides = [...content.hero.slides];
-                                  newSlides[i].img = reader.result;
-                                  setContent('hero', { ...content.hero, slides: newSlides });
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
-                          </div>
-                        </div>
-                      </PFormField>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {sub === 'about' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-              <PFormField label="Founder Name"><input className="p-inp" value={content.about.founder} onChange={e => setContent('about', { ...content.about, founder: e.target.value })} /></PFormField>
-              <PFormField label="Role Name"><input className="p-inp" value={content.about.role} onChange={e => setContent('about', { ...content.about, role: e.target.value })} /></PFormField>
-            </div>
-            <PFormField label="Our Story Title"><input className="p-inp" value={content.about.storyTitle || 'Founded in Accra.'} onChange={e => setContent('about', { ...content.about, storyTitle: e.target.value })} /></PFormField>
-            <PFormField label="Full Story Text"><textarea className="p-inp" style={{ height: 120, resize: 'none' }} value={content.about.story} onChange={e => setContent('about', { ...content.about, story: e.target.value })} /></PFormField>
-            <PFormField label="Mission / Bio Statement"><textarea className="p-inp" style={{ height: 80, resize: 'none' }} value={content.about.bio} onChange={e => setContent('about', { ...content.about, bio: e.target.value })} /></PFormField>
-          </div>
-        )}
-
-        {sub === 'services' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {content.services.map((s, i) => (
-              <div key={i} style={{ padding: 16, border: '1px solid #efefef', borderRadius: 8 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16 }}>
-                  <PFormField label="Title"><input className="p-inp" value={s.title} onChange={e => {
-                    const newS = [...content.services];
-                    newS[i].title = e.target.value;
-                    setContent('services', newS);
-                  }} /></PFormField>
-                  <PFormField label="Subtitle"><input className="p-inp" value={s.sub} onChange={e => {
-                    const newS = [...content.services];
-                    newS[i].sub = e.target.value;
-                    setContent('services', newS);
-                  }} /></PFormField>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-        {sub === 'portfolio' && <AdminPortfolio content={content} setContent={setContent} brand={brand} />}
-      </div>
-    </div>
-  );
-}
 
 function AdminPortfolio({ content, setContent, brand }) {
   const ac = brand.color || '#C8A96E';
@@ -1056,7 +885,7 @@ function AdminPortfolio({ content, setContent, brand }) {
               <PFormField label="Project Title"><input className="p-inp" value={p.title} onChange={e => updateProj(i, { title: e.target.value })} /></PFormField>
               <PFormField label="Category">
                 <select className="p-inp" value={p.cat} onChange={e => updateProj(i, { cat: e.target.value })}>
-                  {['Residential', 'Commercial', 'Kitchen', 'Bathroom', 'Dining'].map(c => <option key={c} value={c}>{c}</option>)}
+                  {['Full Interior', 'Kitchen Installation', 'Washroom Setup', 'Office Fit-out', 'Residential Finishing', 'Glass & Aluminum'].map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </PFormField>
               <PFormField label="After Image (Local Upload)">
@@ -1087,7 +916,262 @@ function AdminPortfolio({ content, setContent, brand }) {
   );
 }
 
-// (Duplicates removed)
+// --- CMS MODULE ---
+
+function AdminCMS({ content, syncCMS, brand, onPreview, ...props }) {
+  const [sub, setSub] = useState('branding');
+  const ac = brand.color || '#C8A96E';
+  
+  const tabs = [
+    { id: 'branding', label: 'Branding', icon: <Sparkles size={16} /> },
+    { id: 'homepage', label: 'Homepage', icon: <Layout size={16} /> },
+    { id: 'services', label: 'Services', icon: <Activity size={16} /> },
+    { id: 'products', label: 'Products', icon: <Smartphone size={16} /> },
+    { id: 'gallery', label: 'Gallery', icon: <ImgIcon size={16} /> },
+    { id: 'about', label: 'About', icon: <Users size={16} /> },
+    { id: 'testimonials', label: 'Testimonials', icon: <ThumbsUp size={16} /> },
+    { id: 'footer', label: 'Footer', icon: <Link2 size={16} /> },
+  ];
+
+  const renderCMS = () => {
+    switch(sub) {
+      case 'branding': return <CMSBranding brand={content.brand} onSave={val => syncCMS('brand', val)} ac={ac} />;
+      case 'homepage': return <CMSHomepage hero={content.hero} onSave={val => syncCMS('hero', val)} ac={ac} />;
+      case 'services': return <CMSServices services={content.services} onSave={val => syncCMS('services', val)} ac={ac} />;
+      case 'products': return <CMSProducts products={content.products} onSave={val => syncCMS('products', val)} ac={ac} />;
+      case 'gallery': return <CMSGallery portfolio={content.portfolio} onSave={val => syncCMS('portfolio', val)} ac={ac} />;
+      case 'about': return <CMSAbout about={content.about} onSave={val => syncCMS('about', val)} ac={ac} />;
+      case 'testimonials': return <CMSTestimonials list={content.testimonials} onSave={val => syncCMS('testimonials', val)} ac={ac} />;
+      case 'footer': return <CMSFooter data={content.footer} onSave={val => syncCMS('footer', val)} ac={ac} />;
+      default: return null;
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400 }}>Website CMS</h2>
+        <button onClick={onPreview} className="p-btn-gold lxf" style={{ padding: '8px 16px' }}>View Live Site</button>
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, background: '#F9F7F4', padding: 4, borderRadius: 10, alignSelf: 'flex-start' }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setSub(t.id)} 
+            className="lxf"
+            style={{ 
+              display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 8, border: 'none', 
+              background: sub === t.id ? '#fff' : 'transparent', color: sub === t.id ? ac : '#7A6E62', 
+              fontSize: 12, fontWeight: sub === t.id ? 600 : 400, cursor: 'pointer', transition: 'all .2s',
+              boxShadow: sub === t.id ? '0 2px 8px rgba(0,0,0,.04)' : 'none'
+            }}>
+            {t.icon} {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="p-card" style={{ padding: 28 }}>
+        {renderCMS()}
+      </div>
+    </div>
+  );
+}
+
+function CMSBranding({ brand, onSave, ac }) {
+  const [f, setF] = useState(brand);
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>Identity & Colors</h3>
+        <PFormField label="Company Name"><input className="p-inp" value={f.name} onChange={e => setF({...f, name: e.target.value})} /></PFormField>
+        <PFormField label="Tagline"><input className="p-inp" value={f.tagline} onChange={e => setF({...f, tagline: e.target.value})} /></PFormField>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <PFormField label="Primary Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.color} onChange={e => setF({...f, color: e.target.value})} /></PFormField>
+          <PFormField label="Accent Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.accent || '#C8A96E'} onChange={e => setF({...f, accent: e.target.value})} /></PFormField>
+        </div>
+        <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Changes</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>Contact Information</h3>
+        <PFormField label="Official Phone"><input className="p-inp" value={f.phone} onChange={e => setF({...f, phone: e.target.value})} /></PFormField>
+        <PFormField label="Official Email"><input className="p-inp" value={f.email} onChange={e => setF({...f, email: e.target.value})} /></PFormField>
+        <PFormField label="Physical Location"><input className="p-inp" value={f.location} onChange={e => setF({...f, location: e.target.value})} /></PFormField>
+      </div>
+    </div>
+  );
+}
+
+function CMSHomepage({ hero, onSave, ac }) {
+  const [slides, setSlides] = useState(hero.slides || []);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Hero Carousel</h3>
+       {slides.map((s, i) => (
+         <div key={i} className="p-card" style={{ padding: 20, background: '#F9F7F4', border: '1px solid rgba(0,0,0,.04)' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: 20 }}>
+              <div style={{ height: 100, borderRadius: 6, overflow: 'hidden' }}><img src={s.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <input className="p-inp" placeholder="Headline" value={s.title} onChange={e => {
+                  const ns = [...slides]; ns[i].title = e.target.value; setSlides(ns);
+                }} />
+                <textarea className="p-inp" placeholder="Sub-text" rows={2} value={s.sub} onChange={e => {
+                  const ns = [...slides]; ns[i].sub = e.target.value; setSlides(ns);
+                }} />
+              </div>
+           </div>
+         </div>
+       ))}
+       <button onClick={() => onSave({ slides })} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Update Homepage</button>
+    </div>
+  );
+}
+
+function CMSServices({ services, onSave, ac }) {
+  const [list, setList] = useState(services || []);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+         <h3 className="lxfh" style={{ fontSize: 20 }}>Service Offerings</h3>
+         <button onClick={() => setList([...list, { id: Date.now(), name: 'New Service', short: '', desc: '', packages: [], gallery: [] }])} className="p-btn-gold lxf" style={{ padding: '6px 14px', fontSize: 11 }}>Add Service</button>
+       </div>
+       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+         {list.map((s, i) => (
+           <div key={s.id} className="p-card" style={{ padding: 20 }}>
+             <PFormField label="Service Name"><input className="p-inp" value={s.name} onChange={e => { const nl = [...list]; nl[i].name = e.target.value; setList(nl); }} /></PFormField>
+             <PFormField label="Description"><textarea className="p-inp" value={s.desc} rows={3} style={{ marginTop: 8 }} onChange={e => { const nl = [...list]; nl[i].desc = e.target.value; setList(nl); }} /></PFormField>
+             <button onClick={() => setList(list.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', fontSize: 11, background: 'none', border: 'none', padding: 0, marginTop: 12, cursor: 'pointer' }}>Delete Service</button>
+           </div>
+         ))}
+       </div>
+       <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Services</button>
+    </div>
+  );
+}
+
+function CMSProducts({ products, onSave, ac }) {
+  const [list, setList] = useState(products || []);
+  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass' });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Industrial Product Catalog</h3>
+       <div style={{ background: '#F9F7F4', padding: 24, borderRadius: 12 }}>
+          <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 16 }}>Add New Product</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <input className="p-inp" placeholder="Product Name" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} />
+            <input className="p-inp" placeholder="Category" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} />
+            <input className="p-inp" placeholder="Image URL" value={newItem.img} onChange={e => setNewItem({...newItem, img: e.target.value})} />
+          </div>
+          <textarea className="p-inp" placeholder="Technical Description" rows={2} value={newItem.desc} onChange={e => setNewItem({...newItem, desc: e.target.value})} />
+          <button onClick={() => { setList([...list, { ...newItem, id: Date.now() }]); setNewItem({ name:'', desc:'', img:'', cat:'Glass' }); }} className="p-btn-gold lxf" style={{ marginTop: 12, padding: '8px 20px' }}>Add to Catalog</button>
+       </div>
+       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+         {list.map(p => (
+           <div key={p.id} className="p-card" style={{ padding: 16 }}>
+              <img src={p.img} alt="" style={{ width: '100%', height: 120, objectFit: 'contain', marginBottom: 12, background: '#fff', borderRadius: 6 }} />
+              <div className="lxf" style={{ fontSize: 10, color: ac, fontWeight: 600 }}>{p.cat}</div>
+              <div className="lxfh" style={{ fontSize: 16, marginBottom: 4 }}>{p.name}</div>
+              <p className="lxf" style={{ fontSize: 12, color: '#7A6E62', lineHeight: 1.6 }}>{p.desc}</p>
+              <button onClick={() => setList(list.filter(x => x.id !== p.id))} style={{ color: '#ff4444', fontSize: 11, background: 'none', border: 'none', padding: 0, marginTop: 12, cursor: 'pointer' }}>Remove</button>
+           </div>
+         ))}
+       </div>
+       <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Update Catalog</button>
+    </div>
+  );
+}
+
+function CMSGallery({ portfolio, onSave, ac }) {
+  const [list, setList] = useState(portfolio || []);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Project Portfolio</h3>
+       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+         {list.map((p, i) => (
+           <div key={p.id} className="p-card" style={{ padding: 12 }}>
+              <img src={p.after} alt="" style={{ width: '100%', height: 100, objectFit: 'cover', borderRadius: 4, marginBottom: 8 }} />
+              <div className="lxf" style={{ fontSize: 11, fontWeight: 600 }}>{p.title}</div>
+              <div className="lxf" style={{ fontSize: 9, color: '#B5AFA9' }}>{p.cat} · {p.year}</div>
+              <button onClick={() => setList(list.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', fontSize: 10, border: 'none', background: 'none', padding: 0, marginTop: 10, cursor: 'pointer' }}>Delete</button>
+           </div>
+         ))}
+         <div style={{ border: '2px dashed #eee', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', height: 160 }} onMouseOver={e => e.currentTarget.style.borderColor = ac} onMouseOut={e => e.currentTarget.style.borderColor = '#eee'}>
+            <div style={{ textAlign: 'center' }}><Plus size={24} color="#B5AFA9" /><div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', marginTop: 8 }}>Add Project</div></div>
+         </div>
+       </div>
+       <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Portfolio</button>
+    </div>
+  );
+}
+
+function CMSTestimonials({ list, onSave, ac }) {
+  const [items, setItems] = useState(list || []);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Client Testimonials</h3>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+         {items.map((t, i) => (
+           <div key={i} className="p-card" style={{ padding: 20, display: 'flex', gap: 20, alignItems: 'center' }}>
+              <div style={{ width: 44, height: 44, borderRadius: '50%', background: ac, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>{t.name[0]}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
+                  <input className="p-inp" placeholder="Name" value={t.name} style={{ width: 200 }} onChange={e => { const ni = [...items]; ni[i].name = e.target.value; setItems(ni); }} />
+                  <input className="p-inp" placeholder="Role" value={t.role} style={{ width: 200 }} onChange={e => { const ni = [...items]; ni[i].role = e.target.value; setItems(ni); }} />
+                </div>
+                <textarea className="p-inp" value={t.text} rows={2} onChange={e => { const ni = [...items]; ni[i].text = e.target.value; setItems(ni); }} />
+              </div>
+              <button onClick={() => setItems(items.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', border: 'none', background: 'none', cursor: 'pointer' }}><Trash2 size={18} /></button>
+           </div>
+         ))}
+       </div>
+       <button onClick={() => setItems([...items, { name: 'New Client', role: 'Developer', text: '', rating: 5 }])} className="p-btn-gold lxf" style={{ alignSelf: 'flex-start', padding: '8px 20px' }}>Add Testimonial</button>
+       <button onClick={() => onSave(items)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Testimonials</button>
+    </div>
+  );
+}
+
+function CMSAbout({ about, onSave, ac }) {
+  const [f, setF] = useState(about || {});
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 40 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>Company Story</h3>
+        <PFormField label="Founder Name"><input className="p-inp" value={f.founder} onChange={e => setF({...f, founder: e.target.value})} /></PFormField>
+        <PFormField label="Story Headline"><input className="p-inp" value={f.storyTitle} onChange={e => setF({...f, storyTitle: e.target.value})} /></PFormField>
+        <PFormField label="Mission Summary"><textarea className="p-inp" rows={4} value={f.story} onChange={e => setF({...f, story: e.target.value})} /></PFormField>
+        <PFormField label="Full Vision Statement"><textarea className="p-inp" rows={4} value={f.bio} onChange={e => setF({...f, bio: e.target.value})} /></PFormField>
+        <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save About Page</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>About Page Image</h3>
+        <div style={{ height: 300, background: '#eee', borderRadius: 8, overflow: 'hidden' }}>
+          <img src={f.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+        <PFormField label="Image URL"><input className="p-inp" value={f.image} onChange={e => setF({...f, image: e.target.value})} /></PFormField>
+      </div>
+    </div>
+  );
+}
+
+function CMSFooter({ data, onSave, ac }) {
+  const [links, setLinks] = useState(data?.links || []);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Footer Information</h3>
+       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+         <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>Policy Links</div>
+         {links.map((l, i) => (
+           <div key={i} style={{ display: 'flex', gap: 12 }}>
+             <input className="p-inp" placeholder="Label" value={l.label} onChange={e => { const nl = [...links]; nl[i].label = e.target.value; setLinks(nl); }} />
+             <input className="p-inp" placeholder="URL" value={l.url} onChange={e => { const nl = [...links]; nl[i].url = e.target.value; setLinks(nl); }} />
+             <button onClick={() => setLinks(links.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', border: 'none', background: 'none', cursor: 'pointer' }}><X size={16} /></button>
+           </div>
+         ))}
+         <button onClick={() => setLinks([...links, { label: '', url: '#' }])} className="lxf" style={{ fontSize: 11, color: ac, background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontWeight: 600 }}>+ Add Link</button>
+       </div>
+       <button onClick={() => onSave({ links })} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Footer</button>
+    </div>
+  );
+}
 
 
 // --- MAIN PORTAL SHELL ---
@@ -1098,28 +1182,28 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
 
   const menu = [
     { id: 'dash', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { id: 'cms', label: 'Site CMS', icon: <Layout size={18} /> },
-    { id: 'clients', label: 'Clients', icon: <Users size={18} /> },
+    { id: 'clients', label: 'Client Directory', icon: <Users size={18} /> },
+    { id: 'crm', label: 'Installations', icon: <Truck size={18} /> },
+    { id: 'cms', label: 'Website CMS', icon: <Globe size={18} /> },
     { id: 'portfolio', label: 'Portfolio', icon: <ImgIcon size={18} /> },
     { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
     { id: 'analytics', label: 'Analytics', icon: <Activity size={18} /> },
     { id: 'email', label: 'Email Center', icon: <Mail size={18} /> },
     { id: 'staff', label: 'Staff Management', icon: <Users size={18} /> },
-    { id: 'logistics', label: 'Logistics', icon: <Truck size={18} /> }
   ];
 
   const renderView = () => {
     const common = { user, brand, content, setContent, ...props };
     switch (view) {
       case 'dash': return <AdminDash {...common} />;
-      case 'cms': return <AdminCMS {...common} />;
-      case 'clients': return <AdminCRM {...common} />;
+      case 'clients': return <AdminClients {...common} />;
+      case 'cms': return <AdminCMS {...common} onPreview={onPreview} />;
+      case 'crm': return <AdminInstallations {...common} />;
       case 'portfolio': return <AdminPortfolio {...common} />;
       case 'bookings': return <AdminBookings {...common} />;
       case 'analytics': return <AdminAnalyticsPage {...common} />;
       case 'email': return <AdminEmailCenter {...common} />;
       case 'staff': return <AdminStaff team={props.teamMembers} setTeam={props.setTeamMembers} {...common} />;
-      case 'logistics': return <AdminLogistics shipments={props.shipments} setShipments={props.setShipments} {...common} />;
       default: return <AdminDash {...common} />;
     }
   };
@@ -1145,8 +1229,8 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
             <div>
-              <div className="lxf" style={{ fontSize: 11, letterSpacing: '.12em', color: ac, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Global CMS Administrator</div>
-              <h1 className="lxfh" style={{ fontSize: 26 }}>LuxeSpace Control Center</h1>
+              <div className="lxf" style={{ fontSize: 11, letterSpacing: '.12em', color: ac, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Operations Control</div>
+              <h1 className="lxfh" style={{ fontSize: 26 }}>Glasstech Control Center</h1>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
               <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />

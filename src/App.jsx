@@ -18,16 +18,16 @@ import {
 } from 'firebase/firestore';
 
 const BRAND0 = {
-  name: 'LuxeSpace Interiors',
+  name: 'Glasstech Fabrications',
   logo: null,
-  color: '#C8A96E',
-  tagline: 'Crafting Spaces That Tell Your Story',
-  phone: '+233 24 412 3456',
-  email: 'hello@luxespace.com',
-  location: 'East Legon, Accra',
-  website: 'www.luxespace.com',
-  instagram: '@luxespace_gh',
-  whatsapp: '+233244123456'
+  color: '#1A1410',
+  tagline: 'Complete Interior & Finishing Solutions',
+  phone: '+233 24 111 2222',
+  email: 'contact@glasstech.com.gh',
+  location: 'Spintex Road Industrial Area, Accra',
+  website: 'www.glasstech.com.gh',
+  instagram: '@glasstech_gh',
+  whatsapp: '+233241112222'
 };
 
 const INITIAL_CONTENT = {
@@ -43,13 +43,25 @@ export default function App() {
   const [view, setView] = useState('public'); 
   const [user, setUser] = useState(null);
   const [brand, setBrand] = useState(BRAND0);
-  const [content, setContent] = useState(INITIAL_CONTENT);
+  const [content, setContent] = useState({
+    brand: BRAND0,
+    hero: { slides: HERO_SLIDES },
+    services: SERVICES_DATA,
+    portfolio: PORTFOLIO_DATA,
+    about: ABOUT_DATA,
+    team: TEAM_MEMBERS,
+    testimonials: [],
+    why_us: WHY_US,
+    process: PROCESS_STEPS,
+    products: []
+  });
   
   const [clients, setClients] = useState([]);
   const [proposals, setProposals] = useState(PROPOSALS_DATA);
   const [invoices, setInvoices] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [emails, setEmails] = useState(EMAIL_QUEUE);
+  const [dbClients, setDbClients] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [logs, setLogs] = useState([]);
   const [shipments, setShipments] = useState([]);
@@ -95,6 +107,11 @@ export default function App() {
       setTasks(mapSnap(tSnap));
       setApprovals(mapSnap(a_Snap));
       setChangeRequests(mapSnap(cr_Snap));
+      
+      const allUsers = mapSnap(uSnap);
+      setTeamMembers(allUsers.filter(u => u.role !== 'client'));
+      setDbClients(allUsers.filter(u => u.role === 'client'));
+
       if (user) {
         const myNotifs = mapSnap(n_Snap).filter(n => n.userId === user.id);
         setUserNotifications(myNotifs);
@@ -146,6 +163,20 @@ export default function App() {
   };
 
   useEffect(() => {
+    const q = collection(db, 'cms_content');
+    const unsub = onSnapshot(q, (snapshot) => {
+      const cms = {};
+      snapshot.docs.forEach(d => {
+        cms[d.id] = d.data().content;
+      });
+      if (Object.keys(cms).length > 0) {
+        setContent(prev => ({ ...prev, ...cms }));
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
       if (sessionUser) {
         const userRef = doc(db, 'users', sessionUser.uid);
@@ -175,6 +206,12 @@ export default function App() {
       setLogs(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
 
+    const userSub = onSnapshot(collection(db, 'users'), (snap) => {
+      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setTeamMembers(all.filter(u => u.role !== 'client'));
+      setDbClients(all.filter(u => u.role === 'client'));
+    });
+
     const taskSub = onSnapshot(query(collectionGroup(db, 'tasks')), (snap) => {
       setTasks(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
@@ -199,6 +236,7 @@ export default function App() {
       projectSub();
       paymentSub();
       logSub();
+      userSub();
       taskSub();
       apprSub();
       crSub();
@@ -208,16 +246,16 @@ export default function App() {
 
   const syncProjects = async (id, fields) => {
     try {
-      notify('pending', 'Updating project...');
+      notify('pending', 'Updating installation...');
       const oldProj = clients.find(c => c.id === id);
       await updateDoc(doc(db, 'projects', id), fields);
       if (fields.stage && oldProj.stage !== fields.stage) {
         logAction(id, 'Stage', `Updated stage to: ${fields.stage}`, oldProj.title);
       }
-      notify('success', 'Project updated');
+      notify('success', 'Installation updated');
       if (fields.stage && oldProj.stage !== fields.stage) {
-        notifyUser(oldProj.clientId, `Project stage updated to: ${fields.stage}`, 'stage');
-        notifyUser(oldProj.managerId, `Project stage updated to: ${fields.stage}`, 'stage');
+        notifyUser(oldProj.clientId, `Installation stage updated to: ${fields.stage}`, 'stage');
+        notifyUser(oldProj.managerId, `Installation stage updated to: ${fields.stage}`, 'stage');
       }
     } catch (err) {
       notify('error', 'Update failed');
@@ -254,29 +292,29 @@ export default function App() {
 
   const syncApproval = async (id, fields, projectId) => {
     try {
-      notify('pending', 'Syncing approval...');
+      notify('pending', 'Syncing component sign-off...');
       const pid = projectId || approvals.find(a => a.id === id)?.parentId;
       const appr = approvals.find(a => a.id === id);
       await updateDoc(doc(db, 'projects', pid, 'approvals', id), fields);
       logAction(pid, 'Approval', `Status update: ${fields.status || 'Updated'} - ${appr.itemName}`, appr.projectTitle);
       if (fields.status === 'approved') {
         const proj = clients.find(c => c.id === pid);
-        notifyUser(proj?.managerId, `Material approved: ${appr.itemName}`, 'approval');
+        notifyUser(proj?.managerId, `Component approved: ${appr.itemName}`, 'approval');
       }
-      notify('success', 'Approval updated');
+      notify('success', 'Sign-off updated');
     } catch (err) { notify('error', 'Sync failed'); }
   };
 
   const createApproval = async (a) => {
      try {
-       notify('pending', 'Creating approval item...');
+       notify('pending', 'Requesting component sign-off...');
        const docRef = await addDoc(collection(db, 'projects', a.projectId, 'approvals'), {
          ...a, status: 'pending', createdAt: new Date().toISOString()
        });
-       logAction(a.projectId, 'Approval', `New approval item: ${a.itemName}`, a.projectTitle);
+       logAction(a.projectId, 'Approval', `New component sign-off request: ${a.itemName}`, a.projectTitle);
        const proj = clients.find(c => c.id === a.projectId);
-       notifyUser(proj?.clientId, `New material approval required: ${a.itemName}`, 'approval');
-       notify('success', 'Item requested');
+       notifyUser(proj?.clientId, `New technical sign-off required: ${a.itemName}`, 'approval');
+       notify('success', 'Sign-off requested');
        return docRef.id;
      } catch (err) { notify('error', 'Failed'); }
   };
@@ -289,9 +327,9 @@ export default function App() {
       await updateDoc(doc(db, 'projects', pid, 'change_requests', id), fields);
       logAction(pid, 'Change', `Status update: ${fields.status}`, req.projectTitle);
       const proj = clients.find(c => c.id === pid);
-      if (fields.status === 'evaluated') notifyUser(proj?.clientId, `Change request evaluated. Please review cost/timeline.`, 'change');
+      if (fields.status === 'evaluated') notifyUser(proj?.clientId, `Change request evaluated. Please review impact.`, 'change');
       if (fields.status === 'approved') notifyUser(proj?.managerId, `Change request approved by client.`, 'change');
-      notify('success', 'Request updated');
+      notify('success', 'Modification updated');
     } catch (err) { notify('error', 'Sync failed'); }
   };
 
@@ -382,6 +420,29 @@ export default function App() {
     }
   };
 
+  const updateProject = async (pid, fields) => {
+    try {
+      await updateDoc(doc(db, 'projects', pid), fields);
+      notify('success', 'Project updated successfully');
+    } catch (e) { notify('error', e.message); }
+  };
+
+  const createClient = async (data) => {
+    try {
+      const id = data.email.replace(/[^a-zA-Z0-9]/g, '_');
+      await setDoc(doc(db, 'users', id), { ...data, role: 'client', joined: new Date().toISOString() });
+      notify('success', 'Client created successfully');
+      logAction(null, 'Client', `Created new client: ${data.name}`);
+    } catch (e) { notify('error', e.message); }
+  };
+
+  const updateClient = async (id, data) => {
+    try {
+      await updateDoc(doc(db, 'users', id), data);
+      notify('success', 'Client updated');
+    } catch (e) { notify('error', e.message); }
+  };
+
   const updateMember = async (id, f) => {
     try {
       await updateDoc(doc(db, 'users', id), f);
@@ -422,11 +483,12 @@ export default function App() {
   const commonProps = {
     brand, setBrand: syncBrand, content, setContent: syncCMS,
     clients, updateProject: syncProjects,
+    dbClients, createClient, updateClient,
     createProject: async (p) => {
       try {
-        notify('pending', 'Creating project...');
+        notify('pending', 'Creating installation...');
         const docRef = await addDoc(collection(db, 'projects'), { ...p, createdAt: new Date().toISOString() });
-        notify('success', 'Project created');
+        notify('success', 'Installation created');
         return { data: { id: docRef.id, ...p }, error: null };
       } catch (err) {
         notify('error', 'Failed');
@@ -442,28 +504,88 @@ export default function App() {
     changeRequests, updateChangeRequest: syncChangeRequest, createChangeRequest,
     userNotifications, markNotificationRead,
     getSLA,
+    content, syncCMS,
+    brand: content.brand,
     migrateToFirebase: async () => {
       try {
-        notify('pending', 'Starting standardized migration...');
+        notify('pending', 'Initializing Glasstech CMS...');
         setLoading(true);
+        // USERS
         for (const m of TEAM_MEMBERS) await setDoc(doc(db, 'users', m.id), m);
+        
+        // CLIENTS & PROJECTS
         for (const item of CLIENTS_DATA) {
           const pid = item.id || `PROJ_${Math.random().toString(36).substr(2, 5)}`;
-          await setDoc(doc(db, 'projects', pid), { 
-            ...item, title: item.project, clientId: `CL_${pid}`, managerId: 'EMP001', createdAt: new Date().toISOString() 
+          const cid = `CL_${pid}`;
+          
+          // Register Client User
+          await setDoc(doc(db, 'users', cid), { 
+            id: cid, name: item.name, email: item.email || `${item.name.toLowerCase().replace(' ', '.')}@example.com`, 
+            phone: '+233 24 000 0000', company: item.project.split(' ')[0] + ' Ltd', role: 'client', status: 'Active', joined: new Date().toISOString() 
           });
-          const projPay = INVOICES_DATA.filter(i => i.project === item.project);
-          for (const inv of projPay) await setDoc(doc(db, 'projects', pid, 'payments', inv.id), inv);
-          const initialTasks = [{ title: 'Consultation', stage: 1, status: 'completed', assignedTo: 'EMP001' }];
+
+          // Define Milestones
+          const milestones = [
+            { id: 'm1', name: 'Deposit (40%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.4).toLocaleString(), stageId: 1, paid: true },
+            { id: 'm2', name: 'Fabrication Commencement (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 4, paid: false },
+            { id: 'm3', name: 'Final Handover (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 7, paid: false }
+          ];
+
+          await setDoc(doc(db, 'projects', pid), { 
+            ...item, 
+            title: item.project, 
+            clientIds: [cid], 
+            milestones,
+            managerId: 'EMP001', 
+            createdAt: new Date().toISOString() 
+          });
+
+          // Create initial Invoices for the Paid milestones
+          for (const m of milestones.filter(x => x.paid)) {
+            await addDoc(collection(db, 'projects', pid, 'payments'), {
+              title: m.name, amount: m.amount, status: 'Paid', date: new Date().toLocaleDateString(), type: 'Milestone', milestoneId: m.id
+            });
+          }
+
+          const initialTasks = [{ title: 'Site Survey & Dimensioning', stage: 1, status: 'completed', assignedTo: 'EMP001' }];
           for (const t of initialTasks) await addDoc(collection(db, 'projects', pid, 'tasks'), { ...t, createdAt: new Date().toISOString() });
-          await addDoc(collection(db, 'projects', pid, 'activity_logs'), { action: 'Project Standardized', type: 'System', created_at: new Date().toISOString() });
-          await addDoc(collection(db, 'projects', pid, 'approvals'), { itemName: 'Initial Concept', status: 'pending', createdAt: new Date().toISOString() });
+          await addDoc(collection(db, 'projects', pid, 'activity_logs'), { action: 'Project Initiated: ' + item.project, type: 'System', created_at: new Date().toISOString() });
         }
-        await setDoc(doc(db, 'cms_content', 'brand'), { content: BRAND0 });
-        await setDoc(doc(db, 'cms_content', 'hero'), { content: { slides: HERO_SLIDES } });
-        notify('success', 'Migration complete');
+
+        // CMS CONTENT
+        const CMS_SHEET = {
+          brand: BRAND0,
+          hero: { slides: HERO_SLIDES },
+          services: SERVICES_DATA,
+          portfolio: PORTFOLIO_DATA,
+          about: ABOUT_DATA,
+          team: TEAM_MEMBERS,
+          why_us: WHY_US,
+          process: PROCESS_STEPS,
+          testimonials: [
+            { name: 'Abena Mensah', role: 'Developer', text: 'Glasstech transformed our development beyond expectation. The structural glazing is precise.', rating: 5 },
+            { name: 'Kofi Asante', role: 'CEO', text: 'Our new headquarters facade is world-class glass engineering.', rating: 5 }
+          ],
+          products: [
+            { id: 'p1', name: 'Low-E Toughened Glass', desc: 'High thermal efficiency panes for facades.', img: 'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=500&q=80', cat: 'Glass' },
+            { id: 'p2', name: 'Structural Aluminum Profiles', desc: 'Heavy-duty frames for commercial glazing.', img: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500&q=80', cat: 'Structural' }
+          ],
+          footer: {
+            links: [
+              { label: 'Privacy Policy', url: '#' },
+              { label: 'Terms of Service', url: '#' },
+              { label: 'Quality Policy', url: '#' }
+            ]
+          }
+        };
+
+        for (const [k, v] of Object.entries(CMS_SHEET)) {
+          await setDoc(doc(db, 'cms_content', k), { content: v });
+        }
+
+        notify('success', 'Full Interior CMS Initialized');
         fetchData();
-      } catch (err) { notify('error', 'Migration failed'); } finally { setLoading(false); }
+      } catch (err) { console.error(err); notify('error', 'Initialization failed'); } finally { setLoading(false); }
     }
   };
 

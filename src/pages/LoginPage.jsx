@@ -46,7 +46,7 @@ export default function LoginPage({ onLogin, onBack, brand }) {
         </div>
         <div style={{ marginTop: 32, padding: '18px', background: '#F9F7F4', borderRadius: 10, border: '1px solid rgba(0,0,0,.07)' }}>
           <div className="eyebrow lxf" style={{ marginBottom: 10, fontSize: 9 }}>Demo Credentials</div>
-          {[['Super Admin', 'admin@stormglide.com', 'admin123'], ['Studio Admin', 'admin@luxespace.com', 'admin123'], ['Design Team', 'sarah@luxespace.com', 'team123'], ['Client Portal', 'client@luxespace.com', 'client123']].map(([r, e, p]) => (
+          {[['Site Supervisor', 'admin@glasstechfab.com', 'admin123'], ['Operations Manager', 'manager@glasstechfab.com', 'admin123'], ['Fabrication Team', 'lead@glasstechfab.com', 'team123'], ['Client Access', 'client@demo.com', 'client123']].map(([r, e, p]) => (
             <div key={r} style={{ marginBottom: 7, cursor: 'pointer' }} onClick={() => { setEmail(e); setPw(p); }}>
               <span className="lxf" style={{ fontSize: 10, color: '#B5AFA9', marginRight: 8, letterSpacing: '.08em' }}>{r}:</span>
               <span className="lxf" style={{ fontSize: 11, color: '#7A6E62', fontFamily: 'monospace' }}>{e} / {p}</span>
@@ -59,11 +59,11 @@ export default function LoginPage({ onLogin, onBack, brand }) {
         <img src="https://images.unsplash.com/photo-1616137466211-f939a420be84?w=1200&q=80" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg,rgba(26,20,16,.65) 0%,rgba(26,20,16,.3) 100%)' }} />
         <div style={{ position: 'absolute', bottom: 52, left: 52, right: 52 }}>
-          <div className="eyebrow lxf" style={{ color: `${ac}`, marginBottom: 14 }}>Trusted by design studios</div>
-          <p className="lxfh" style={{ fontSize: 36, fontWeight: 300, color: '#F9F7F4', lineHeight: 1.3, marginBottom: 24 }}>"The platform that finally brings together every tool our studio needs — beautifully."</p>
+          <div className="eyebrow lxf" style={{ color: `${ac}`, marginBottom: 14 }}>Trusted by industrial developers</div>
+          <p className="lxfh" style={{ fontSize: 36, fontWeight: 300, color: '#F9F7F4', lineHeight: 1.3, marginBottom: 24 }}>"The platform that finally brings together every fabrication phase — with precision."</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: `${ac}22`, border: `1.5px solid ${ac}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, color: ac, fontFamily: "'DM Sans',sans-serif" }}>AA</div>
-            <div><div className="lxf" style={{ fontSize: 13, fontWeight: 500, color: '#F9F7F4' }}>Ama Asante</div><div className="lxf" style={{ fontSize: 12, color: 'rgba(249,247,244,.5)' }}>Lead Designer, LuxeSpace Interiors</div></div>
+            <div style={{ width: 42, height: 42, borderRadius: '50%', background: `${ac}22`, border: `1.5px solid ${ac}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, color: ac, fontFamily: "'DM Sans',sans-serif" }}>KA</div>
+            <div><div className="lxf" style={{ fontSize: 13, fontWeight: 500, color: '#F9F7F4' }}>Kofi Asante</div><div className="lxf" style={{ fontSize: 12, color: 'rgba(249,247,244,.5)' }}>Operations Lead, Glasstech Fabrications</div></div>
           </div>
         </div>
       </div>

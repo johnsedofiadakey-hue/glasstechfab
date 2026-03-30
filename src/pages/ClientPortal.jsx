@@ -161,29 +161,81 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
   const renderContent = () => {
     switch (tab) {
       case 'overview':
+        const myProj = props.clients.find(c => c.clientIds?.includes(client.id) || c.id === client.id);
+        const totalRaw = myProj?.budget?.replace(/[$,]/g, '') || 0;
+        const total = parseFloat(totalRaw);
+        const paid = myInvs.filter(i => i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
+        const remaining = total - paid;
+        
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300 }}>Welcome, {client.name.split(' ')[0]}</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32 }}>
+               <div>
+                  <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300, marginBottom: 8 }}>Welcome, {client.name.split(' ')[0]}</h1>
+                  <div className="lxf" style={{ fontSize: 13, color: ac, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>{myProj?.cat || 'Full Interior Finishing'}</div>
+               </div>
+               <div style={{ textAlign: 'right' }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>Current Stage</div>
+                  <div className="lxfh" style={{ fontSize: 20 }}>{props.PROJECT_STAGES?.find(s => s.id === (myProj?.stage || 1))?.name || 'Inquiry'}</div>
+               </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+               <div className="p-card" style={{ padding: 20 }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Project Value</div>
+                  <div className="lxfh" style={{ fontSize: 24 }}>${total.toLocaleString()}</div>
+               </div>
+               <div className="p-card" style={{ padding: 20 }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#16A34A', textTransform: 'uppercase', marginBottom: 8 }}>Total Paid</div>
+                  <div className="lxfh" style={{ fontSize: 24, color: '#16A34A' }}>${paid.toLocaleString()}</div>
+               </div>
+               <div className="p-card" style={{ padding: 20 }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#ff4444', textTransform: 'uppercase', marginBottom: 8 }}>Outstanding</div>
+                  <div className="lxfh" style={{ fontSize: 24, color: '#ff4444' }}>${remaining.toLocaleString()}</div>
+               </div>
+            </div>
+
             <div className="p-card" style={{ padding: 24 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                <div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>Project Progress</div>
-                <div className="lxf" style={{ fontSize: 13, color: ac }}>{client.progress}%</div>
+                <div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>Project Progress: {myProj?.project}</div>
+                <div className="lxf" style={{ fontSize: 13, color: ac }}>{myProj?.progress || 0}%</div>
               </div>
-              <div className="prog"><div className="prog-f" style={{ width: `${client.progress}%`, background: ac }} /></div>
+              <div className="prog"><div className="prog-f" style={{ width: `${myProj?.progress || 0}%`, background: ac }} /></div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <div className="p-card" style={{ padding: 20 }}>
-                <div className="eyebrow lxf" style={{ marginBottom: 12 }}>Recent Proposal</div>
-                {myProps[0] ? (
-                  <div>
-                    <div className="lxf" style={{ fontWeight: 600 }}>{myProps[0].title}</div>
-                    <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>{myProps[0].amount} · {myProps[0].status}</div>
-                  </div>
-                ) : <div className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>No proposals yet</div>}
-              </div>
-              <div className="p-card" style={{ padding: 20 }}>
-                <div className="eyebrow lxf" style={{ marginBottom: 12 }}>Next Booking</div>
-                <div className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>No upcoming sessions</div>
+          </div>
+        );
+      case 'project':
+        const p = props.clients.find(c => c.clientIds?.includes(client.id) || c.id === client.id);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Project Roadmap</h2>
+            <div className="p-card" style={{ padding: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {(props.PROJECT_STAGES || []).map(s => {
+                  const isCurrent = (p?.stage || 1) === s.id;
+                  const isPast = (p?.stage || 1) > s.id;
+                  const milestone = (p?.milestones || []).find(m => m.stageId === s.id);
+                  const isLocked = s.id > 1 && (p?.milestones || []).some(m => m.stageId < s.id && !m.paid);
+                  
+                  return (
+                    <div key={s.id} style={{ 
+                      display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', 
+                      background: isCurrent ? `${s.color}10` : isPast ? '#fff' : '#F9F7F4', 
+                      border: isCurrent ? `1px solid ${s.color}30` : '1px solid transparent', 
+                      borderRadius: 10, opacity: isLocked ? 0.5 : 1
+                    }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: isPast ? s.color : isCurrent ? s.color : '#DFD9D1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>
+                        {isPast ? <CheckCircle size={14} /> : s.id}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div className="lxf" style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : '#7A6E62' }}>{s.name}</div>
+                        {isCurrent && <div className="lxf" style={{ fontSize: 11, color: ac }}>You are currently at this stage</div>}
+                        {isLocked && <div className="lxf" style={{ fontSize: 11, color: '#ff4444' }}>Locked: Awaiting milestone payment</div>}
+                      </div>
+                      {milestone && <SBadge s={milestone.paid ? 'PAID' : 'DUE'} />}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

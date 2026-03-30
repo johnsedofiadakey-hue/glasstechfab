@@ -29,7 +29,7 @@ export default function AccountManagerPortal({ user, brand, onLogout, ...props }
       case 'projects':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300 }}>Active Projects</h1>
+            <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300 }}>Active Installations</h1>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
               {myClients.map(c => (
                 <div key={c.id} className="p-card" style={{ padding: 20 }}>
@@ -116,7 +116,7 @@ export default function AccountManagerPortal({ user, brand, onLogout, ...props }
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 22 }}>{brand.name}</div>}
           <div style={{ height: 18, width: 1, background: 'rgba(0,0,0,.1)' }} />
-          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Design Team Portal</div>
+          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Operations Team Portal</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />
