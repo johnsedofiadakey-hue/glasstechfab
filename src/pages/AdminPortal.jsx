@@ -1251,9 +1251,9 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
               <h1 className="lxfh" style={{ fontSize: 26 }}>Glasstech Control Center</h1>
             </div>
             <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />
+              <NotificationBell notifications={props.userNotifications || props.notifications} onMarkRead={props.markNotificationRead} />
               <button onClick={onPreview} className="p-btn-light lxf" style={{ padding: '9px 18px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} /> Preview Site</button>
-              <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${ac}22`, border: `1.5px solid ${ac}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: ac }}>{user.name.slice(0, 2).toUpperCase()}</div>
+              <div style={{ width: 40, height: 40, borderRadius: '50%', background: `${ac}22`, border: `1.5px solid ${ac}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, color: ac }}>{user?.name?.slice(0, 2).toUpperCase() || 'AD'}</div>
             </div>
           </header>
           {renderView()}

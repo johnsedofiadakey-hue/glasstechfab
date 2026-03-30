@@ -10,7 +10,7 @@ import {
 } from '../components/Shared';
 import PulseTargetCard from '../components/PulseTargetCard';
 import { 
-  TEAM_MEMBERS, BOOKING_SLOTS 
+  TEAM_MEMBERS, BOOKING_SLOTS, PROJECT_STAGES
 } from '../data';
 
 // --- STRIPE PAY MODAL ---
@@ -375,11 +375,11 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
           <div style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Client Portal</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />
+          <NotificationBell notifications={props.userNotifications || props.notifications} onMarkRead={props.markNotificationRead} />
           {client ? (
             <>
               <PAv i={client.av} s={32} c={ac} />
-              <div><div style={{ fontSize: 13, fontWeight: 500 }}>{client.name}</div><div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div></div>
+              <div><div style={{ fontSize: 13, fontWeight: 500 }}>{client.name || 'Client'}</div><div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div></div>
             </>
           ) : (
             <div style={{ fontSize: 11, color: '#B5AFA9' }}>Loading profile...</div>

@@ -119,9 +119,9 @@ export default function AccountManagerPortal({ user, brand, onLogout, ...props }
           <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Operations Team Portal</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />
-          <PAv i={member.av} s={32} c={ac} />
-          <div><div className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{member.name}</div><div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{member.role}</div></div>
+          <NotificationBell notifications={props.userNotifications || props.notifications} onMarkRead={props.markNotificationRead} />
+          <PAv i={member?.av} s={32} c={ac} />
+          <div><div className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{member?.name || 'User'}</div><div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{member?.role}</div></div>
           <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', marginLeft: 16 }}><LogOut size={16} /></button>
         </div>
       </div>
