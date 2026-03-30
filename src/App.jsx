@@ -217,6 +217,12 @@ export default function App() {
             }
           } else {
             console.error("No profile found for email:", sessionUser.email);
+            // AUTO-INIT FOR KNOWN DEMO ACCOUNTS
+            if (['admin@stormglide.com', 'admin@luxespace.com', 'client@luxespace.com'].includes(sessionUser.email)) {
+              notify('pending', 'Auto-initializing demo profile...');
+              await migrateToFirebase();
+              return; // The auth listener will re-fire or migrateToFirebase will handle it
+            }
             // If we are on the login page, show an error instead of a direct redirect
             if (view === 'login') {
               notify('error', 'Authentication successful, but no account record found.');
