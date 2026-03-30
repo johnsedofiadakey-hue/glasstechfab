@@ -1389,49 +1389,6 @@ function CMSTestimonials({ list, onSave, ac }) {
   );
 }
 
-function CMSAbout({ about, onSave, ac }) {
-  const [f, setF] = useState(about || {});
-  return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 40 }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <h3 className="lxfh" style={{ fontSize: 20 }}>Company Story</h3>
-        <PFormField label="Founder Name"><input className="p-inp" value={f.founder} onChange={e => setF({...f, founder: e.target.value})} /></PFormField>
-        <PFormField label="Story Headline"><input className="p-inp" value={f.storyTitle} onChange={e => setF({...f, storyTitle: e.target.value})} /></PFormField>
-        <PFormField label="Mission Summary"><textarea className="p-inp" rows={4} value={f.story} onChange={e => setF({...f, story: e.target.value})} /></PFormField>
-        <PFormField label="Full Vision Statement"><textarea className="p-inp" rows={4} value={f.bio} onChange={e => setF({...f, bio: e.target.value})} /></PFormField>
-        <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save About Page</button>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <h3 className="lxfh" style={{ fontSize: 20 }}>About Page Image</h3>
-        <div style={{ height: 300, background: '#eee', borderRadius: 8, overflow: 'hidden' }}>
-          <img src={f.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
-        <PFormField label="Image URL"><input className="p-inp" value={f.image} onChange={e => setF({...f, image: e.target.value})} /></PFormField>
-      </div>
-    </div>
-  );
-}
-
-function CMSFooter({ data, onSave, ac }) {
-  const [links, setLinks] = useState(data?.links || []);
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-       <h3 className="lxfh" style={{ fontSize: 20 }}>Footer Information</h3>
-       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-         <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>Policy Links</div>
-         {links.map((l, i) => (
-           <div key={i} style={{ display: 'flex', gap: 12 }}>
-             <input className="p-inp" placeholder="Label" value={l.label} onChange={e => { const nl = [...links]; nl[i].label = e.target.value; setLinks(nl); }} />
-             <input className="p-inp" placeholder="URL" value={l.url} onChange={e => { const nl = [...links]; nl[i].url = e.target.value; setLinks(nl); }} />
-             <button onClick={() => setLinks(links.filter((_, idx) => idx !== i))} style={{ color: '#ff4444', border: 'none', background: 'none', cursor: 'pointer' }}><X size={16} /></button>
-           </div>
-         ))}
-         <button onClick={() => setLinks([...links, { label: '', url: '#' }])} className="lxf" style={{ fontSize: 11, color: ac, background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontWeight: 600 }}>+ Add Link</button>
-       </div>
-       <button onClick={() => onSave({ links })} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Footer</button>
-    </div>
-  );
-}
 
 
 // --- MAIN PORTAL SHELL ---
