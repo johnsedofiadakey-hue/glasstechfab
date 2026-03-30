@@ -619,7 +619,7 @@ export default function App() {
   };
 
   if (view === 'public') return <PublicSite {...commonProps} onPortal={() => setView('login')} />;
-  if (view === 'login') return <LoginPage brand={brand} onLogin={async (e, p) => {
+  if (view === 'login') return <LoginPage brand={brand} onBootstrap={migrateToFirebase} onLogin={async (e, p) => {
     try {
       await signInWithEmailAndPassword(auth, e, p);
     } catch (err) {

@@ -364,8 +364,14 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />
-          <PAv i={client.av} s={32} c={ac} />
-          <div><div style={{ fontSize: 13, fontWeight: 500 }}>{client.name}</div><div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div></div>
+          {client ? (
+            <>
+              <PAv i={client.av} s={32} c={ac} />
+              <div><div style={{ fontSize: 13, fontWeight: 500 }}>{client.name}</div><div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div></div>
+            </>
+          ) : (
+            <div style={{ fontSize: 11, color: '#B5AFA9' }}>Loading profile...</div>
+          )}
           <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', marginLeft: 16 }}><LogOut size={18} /></button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TEAM_MEMBERS, CLIENTS_DATA } from '../data';
 
-export default function LoginPage({ onLogin, onBack, brand }) {
+export default function LoginPage({ onLogin, onBack, brand, onBootstrap }) {
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
@@ -53,6 +53,9 @@ export default function LoginPage({ onLogin, onBack, brand }) {
             </div>
           ))}
           <div className="lxf" style={{ fontSize: 10, color: '#C0B9B0', marginTop: 6, fontStyle: 'italic' }}>Click any row to auto-fill credentials</div>
+          {onBootstrap && (
+            <button onClick={onBootstrap} className="lxf" style={{ background: 'none', border: '1px solid currentColor', color: ac, fontSize: 10, padding: '6px 12px', borderRadius: 4, marginTop: 12, cursor: 'pointer', opacity: .6 }}>Initialize Glasstech System</button>
+          )}
         </div>
       </div>
       <div style={{ position: 'relative', overflow: 'hidden' }}>
