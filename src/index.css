@@ -52,7 +52,7 @@ p, .lxf { font-family: 'DM Sans', sans-serif; line-height: 1.6; }
 .why-item:hover{border-bottom-color:var(--ac);}
 .why-num{font-family:'Cormorant Garamond',serif;font-size:48px;font-weight:300;line-height:1;color:var(--ac);opacity:.2;transition:opacity .3s;} .why-item:hover .why-num{opacity:.55;}
 .slider-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);border:none;cursor:pointer;transition:all .35s;padding:0;} .slider-dot.active{background:var(--ac);transform:scale(1.5);}
-.video-play{width:68px;height:68px;background:var(--ac);border-radius:50%;display:flex;align-items:center;justifyContent:center;cursor:pointer;transition:all .3s;box-shadow:0 6px 24px rgba(200,169,110,.45);} .video-play:hover{transform:scale(1.12);}
+.video-play{width:68px;height:68px;background:var(--ac);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .3s;box-shadow:0 6px 24px rgba(200,169,110,.45);} .video-play:hover{transform:scale(1.12);}
 .client-logo{font-family:'Cormorant Garamond',serif;font-size:15px;font-weight:400;color:#C5BEB6;letter-spacing:.06em;white-space:nowrap;padding:0 36px;transition:color .3s;} .client-logo:hover{color:#7A6E62;}
 .room-tab{border:none;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;padding:12px 24px;transition:all .25s;color:#B5AFA9;border-bottom:2px solid transparent;} .room-tab.active{color:var(--ac);border-bottom-color:var(--ac);}
 .service-lx-card{overflow:hidden;transition:all .35s;cursor:pointer;} .service-lx-card:hover{box-shadow:0 16px 48px rgba(0,0,0,.1);transform:translateY(-5px);}
@@ -94,8 +94,12 @@ p, .lxf { font-family: 'DM Sans', sans-serif; line-height: 1.6; }
 @media (min-width: 1024px) { .p-grid-4 { grid-template-columns: repeat(4, 1fr); } }
 
 .mob-only { display: block; }
-.dt-only { display: none; }
-@media (min-width: 1024px) { .mob-only { display: none; } .dt-only { display: block; } }
+.dt-only, .dt-flex { display: none; }
+@media (min-width: 1024px) { 
+  .mob-only { display: none; } 
+  .dt-only { display: block; } 
+  .dt-flex { display: flex; } 
+}
 
 .stack { display: flex; flex-direction: column; gap: 20px; }
 @media (min-width: 768px) { .stack-row { flex-direction: row; } }

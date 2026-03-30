@@ -46,7 +46,7 @@ const BA = ({ before, after, h = 300 }) => {
   );
 };
 
-export function PubNav({ brand, setPage, activePage }) {
+export function PubNav({ brand, setPage, activePage, onPortal }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const ac = brand.color || '#B08D57';
@@ -83,7 +83,7 @@ export function PubNav({ brand, setPage, activePage }) {
         </div>
 
         {/* Desktop Nav */}
-        <div style={{ display: 'none', gap: 40 }} className="desktop-menu">
+        <div style={{ gap: 40, alignItems: 'center' }} className="dt-flex">
           {links.map(l => (
             <button key={l.id} onClick={() => setPage(l.id)} className="lxf" style={{
               background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500,
@@ -91,6 +91,9 @@ export function PubNav({ brand, setPage, activePage }) {
               textTransform: 'uppercase', letterSpacing: '0.1em'
             }}>{l.n}</button>
           ))}
+          {onPortal && (
+            <button onClick={onPortal} className="pub-btn-gold lxf" style={{ padding: '10px 24px', fontSize: 11 }}>Client Portal</button>
+          )}
         </div>
 
         {/* Mobile menu toggle */}
@@ -115,6 +118,9 @@ export function PubNav({ brand, setPage, activePage }) {
               color: activePage === l.id ? ac : '#121212', fontWeight: 300
             }}>{l.n}</button>
           ))}
+          {onPortal && (
+            <button onClick={() => { setMenuOpen(false); onPortal(); }} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 14, marginTop: 24 }}>Login to Portal</button>
+          )}
           <div style={{ marginTop: 40, textAlign: 'center' }}>
             <div className="lxf" style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>Ready to start a project?</div>
             <div className="lxfh" style={{ fontSize: 20, color: ac }}>+233 24 555 0000</div>
@@ -427,7 +433,7 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   );
 }
 
-export default function PublicSite({ page, setPage, brand, content }) {
+export default function PublicSite({ page, setPage, brand, content, onPortal }) {
   const p = page || 'home';
 
   useEffect(() => {
@@ -444,7 +450,7 @@ export default function PublicSite({ page, setPage, brand, content }) {
 
   return (
     <div style={{ background: '#FDFCFB' }}>
-      <PubNav brand={brand} setPage={setPage} activePage={p} />
+      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} />
       {render()}
       <Footer brand={brand} setPage={setPage} />
     </div>
