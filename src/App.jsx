@@ -98,6 +98,8 @@ export default function App() {
   const [notification, setNotification] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [procurements, setProcurements] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [media, setMedia] = useState([]);
 
   const notify = (type, msg) => {
     setNotification({ type, msg });
@@ -116,34 +118,63 @@ export default function App() {
         { email: 'client@demo.com', role: 'client', name: 'Demo Client' }
       ];
 
+      // 1. Initialise Users
+      const userMap = {}; // email -> id
       for (const acc of DEMO_ACCOUNTS) {
         const id = acc.uid || acc.email.replace(/[.@]/g, '_');
+        userMap[acc.email] = id;
         await setDoc(doc(db, 'users', id), { 
           id, name: acc.name, email: acc.email, role: acc.role, status: 'Active', joined: new Date().toISOString() 
-        });
+        }, { merge: true });
       }
 
+      // 2. Initialise Team Members
       for (const m of TEAM_MEMBERS) {
         const uid = m.email ? m.email.replace(/[.@]/g, '_') : `STF_${m.id}`;
-        await setDoc(doc(db, 'users', uid), { ...m, id: uid });
+        await setDoc(doc(db, 'users', uid), { ...m, id: uid }, { merge: true });
       }
-      for (const item of CLIENTS_DATA) {
-        const pid = `PROJ_${item.id || Math.random().toString(36).substr(2, 5)}`;
-        const cid = item.email ? item.email.replace(/[.@]/g, '_') : `CL_${pid}`;
-        await setDoc(doc(db, 'users', cid), { 
-          id: cid, name: item.name, email: item.email || `${item.name.toLowerCase().replace(' ', '.')}@example.com`, 
-          phone: '+233 24 000 0000', company: item.project.split(' ')[0] + ' Ltd', role: 'client', status: 'Active', joined: new Date().toISOString() 
-        });
+
+      // 3. Initialise Projects (Supporting multi-project for Elite Client)
+      const ELITE_CLIENT_ID = userMap['client@luxespace.com'];
+      
+      const ADDITIONAL_PROJECTS = [
+        { id: 'EP_001', name: 'Elite Client', title: 'Penthouse Interior Fit-out', email: 'client@luxespace.com', budget: '$120,000', progress: 15, stage: 2 },
+        { id: 'EP_002', name: 'Elite Client', title: 'Garden Showroom Glazing', email: 'client@luxespace.com', budget: '$35,000', progress: 85, stage: 10 }
+      ];
+
+      const ALL_PROJECT_DATA = [...CLIENTS_DATA, ...ADDITIONAL_PROJECTS];
+
+      for (const item of ALL_PROJECT_DATA) {
+        const pid = item.id.toString().startsWith('PROJ_') || item.id.toString().startsWith('EP_') ? item.id : `PROJ_${item.id || Math.random().toString(36).substr(2, 5)}`;
+        const cid = item.email ? (userMap[item.email] || item.email.replace(/[.@]/g, '_')) : `CL_${pid}`;
+        
+        // Ensure client exists
+        if (!userMap[item.email]) {
+           await setDoc(doc(db, 'users', cid), { 
+            id: cid, name: item.name, email: item.email || `${item.name.toLowerCase().replace(' ', '.')}@example.com`, 
+            phone: '+233 24 000 0000', company: item.project?.split(' ')[0] + ' Ltd' || 'Private', role: 'client', status: 'Active', joined: new Date().toISOString() 
+          }, { merge: true });
+          userMap[item.email] = cid;
+        }
+
         const milestones = [
           { id: 'm1', name: 'Deposit (40%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.4).toLocaleString(), stageId: 1, paid: true },
-          { id: 'm2', name: 'Fabrication Commencement (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 4, paid: false },
-          { id: 'm3', name: 'Final Handover (30%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.3).toLocaleString(), stageId: 7, paid: false }
+          { id: 'm2', name: 'Production Commencement (40%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.4).toLocaleString(), stageId: 4, paid: false },
+          { id: 'm3', name: 'Final Handover (20%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.2).toLocaleString(), stageId: 11, paid: false }
         ];
-        await setDoc(doc(db, 'projects', pid), { 
-          ...item, id: pid, title: item.project, clientIds: [cid], milestones, managerId: 'EMP001', createdAt: new Date().toISOString() 
-        });
+
+        await setDoc(doc(db, 'projects', pid.toString()), { 
+          ...item, id: pid.toString(), title: item.project || item.title, clientId: cid, clientIds: [cid], milestones, managerId: 'EMP001', createdAt: new Date().toISOString() 
+        }, { merge: true });
+
+        // Add some dummy procurement/shipment data for the elite client projects
+        if (item.email === 'client@luxespace.com') {
+           await setDoc(doc(collection(db, 'projects', pid.toString(), 'procurements'), 'SHIP_001'), {
+             item: 'High-Pressure Glazing Panels', supplier: 'Foshan Glass Co.', status: 'Shipped', eta: 'April 15, 2026', container: 'MSC-9231-GH', createdAt: new Date().toISOString()
+           });
+        }
       }
-      notify('success', 'Full Interior CMS Initialized');
+      notify('success', 'Glasstech Multi-Project CMS Initialized');
       fetchData();
     } catch (err) { console.error(err); notify('error', 'Initialization failed'); } finally { setLoading(false); }
   };
@@ -285,9 +316,21 @@ export default function App() {
     const crSub = onSnapshot(query(collectionGroup(db, 'change_requests')), (snap) => {
       setChangeRequests(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
+    const procSub = onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
+      setProcurements(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    });
+    const noteSub = onSnapshot(query(collectionGroup(db, 'notes')), (snap) => {
+      setNotes(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    });
+    const mediaSub = onSnapshot(query(collectionGroup(db, 'media')), (snap) => {
+      setMedia(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    });
+    const shipSub = onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
+      setShipments(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    });
     return () => { 
-      projectSub(); userSub(); paymentSub(); logSub(); taskSub(); notifSub(); procurementSub(); 
-      approvalSub(); crSub();
+      projectSub(); userSub(); paymentSub(); logSub(); taskSub(); notifSub();
+      approvalSub(); crSub(); procSub(); noteSub(); mediaSub(); shipSub();
     };
   }, [user?.id]);
 
@@ -329,6 +372,13 @@ export default function App() {
     } catch (e) { console.error(e); }
   };
 
+  const payInvoice = async (id, projectId) => {
+    try {
+      await updateDoc(doc(db, 'projects', projectId, 'payments', id), { status: 'Paid', paidAt: new Date().toISOString() });
+      notify('success', 'Payment Confirmed');
+    } catch (e) { console.error(e); }
+  };
+
   const syncProjects = async (id, fields) => {
     try {
       notify('pending', 'Updating...');
@@ -346,7 +396,7 @@ export default function App() {
   };
 
   const createProcurement = async (projectId, data) => {
-    try { await setDoc(doc(collection(db, 'projects', projectId, 'procurements')), data); notify('success', 'Tracker Updated'); } 
+    try { await addDoc(collection(db, 'projects', projectId, 'procurements'), { ...data, createdAt: new Date().toISOString() }); notify('success', 'Tracker Updated'); } 
     catch(e) { notify('error', 'Failed to update procurement'); }
   };
   const updateProcurement = async (projectId, id, data) => {
@@ -356,6 +406,41 @@ export default function App() {
   const deleteProcurement = async (projectId, id) => {
     try { await deleteDoc(doc(db, 'projects', projectId, 'procurements', id)); notify('success', 'Tracker Item Deleted'); } 
     catch(e) { notify('error', 'Failed to delete tracking item'); }
+  };
+
+  const createShipment = async (data) => {
+    try { 
+      // Shipments are linked to a project, default to first active if not specified
+      const pid = data.projectId || (clients.length > 0 ? clients[0].id : null);
+      if (!pid) return notify('error', 'No project selected for shipment');
+      await addDoc(collection(db, 'projects', pid, 'procurements'), { ...data, isShipment: true, createdAt: new Date().toISOString() }); 
+      notify('success', 'Shipment Tracked'); 
+    } catch(e) { notify('error', 'Failed to create shipment'); }
+  };
+  const updateShipment = async (id, fields) => {
+    try {
+      const s = shipments.find(x => x.id === id);
+      if (!s) return;
+      await updateDoc(doc(db, 'projects', s.parentId, 'procurements', id), fields);
+      notify('success', 'Shipment Updated');
+    } catch(e) { notify('error', 'Failed to update shipment'); }
+  };
+
+  const createNote = async (projectId, data) => {
+    try { await addDoc(collection(db, 'projects', projectId, 'notes'), { ...data, createdAt: new Date().toISOString() }); }
+    catch(e) { console.error(e); }
+  };
+  const deleteNote = async (projectId, id) => {
+    try { await deleteDoc(doc(db, 'projects', projectId, 'notes', id)); }
+    catch(e) { console.error(e); }
+  };
+  const createMedia = async (projectId, data) => {
+    try { await addDoc(collection(db, 'projects', projectId, 'media'), { ...data, createdAt: new Date().toISOString() }); }
+    catch(e) { console.error(e); }
+  };
+  const deleteMedia = async (projectId, id) => {
+    try { await deleteDoc(doc(db, 'projects', projectId, 'media', id)); }
+    catch(e) { console.error(e); }
   };
 
   const syncCMS = async (key, value) => {
@@ -382,10 +467,14 @@ export default function App() {
     bookings, setBookings,
     emails, setEmails,
     shipments, setShipments,
-    procurements, createProcurement, updateProcurement, deleteProcurement,
+    createProcurement, updateProcurement, deleteProcurement,
+    createShipment, updateShipment,
+    notes, createNote, deleteNote,
+    media, createMedia, deleteMedia,
     tasks, updateTask: (id, f, pid) => updateDoc(doc(db, 'projects', pid, 'tasks', id), f),
     approvals, createApproval, updateApproval,
     changeRequests, createChangeRequest, updateChangeRequest,
+    payInvoice,
     updateStage,
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS

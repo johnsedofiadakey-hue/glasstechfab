@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, FileText, Receipt, Image as ImgIcon, Settings,
-  LogOut, Plus, Search, Trash2, Calendar, Clock, CheckCircle, ArrowLeft,
+  LogOut, Plus, Search, Trash2, Calendar, Clock, CheckCircle, Check, ArrowLeft,
   Activity, DollarSign, TrendingUp, Target, Mail, Send, Eye, Download,
   Sparkles, FolderOpen, ThumbsUp, ThumbsDown, Edit2, Camera, Upload, Link2, X,
   Globe, Layout, Truck, Bell, AlertTriangle, Smartphone
@@ -421,42 +421,87 @@ function AdminProcurement({ projectId, procurements = [], createProcurement, upd
   );
 }
 
-function AdminGovernance({ projectId, approvals, createApproval, brand }) {
+function AdminGovernance({ projectId, approvals, createApproval, updateApproval, changeRequests, updateChangeRequest, brand }) {
   const ac = brand.color || '#C8A96E';
   const [showAdd, setShowAdd] = useState(false);
   const [na, setNa] = useState({ itemName: '', description: '', specifications: '', imageUrl: '' });
+  const [evaluating, setEvaluating] = useState(null); // CR ID
+  const [evalData, setEvalData] = useState({ costImpact: '', timelineImpact: '' });
+
   const myApprovals = (approvals || []).filter(a => a.parentId === projectId);
+  const myCRs = (changeRequests || []).filter(c => c.parentId === projectId);
+
+  const handleEvaluate = async (id) => {
+    await updateChangeRequest(id, { ...evalData, status: 'evaluated' }, projectId);
+    setEvaluating(null);
+    setEvalData({ costImpact: '', timelineImpact: '' });
+  };
 
   return (
-    <div className="p-card" style={{ padding: 24 }}>
-       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-         <h3 className="lxfh" style={{ fontSize: 18 }}>Approvals Pipeline</h3>
-         <button onClick={() => setShowAdd(!showAdd)} className="lxf" style={{ fontSize: 13, background: 'none', border: 'none', color: ac, fontWeight: 600, cursor: 'pointer' }}>+ Request Approval</button>
-       </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div className="p-card" style={{ padding: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h3 className="lxfh" style={{ fontSize: 18 }}>Approvals Pipeline</h3>
+          <button onClick={() => setShowAdd(!showAdd)} className="lxf" style={{ fontSize: 13, background: 'none', border: 'none', color: ac, fontWeight: 600, cursor: 'pointer' }}>+ Request Approval</button>
+        </div>
 
-       {showAdd && (
-         <div style={{ padding: 16, background: '#F9F7F4', borderRadius: 8, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <PFormField label="Item/Material Name"><input className="p-inp" value={na.itemName} onChange={e => setNa({...na, itemName: e.target.value})} /></PFormField>
-            <PFormField label="Specifications"><input className="p-inp" value={na.specifications} onChange={e => setNa({...na, specifications: e.target.value})} /></PFormField>
-            <PFormField label="Image URL"><input className="p-inp" value={na.imageUrl} onChange={e => setNa({...na, imageUrl: e.target.value})} /></PFormField>
-            <PFormField label="Description"><textarea className="p-inp" rows={2} value={na.description} onChange={e => setNa({...na, description: e.target.value})} /></PFormField>
-            <button onClick={() => { createApproval(projectId, na); setShowAdd(false); setNa({itemName:'', description:'', specifications:'', imageUrl:''}); }} className="p-btn-dark lxf">Send to Client</button>
+        {showAdd && (
+          <div style={{ padding: 16, background: '#F9F7F4', borderRadius: 8, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <PFormField label="Item/Material Name"><input className="p-inp" value={na.itemName} onChange={e => setNa({...na, itemName: e.target.value})} /></PFormField>
+              <PFormField label="Specifications"><input className="p-inp" value={na.specifications} onChange={e => setNa({...na, specifications: e.target.value})} /></PFormField>
+              <PFormField label="Image URL"><input className="p-inp" value={na.imageUrl} onChange={e => setNa({...na, imageUrl: e.target.value})} /></PFormField>
+              <PFormField label="Description"><textarea className="p-inp" rows={2} value={na.description} onChange={e => setNa({...na, description: e.target.value})} /></PFormField>
+              <button onClick={() => { createApproval(projectId, na); setShowAdd(false); setNa({itemName:'', description:'', specifications:'', imageUrl:''}); }} className="p-btn-dark lxf">Send to Client</button>
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {myApprovals.map(a => (
+              <div key={a.id} style={{ padding: 12, border: '1px solid rgba(0,0,0,.05)', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
+                {a.imageUrl && <img src={a.imageUrl} style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} alt="" />}
+                <div style={{ flex: 1 }}>
+                    <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{a.itemName}</div>
+                    <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>{a.status.toUpperCase()}</div>
+                </div>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: a.status === 'approved' ? '#16A34A' : a.status === 'rejected' ? '#ff4444' : '#FF9800' }} />
+              </div>
+            ))}
+            {myApprovals.length === 0 && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic', gridColumn: 'span 2' }}>No items in approval pipeline.</div>}
+        </div>
+      </div>
+
+      <div className="p-card" style={{ padding: 24 }}>
+         <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Change Requests</h3>
+         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {myCRs.map(r => (
+              <div key={r.id} style={{ padding: 16, border: '1px solid rgba(0,0,0,.05)', borderRadius: 8 }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>{r.description}</div>
+                    <SBadge s={r.status} />
+                 </div>
+                 {r.status === 'pending' && !evaluating && (
+                   <button onClick={() => setEvaluating(r.id)} className="p-btn-gold" style={{ fontSize: 11, padding: '4px 12px' }}>Evaluate Impact</button>
+                 )}
+                 {evaluating === r.id && (
+                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid rgba(0,0,0,.03)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                         <input className="p-inp" placeholder="Cost Impact (e.g. +$500)" value={evalData.costImpact} onChange={e => setEvalData({...evalData, costImpact: e.target.value})} style={{ fontSize: 12 }} />
+                         <input className="p-inp" placeholder="Timeline Impact (e.g. +2 days)" value={evalData.timelineImpact} onChange={e => setEvalData({...evalData, timelineImpact: e.target.value})} style={{ fontSize: 12 }} />
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                         <button onClick={() => handleEvaluate(r.id)} className="p-btn-dark" style={{ flex: 1, fontSize: 11, padding: '8px' }}>Send Evaluation</button>
+                         <button onClick={() => setEvaluating(null)} className="p-btn-light" style={{ flex: 1, fontSize: 11, padding: '8px' }}>Cancel</button>
+                      </div>
+                   </div>
+                 )}
+                 {r.status === 'evaluated' && (
+                   <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>Evaluated: {r.costImpact} | {r.timelineImpact}</div>
+                 )}
+              </div>
+            ))}
+            {myCRs.length === 0 && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic' }}>No change requests to manage.</div>}
          </div>
-       )}
-
-       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          {myApprovals.map(a => (
-            <div key={a.id} style={{ padding: 12, border: '1px solid rgba(0,0,0,.05)', borderRadius: 8, display: 'flex', gap: 12, alignItems: 'center' }}>
-               {a.imageUrl && <img src={a.imageUrl} style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover' }} alt="" />}
-               <div style={{ flex: 1 }}>
-                  <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{a.itemName}</div>
-                  <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>{a.status.toUpperCase()}</div>
-               </div>
-               <div style={{ width: 8, height: 8, borderRadius: '50%', background: a.status === 'approved' ? '#16A34A' : a.status === 'rejected' ? '#ff4444' : '#FF9800' }} />
-            </div>
-          ))}
-          {myApprovals.length === 0 && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic', gridColumn: 'span 2' }}>No items in approval pipeline.</div>}
-       </div>
+      </div>
     </div>
   );
 }
@@ -579,48 +624,61 @@ function AdminBookings({ bookings, setBookings, clients, brand }) {
 
 
 
-function AdminLogistics({ shipments, setShipments, brand }) {
+function AdminLogistics({ shipments, clients, createShipment, updateShipment, brand }) {
   const ac = brand.color || '#C8A96E';
+  const [showAdd, setShowAdd] = useState(false);
+  const [newS, setNewS] = useState({ projectId: '', item: '', supplier: '', status: 'Order Placed', eta: '', container: '' });
 
-  const addShipment = () => {
-    const newS = {
-      project: 'New Project',
-      item: 'New Item',
-      supplier: 'Generic Supplier',
-      status: 'Order Placed',
-      eta: 'TBD',
-      container_id: 'TBD'
-    };
-    props.createShipment(newS);
-  };
-
-  const updateS = (id, fields) => {
-    props.updateShipment(id, fields);
+  const addShipment = async () => {
+    if (!newS.projectId || !newS.item) return alert('Project and Item required');
+    await createShipment(newS);
+    setNewS({ projectId: '', item: '', supplier: '', status: 'Order Placed', eta: '', container: '' });
+    setShowAdd(false);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400, color: '#1A1410' }}>Logistics & Procurement</h2>
-        <button onClick={addShipment} className="p-btn-dark lxf" style={{ padding: '10px 20px', fontSize: 13, gap: 8, display: 'flex', alignItems: 'center' }}><Plus size={16} /> Track Shipment</button>
+        <button onClick={() => setShowAdd(!showAdd)} className="p-btn-dark lxf" style={{ padding: '10px 20px', fontSize: 13, gap: 8, display: 'flex', alignItems: 'center' }}><Plus size={16} /> Track Shipment</button>
       </div>
+
+      {showAdd && (
+        <div className="p-card" style={{ padding: 24, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <PFormField label="Select Project">
+                <select className="p-inp" value={newS.projectId} onChange={e => setNewS({...newS, projectId: e.target.value})}>
+                  <option value="">Select a project...</option>
+                  {clients.map(p => <option key={p.id} value={p.id}>{p.project || p.title}</option>)}
+                </select>
+              </PFormField>
+              <PFormField label="Item/Details"><input className="p-inp" value={newS.item} onChange={e => setNewS({...newS, item: e.target.value})} placeholder="e.g. Structural Glass Panels" /></PFormField>
+           </div>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+              <PFormField label="Supplier"><input className="p-inp" value={newS.supplier} onChange={e => setNewS({...newS, supplier: e.target.value})} /></PFormField>
+              <PFormField label="ETA"><input className="p-inp" type="date" value={newS.eta} onChange={e => setNewS({...newS, eta: e.target.value})} /></PFormField>
+              <PFormField label="Container ID"><input className="p-inp" value={newS.container} onChange={e => setNewS({...newS, container: e.target.value})} /></PFormField>
+           </div>
+           <button onClick={addShipment} className="p-btn-gold lxf" style={{ padding: '12px' }}>Initialize Tracking</button>
+        </div>
+      )}
 
       <div className="p-card" style={{ overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead><tr>{['Shipment ID', 'Project', 'Item/Details', 'Supplier', 'Status', 'ETA'].map(h => <th key={h} className="t-head">{h}</th>)}</tr></thead>
           <tbody>
-            {shipments.map(s => (
+            {(shipments || []).filter(s => s.isShipment || s.status === 'Shipped').map(s => (
               <tr key={s.id} className="t-row">
-                <td style={{ padding: '16px' }}><span style={{ fontFamily: 'monospace', color: ac, fontWeight: 600 }}>{s.id}</span></td>
-                <td style={{ padding: '16px' }}><div className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{s.project}</div></td>
+                <td style={{ padding: '16px' }}><span style={{ fontFamily: 'monospace', color: ac, fontWeight: 600 }}>{s.id.slice(-6).toUpperCase()}</span></td>
+                <td style={{ padding: '16px' }}><div className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{clients.find(p => p.id === s.parentId)?.project || 'Project'}</div></td>
                 <td style={{ padding: '16px' }}>
-                  <div className="lxf" style={{ fontSize: 13 }}>{s.item}</div>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>Container: {s.container}</div>
+                  <div className="lxf" style={{ fontSize: 13 }}>{s.item || s.itemName}</div>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>Container: {s.container || 'TBD'}</div>
                 </td>
-                <td style={{ padding: '16px' }}><span className="lxf" style={{ fontSize: 12 }}>{s.supplier}</span></td>
+                <td style={{ padding: '16px' }}><span className="lxf" style={{ fontSize: 12 }}>{s.supplier || s.source}</span></td>
                 <td style={{ padding: '16px' }}>
-                  <select className="lxf" style={{ fontSize: 12, padding: '4px 8px', borderRadius: 4, background: '#F9F7F4', border: 'none', color: '#1A1410' }} value={s.status} onChange={e => updateS(s.id, { status: e.target.value })}>
-                    {['Order Placed', 'Shipped', 'At Customs', 'Delivered'].map(st => <option key={st} value={st}>{st}</option>)}
+                  <select className="lxf" style={{ fontSize: 12, padding: '4px 8px', borderRadius: 4, background: '#F9F7F4', border: 'none', color: '#1A1410' }} value={s.status} onChange={e => updateShipment(s.id, { status: e.target.value })}>
+                    {['Order Placed', 'Shipped', 'At Customs', 'In Transit', 'Delivered'].map(st => <option key={st} value={st}>{st}</option>)}
                   </select>
                 </td>
                 <td style={{ padding: '16px' }}><span className="lxf" style={{ fontSize: 12, color: '#7A6E62' }}>{s.eta}</span></td>
@@ -1315,7 +1373,8 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
     { id: 'dash', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
     { id: 'clients', label: 'Client Directory', icon: <Users size={18} /> },
     { id: 'crm', label: 'Installations', icon: <Truck size={18} /> },
-    { id: 'cms', label: 'Website CMS', icon: <Globe size={18} /> },
+    { id: 'logistics', label: 'Logistics', icon: <Globe size={18} /> },
+    { id: 'cms', label: 'Website CMS', icon: <Settings size={18} /> },
     { id: 'portfolio', label: 'Portfolio', icon: <ImgIcon size={18} /> },
     { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
     { id: 'analytics', label: 'Analytics', icon: <Activity size={18} /> },
@@ -1330,6 +1389,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'clients': return <AdminClients {...common} />;
       case 'cms': return <AdminCMS {...common} onPreview={onPreview} />;
       case 'crm': return <AdminInstallations {...common} />;
+      case 'logistics': return <AdminLogistics shipments={props.shipments} setShipments={props.setShipments} {...common} />;
       case 'portfolio': return <AdminPortfolio {...common} />;
       case 'bookings': return <AdminBookings {...common} />;
       case 'analytics': return <AdminAnalyticsPage {...common} />;

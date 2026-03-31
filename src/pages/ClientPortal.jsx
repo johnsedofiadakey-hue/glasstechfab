@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   LogOut, CheckCircle, Download, CreditCard, Send, 
-  Calendar, FolderOpen, Check, Lock, X, Printer,
+  Calendar, FolderOpen, Check, Lock, X, Printer, Camera,
   Eye, MessageSquare, Image, ThumbsUp, ThumbsDown, Plus, AlertTriangle, FileText
 } from 'lucide-react';
 import { 
@@ -127,30 +127,47 @@ function ClientBookingView({ brand, bookings, clientEmail, clientName }) {
 // --- MAIN CLIENT PORTAL ---
 export default function ClientPortal({ client, brand, onLogout, ...props }) {
   const [tab, setTab] = useState('overview');
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const ac = brand.color || '#C8A96E';
-  const { proposals, invoices, bookings } = props;
+  const { proposals, invoices, bookings, procurements } = props;
   
-  const myProps = (proposals || []).filter(p => p?.clientEmail === client?.email || p?.client === client?.name);
-  const myInvs = (invoices || []).filter(i => i?.clientEmail === client?.email || i?.client === client?.name);
+  const myProjects = (props.clients || []).filter(c => c.clientIds?.includes(client.id) || c.id === client.id);
+  
+  useEffect(() => {
+    if (myProjects.length > 0 && !selectedProjectId) {
+      setSelectedProjectId(myProjects[0].id);
+    }
+  }, [myProjects, selectedProjectId]);
+
+  const activeProject = myProjects.find(p => p.id === selectedProjectId) || myProjects[0];
+
+  const myProps = (proposals || []).filter(p => p?.projectId === selectedProjectId || p?.clientEmail === client?.email);
+  const myInvs = (invoices || []).filter(i => i?.parentId === selectedProjectId || i?.projectId === selectedProjectId);
+  const myProcurements = (procurements || []).filter(p => p.parentId === selectedProjectId);
+  const myNotes = (props.notes || []).filter(n => n.parentId === selectedProjectId && n.is_client_visible);
+  const myMedia = (props.media || []).filter(m => m.parentId === selectedProjectId);
   
   const [payModal, setPayModal] = useState(null);
   const [paidIds, setPaidIds] = useState([]);
   const [crModal, setCrModal] = useState(false);
   const [crData, setCrData] = useState({ description: '' });
 
+  const handlePay = (id) => {
+    props.payInvoice(id, selectedProjectId);
+    setPaidIds(prev => [...prev, id]);
+  };
+
   const tabs = [
     ['overview', 'Overview'], 
-    ['project', 'My Project'], 
+    ['project', 'Timeline'], 
+    ['shipments', 'Shipments'],
+    ['updates', 'Updates'],
+    ['gallery', 'Gallery'],
     ['governance', 'Governance'],
     ['proposals', 'Proposals'], 
     ['invoices', 'Invoices'], 
     ['book', 'Book a Session']
   ];
-
-  const handlePay = (id) => {
-    props.payInvoice(id);
-    setPaidIds(prev => [...prev, id]);
-  };
 
   const handleBooking = async (details) => {
     await props.createBooking({ 
@@ -164,7 +181,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
   const renderContent = () => {
     switch (tab) {
       case 'overview': {
-        const myProj = props.clients.find(c => c.clientIds?.includes(client.id) || c.id === client.id);
+        const myProj = activeProject;
         const totalBudget = parseFloat(myProj?.budget?.replace(/[$,]/g, '') || 0);
         const paidAmount = (myInvs || []).filter(i => i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
         const remaining = totalBudget - paidAmount;
@@ -175,7 +192,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                <div>
                   <h1 className="lxfh" style={{ fontSize: 48, fontWeight: 300, marginBottom: 8, color: '#1A1410' }}>Hello, {client.name.split(' ')[0]}</h1>
-                  <div className="lxf" style={{ fontSize: 14, color: ac, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>{myProj?.project || 'Your Project'} Story</div>
+                  <div className="lxf" style={{ fontSize: 14, color: ac, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>{myProj?.project || myProj?.title || 'Your Project'} Story</div>
                </div>
                <div style={{ textAlign: 'right' }}>
                   <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.1em' }}>Consistency Score</div>
@@ -201,6 +218,11 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                <div className="p-card" style={{ padding: 20, background: ac, color: '#fff' }}>
                   <div className="lxf" style={{ fontSize: 11, color: 'rgba(255,255,255,.7)', textTransform: 'uppercase', marginBottom: 8 }}>Active Stage</div>
                   <div className="lxfh" style={{ fontSize: 18, color: '#fff' }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
+               </div>
+               <div className="p-card" style={{ padding: 20, border: props.getSLA(myProj).delayed ? '1px solid #EF4444' : '1px solid #16A34A' }}>
+                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Estimated Comp.</div>
+                  <div className="lxfh" style={{ fontSize: 20, color: props.getSLA(myProj).delayed ? '#EF4444' : '#1A1410' }}>{props.getSLA(myProj).date}</div>
+                  <div style={{ fontSize: 10, marginTop: 4, fontWeight: 700, color: props.getSLA(myProj).delayed ? '#EF4444' : '#16A34A' }}>{props.getSLA(myProj).delayed ? 'ACTION REQUIRED: DELAYED' : 'ON TRACK'}</div>
                </div>
             </div>
 
@@ -235,7 +257,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                                   <div className="lxf" style={{ fontSize: 13, lineHeight: 1.6, color: '#473C2C' }}>We are currently processing this stage. Our team is working on the deliverables to ensure everything meets Glasstech standards.</div>
                                   <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
                                      <button onClick={() => setTab('governance')} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12 }}>Check Approvals</button>
-                                     <button className="p-btn-light" style={{ padding: '8px 16px', fontSize: 12 }}>Message Team</button>
+                                     <button className="p-btn-light" style={{ padding: '8px 16px', fontSize: 12 }} onClick={() => setTab('project')}>View Timeline</button>
                                   </div>
                                </div>
                              )}
@@ -272,10 +294,17 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                   <div className="p-card" style={{ padding: 24 }}>
                      <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Recent Photos</h3>
                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                        <div style={{ aspectRatio: '1', background: '#eee', borderRadius: 8 }} />
-                        <div style={{ aspectRatio: '1', background: '#eee', borderRadius: 8 }} />
+                        {myMedia.slice(0, 2).map(m => (
+                          <img key={m.id} src={m.url} style={{ aspectRatio: '1', width: '100%', objectFit: 'cover', borderRadius: 8 }} alt="progress" />
+                        ))}
+                        {myMedia.length === 0 && (
+                          <>
+                            <div style={{ aspectRatio: '1', background: '#f5f5f5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={20} color="#ccc" /></div>
+                            <div style={{ aspectRatio: '1', background: '#f5f5f5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={20} color="#ccc" /></div>
+                          </>
+                        )}
                      </div>
-                     <button className="lxf" style={{ width: '100%', background: 'none', border: 'none', color: ac, fontSize: 12, fontWeight: 700, marginTop: 16, cursor: 'pointer' }}>View Gallery</button>
+                     <button onClick={() => setTab('gallery')} className="lxf" style={{ width: '100%', background: 'none', border: 'none', color: ac, fontSize: 12, fontWeight: 700, marginTop: 16, cursor: 'pointer' }}>View Full Gallery</button>
                   </div>
                </div>
             </div>
@@ -283,7 +312,145 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
         );
       }
       case 'project': 
-        return <div className="lxf" style={{ padding: 40, textAlign: 'center', opacity: .5 }}>Consolidated into Dashboard Overview.</div>;
+        return (
+          <div className="p-card" style={{ padding: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+               <h3 className="lxfh" style={{ fontSize: 24 }}>Project Timeline</h3>
+               <div style={{ fontSize: 14, color: ac, fontWeight: 600 }}>{activeProject?.title}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+               {PROJECT_STAGES.map((s, idx) => {
+                 const isCurrent = (activeProject?.stage || 1) === s.id;
+                 const isPast = (activeProject?.stage || 1) > s.id;
+                 return (
+                   <div key={s.id} style={{ display: 'flex', gap: 20, opacity: isPast || isCurrent ? 1 : 0.4 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: isPast ? s.color : isCurrent ? '#fff' : '#f0f0f0', border: `2px solid ${isCurrent || isPast ? s.color : '#ddd'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                         {isPast && <Check size={16} color="#fff" />}
+                         {isCurrent && <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                         <div style={{ fontSize: 16, fontWeight: isCurrent ? 700 : 500 }}>{s.name}</div>
+                         <div style={{ fontSize: 12, color: '#666' }}>{s.desc || 'Standard procedure for this stage.'}</div>
+                      </div>
+                   </div>
+                 );
+               })}
+            </div>
+          </div>
+        );
+      case 'shipments':
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            <div className="p-card" style={{ padding: 32 }}>
+               <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Logistics Tracking</h3>
+               <p className="lxf" style={{ color: '#7A6E62', fontSize: 13, marginBottom: 32 }}>Real-time updates on your high-precision components and materials.</p>
+               
+               {myProcurements.length === 0 ? (
+                 <div style={{ textAlign: 'center', padding: '60px 0', color: '#B5AFA9' }}>No shipment records found for this project.</div>
+               ) : (
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                    {myProcurements.filter(p => p.isShipment || p.status === 'Shipped' || p.status === 'In Transit').map(p => {
+                       const stages = ['Order Placed', 'Shipped', 'At Customs', 'In Transit', 'Delivered'];
+                       const currentIdx = stages.indexOf(p.status);
+                       
+                       return (
+                         <div key={p.id} style={{ paddingBottom: 32, borderBottom: '1px solid #F0EBE5' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                               <div>
+                                  <div className="lxf" style={{ fontSize: 18, fontWeight: 700 }}>{p.item || p.itemName}</div>
+                                  <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>Container: {p.container || 'TBD'} • Supplier: {p.supplier || p.source}</div>
+                               </div>
+                               <div style={{ textAlign: 'right' }}>
+                                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>Estimated Arrival</div>
+                                  <div className="lxf" style={{ fontSize: 14, fontWeight: 600, color: ac }}>{p.eta || 'TBD'}</div>
+                               </div>
+                            </div>
+                            
+                            <div style={{ position: 'relative', height: 40, marginTop: 40 }}>
+                               <div style={{ position: 'absolute', top: 12, left: 0, right: 0, height: 2, background: '#F0EBE5' }} />
+                               <div style={{ position: 'absolute', top: 12, left: 0, width: `${(currentIdx / (stages.length - 1)) * 100}%`, height: 2, background: ac, transition: 'width 1s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                               
+                               <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', zIndex: 2 }}>
+                                  {stages.map((s, idx) => (
+                                    <div key={s} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                                       <div style={{ 
+                                          width: 26, height: 26, borderRadius: '50%', 
+                                          background: idx <= currentIdx ? ac : '#fff',
+                                          border: idx <= currentIdx ? `2px solid ${ac}` : '2px solid #DFD9D1',
+                                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                          transition: 'all .4s'
+                                       }}>
+                                          {idx <= currentIdx ? <Check size={14} color="#fff" /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#DFD9D1' }} />}
+                                       </div>
+                                       <span style={{ fontSize: 10, fontWeight: idx === currentIdx ? 700 : 400, color: idx <= currentIdx ? '#1A1410' : '#B5AFA9', whiteSpace: 'nowrap' }}>{s}</span>
+                                    </div>
+                                  ))}
+                               </div>
+                            </div>
+                         </div>
+                       );
+                    })}
+                    {myProcurements.length > 0 && myProcurements.filter(p => !p.isShipment && p.status !== 'Shipped' && p.status !== 'In Transit').length > 0 && (
+                      <div style={{ marginTop: 16 }}>
+                         <h4 className="lxf" style={{ fontSize: 14, fontWeight: 700, marginBottom: 16 }}>Other Procurement Items</h4>
+                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                            {myProcurements.filter(p => !p.isShipment && p.status !== 'Shipped' && p.status !== 'In Transit').map(p => (
+                               <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 16px', background: '#F9F7F4', borderRadius: 8 }}>
+                                  <span style={{ fontSize: 13 }}>{p.item || p.itemName}</span>
+                                  <SBadge s={p.status} />
+                               </div>
+                            ))}
+                         </div>
+                      </div>
+                    )}
+                 </div>
+               )}
+            </div>
+          </div>
+        );
+      case 'updates':
+        return (
+          <div className="p-card" style={{ padding: 32 }}>
+            <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 24 }}>Project Updates</h3>
+            {myNotes.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 0', color: '#B5AFA9' }}>No official updates posted yet.</div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {myNotes.map(n => (
+                  <div key={n.id} style={{ display: 'flex', gap: 20, paddingBottom: 20, borderBottom: '1px solid #F0EBE5' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: ac, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, flexShrink: 0 }}>G</div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Glasstech Team</div>
+                      <div style={{ fontSize: 15, color: '#1A1410', lineHeight: 1.5, marginBottom: 8 }}>{n.text}</div>
+                      <div style={{ fontSize: 11, color: '#B5AFA9' }}>{new Date(n.createdAt).toLocaleString()}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      case 'gallery':
+        return (
+          <div className="p-card" style={{ padding: 32 }}>
+            <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 24 }}>Project Gallery</h3>
+            {myMedia.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 0', color: '#B5AFA9' }}>The gallery will be updated as work progresses.</div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+                {myMedia.map(m => (
+                  <div key={m.id} className="p-card" style={{ overflow: 'hidden' }}>
+                    <img src={m.url} style={{ width: '100%', aspectRatio: '1.2', objectFit: 'cover' }} alt="milestone" />
+                    <div style={{ padding: 12 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{PROJECT_STAGES.find(s => s.id === m.stageId)?.name || 'Project Photo'}</div>
+                      <div style={{ fontSize: 11, color: '#B5AFA9' }}>{new Date(m.createdAt).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
       case 'invoices':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -304,10 +471,10 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
         );
       case 'book':
         return <ClientBookingView brand={brand} bookings={bookings || []} clientEmail={client.email} clientName={client.name} />;
-      case 'governance':
-        const myProject = props.clients.find(c => c.clientId === client.id || c.id === client.id);
-        const myApprovals = props.approvals.filter(a => a.parentId === myProject?.id);
-        const myCRs = props.changeRequests.filter(r => r.parentId === myProject?.id);
+      case 'governance': {
+        const myProject = activeProject;
+        const myApprovals = (props.approvals || []).filter(a => a.parentId === myProject?.id);
+        const myCRs = (props.changeRequests || []).filter(c => c.parentId === myProject?.id);
         
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
@@ -411,6 +578,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
              )}
           </div>
         );
+      }
       default:
         return <div className="p-card" style={{ padding: 40, textAlign: 'center', color: '#B5AFA9' }}>Feature coming soon.</div>;
     }
@@ -418,23 +586,38 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
 
   return (
     <div className="lxf lx-scroll" style={{ minHeight: '100vh', background: '#F9F7F4', '--ac': ac }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 22 }}>{brand.name}</div>}
           <div style={{ height: 18, width: 1, background: 'rgba(0,0,0,.1)' }} />
           <div style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Client Portal</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <NotificationBell notifications={props.userNotifications || props.notifications} onMarkRead={props.markNotificationRead} />
-          {client ? (
-            <>
-              <PAv i={client.av} s={32} c={ac} />
-              <div><div style={{ fontSize: 13, fontWeight: 500 }}>{client.name || 'Client'}</div><div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div></div>
-            </>
-          ) : (
-            <div style={{ fontSize: 11, color: '#B5AFA9' }}>Loading profile...</div>
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+          {myProjects.length > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#F9F7F4', padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,0,0,.04)' }}>
+              <span style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>Selected Project:</span>
+              <select 
+                value={selectedProjectId || ''} 
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                style={{ background: 'none', border: 'none', fontSize: 13, fontWeight: 600, color: ac, cursor: 'pointer', outline: 'none' }}
+              >
+                {myProjects.map(p => <option key={p.id} value={p.id}>{p.title || p.project}</option>)}
+              </select>
+            </div>
           )}
-          <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', marginLeft: 16 }}><LogOut size={18} /></button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <NotificationBell notifications={props.userNotifications || props.notifications} onMarkRead={props.markNotificationRead} />
+            {client ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <PAv i={client.av} s={32} c={ac} />
+                <div style={{ display: 'none', md: 'block' }}><div style={{ fontSize: 13, fontWeight: 500 }}>{client.name || 'Client'}</div><div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div></div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 11, color: '#B5AFA9' }}>Loading profile...</div>
+            )}
+            <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', marginLeft: 8 }} title="Logout"><LogOut size={18} /></button>
+          </div>
         </div>
       </div>
 
@@ -446,7 +629,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
         {renderContent()}
       </div>
 
-      {payModal && <StripePayModal invoice={payModal} brand={brand} onClose={() => setPayModal(null)} onSuccess={handlePay} />}
+      {payModal && <StripePayModal invoice={payModal} brand={brand} onClose={() => setPayModal(null)} onSuccess={(id) => handlePay(id)} />}
     </div>
   );
 }
