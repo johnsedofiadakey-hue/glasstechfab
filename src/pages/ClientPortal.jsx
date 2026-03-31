@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LogOut, CheckCircle, Download, CreditCard, Send, 
   Calendar, FolderOpen, Check, Lock, X, Printer, Camera,
-  Eye, MessageSquare, Image, ThumbsUp, ThumbsDown, Plus, AlertTriangle, FileText
+  Eye, MessageSquare, Image, ThumbsUp, ThumbsDown, Plus, AlertTriangle, FileText, Target
 } from 'lucide-react';
 import { 
   Av, SBadge, Modal, FF as PFormField, PAv, PSBadge,

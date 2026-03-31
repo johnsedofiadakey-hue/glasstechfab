@@ -16,6 +16,8 @@ import {
   collection, query, onSnapshot, getDocs, getDoc, doc, 
   updateDoc, addDoc, setDoc, deleteDoc, orderBy, collectionGroup, limit, where
 } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { uploadFile } from './lib/firebase';
 
 const BRAND0 = {
   name: 'Glasstech Fabrications',
@@ -213,14 +215,28 @@ export default function App() {
           await addDoc(collection(db, 'projects', pid, 'media'), { ...m, createdAt: new Date().toISOString() });
         }
 
-        // Add a sample procurement tracking
+        // Add a sample procurement tracking (The "China Simulation")
         if (item.email === 'client@luxespace.com') {
-          await setDoc(doc(collection(db, 'projects', pid, 'procurements'), 'SHIP_'+pid), {
-            item: 'Premium Structural Glass Components', 
-            supplier: 'Glasstech Intl.', 
-            status: item.stage > 3 ? 'Shipped' : 'Order Placed', 
+          // 1. Shipment from China
+          await setDoc(doc(collection(db, 'projects', pid, 'procurements'), 'SHIP_'+pid+'_GLS'), {
+            itemName: 'Luxe Reflective Glass Panels', 
+            source: 'Foshan, China', 
+            status: item.stage > 5 ? 'Received' : 'Shipped', 
+            estimatedCost: '18000',
+            actualCost: '19500',
             eta: 'May 12, 2026', 
-            container: 'MSC-XYZ-'+pid, 
+            container: 'MSC-LX-992'+pid, 
+            isShipment: true,
+            createdAt: new Date().toISOString()
+          });
+          
+          // 2. Hardware procurement
+          await setDoc(doc(collection(db, 'projects', pid, 'procurements'), 'PROC_'+pid+'_HW'), {
+            itemName: 'Stainless Steel Fasteners', 
+            source: 'Local Supplier', 
+            status: 'Ordered', 
+            estimatedCost: '4500',
+            actualCost: '',
             createdAt: new Date().toISOString()
           });
         }
@@ -485,12 +501,28 @@ export default function App() {
     try { await deleteDoc(doc(db, 'projects', projectId, 'notes', id)); }
     catch(e) { console.error(e); }
   };
-  const createMedia = async (projectId, data) => {
-    try { await addDoc(collection(db, 'projects', projectId, 'media'), { ...data, createdAt: new Date().toISOString() }); }
-    catch(e) { console.error(e); }
+  const uploadMedia = async (projectId, file, stageId) => {
+    try {
+      notify('pending', 'Uploading production media...');
+      const fileName = `${Date.now()}_${file.name}`;
+      const url = await uploadFile('projects', `${projectId}/${fileName}`, file);
+      
+      await addDoc(collection(db, 'projects', projectId, 'media'), { 
+        url, 
+        stageId: parseInt(stageId), 
+        type: file.type.startsWith('image/') ? 'image' : 'video',
+        createdAt: new Date().toISOString() 
+      });
+      
+      notify('success', 'Media added to phase');
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Upload failed');
+    }
   };
-  const deleteMedia = async (projectId, id) => {
-    try { await deleteDoc(doc(db, 'projects', projectId, 'media', id)); }
+
+  const deleteMedia = async (id, projectId) => {
+    try { await deleteDoc(doc(db, 'projects', projectId, 'media', id)); notify('success', 'Media removed'); }
     catch(e) { console.error(e); }
   };
 
@@ -521,7 +553,7 @@ export default function App() {
     createProcurement, updateProcurement, deleteProcurement,
     createShipment, updateShipment,
     notes, createNote, deleteNote,
-    media, createMedia, deleteMedia,
+    media, uploadMedia, deleteMedia,
     tasks, updateTask: (id, f, pid) => updateDoc(doc(db, 'projects', pid, 'tasks', id), f),
     approvals, createApproval, updateApproval,
     changeRequests, createChangeRequest, updateChangeRequest,
