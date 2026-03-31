@@ -39,10 +39,12 @@ service cloud.firestore {
     // Collection Group Access
     match /{path=**}/tasks/{taskId} { allow read, write: if true; }
     match /{path=**}/payments/{paymentId} { allow read, write: if true; }
-    match /{path=**}/shipments/{shipmentId} { allow read, write: if true; }
+    match /{path=**}/procurements/{shipmentId} { allow read, write: if true; }
     match /{path=**}/approvals/{apprId} { allow read, write: if true; }
     match /{path=**}/change_requests/{crId} { allow read, write: if true; }
     match /{path=**}/activity_logs/{logId} { allow read, write: if true; }
+    match /{path=**}/media/{id} { allow read, write: if true; }
+    match /{path=**}/notes/{id} { allow read, write: if true; }
 
     // CMS & Brand
     match /cms_content/{docId} {

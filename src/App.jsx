@@ -167,8 +167,17 @@ export default function App() {
           ...item, id: pid.toString(), title: item.project || item.title, clientId: cid, clientIds: [cid], milestones, managerId: 'EMP001', createdAt: new Date().toISOString() 
         }, { merge: true });
 
-        // Add some dummy procurement/shipment data for the elite client projects
+        // Seed some media for the Elite Client to show the new gallery
         if (item.email === 'client@luxespace.com') {
+           const demoMedia = [
+             { url: 'https://images.unsplash.com/photo-1600585154340-be6199f7a096?auto=format&fit=crop&q=80', stageId: 1, type: 'image' },
+             { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80', stageId: 4, type: 'image' },
+             { url: 'https://images.unsplash.com/photo-1613545325278-f24b0cae1224?auto=format&fit=crop&q=80', stageId: 4, type: 'image' }
+           ];
+           for (const m of demoMedia) {
+             await addDoc(collection(db, 'projects', pid.toString(), 'media'), { ...m, createdAt: new Date().toISOString() });
+           }
+
            await setDoc(doc(collection(db, 'projects', pid.toString(), 'procurements'), 'SHIP_001'), {
              item: 'High-Pressure Glazing Panels', supplier: 'Foshan Glass Co.', status: 'Shipped', eta: 'April 15, 2026', container: 'MSC-9231-GH', createdAt: new Date().toISOString()
            });
@@ -388,7 +397,7 @@ export default function App() {
   };
 
   const getSLA = (client) => {
-    if (!client.startDate) return { date: 'TBD', delayed: false };
+    if (!client?.startDate) return { date: 'TBD', delayed: false };
     const start = new Date(client.startDate);
     const totalDays = PROJECT_STAGES.slice(0, client.stage || 1).reduce((sum, s) => sum + s.days, 0);
     const deadline = new Date(start.getTime() + totalDays * 24 * 60 * 60 * 1000);
@@ -420,7 +429,7 @@ export default function App() {
   const updateShipment = async (id, fields) => {
     try {
       const s = shipments.find(x => x.id === id);
-      if (!s) return;
+      if (!s || !s.parentId) return notify('error', 'Shipment context not found');
       await updateDoc(doc(db, 'projects', s.parentId, 'procurements', id), fields);
       notify('success', 'Shipment Updated');
     } catch(e) { notify('error', 'Failed to update shipment'); }

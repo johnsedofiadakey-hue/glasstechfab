@@ -184,128 +184,98 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
         const myProj = activeProject;
         const totalBudget = parseFloat(myProj?.budget?.replace(/[$,]/g, '') || 0);
         const paidAmount = (myInvs || []).filter(i => i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
-        const remaining = totalBudget - paidAmount;
-        
+        const currentStage = PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1));
+        const nextStage = PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1) + 1);
+        const pendingApprovals = (props.approvals || []).filter(a => a.parentId === myProj?.id && a.status === 'pending');
+        const pendingInvoices = (myInvs || []).filter(i => i.status === 'Pending');
+
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            {/* PROJECT HEADER */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-               <div>
-                  <h1 className="lxfh" style={{ fontSize: 48, fontWeight: 300, marginBottom: 8, color: '#1A1410' }}>Hello, {client.name.split(' ')[0]}</h1>
-                  <div className="lxf" style={{ fontSize: 14, color: ac, fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase' }}>{myProj?.project || myProj?.title || 'Your Project'} Story</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* 1. TOP SECTION: CURRENT STAGE & PROGRESS */}
+            <div className="p-card" style={{ padding: '32px 24px', background: '#1A1410', color: '#fff', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: -20, right: -20, opacity: 0.1 }}><Target size={200} color={ac} /></div>
+              <div className="pulse-inner">
+                <div className="eyebrow" style={{ color: ac, marginBottom: 12 }}>Current Status</div>
+                <h1 className="lxfh" style={{ fontSize: 'clamp(32px, 8vw, 48px)', color: '#fff', marginBottom: 16 }}>{currentStage?.name}</h1>
+                
+                <div className="prog" style={{ height: 10, background: 'rgba(255,255,255,0.1)', marginBottom: 12 }}>
+                  <div className="prog-f" style={{ width: `${myProj?.progress || 0}%`, background: ac }} />
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, fontWeight: 600 }}>
+                  <span>{myProj?.progress || 0}% Complete</span>
+                  <span style={{ color: ac }}>Target: {props.getSLA(myProj).date}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. DYNAMIC STATUS SUMMARY */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+               <div className="p-card" style={{ padding: 20, borderLeft: `4px solid ${ac}` }}>
+                  <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>What’s happening now</div>
+                  <div className="lxf" style={{ fontSize: 15, fontWeight: 500, color: '#1A1410' }}>Your project is currently in the <b>{currentStage?.name}</b> phase. Our team is finalizing technical requirements.</div>
                </div>
-               <div style={{ textAlign: 'right' }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.1em' }}>Consistency Score</div>
-                  <div className="lxfh" style={{ fontSize: 24, color: '#16A34A' }}>Excellent</div>
+               <div className="p-card" style={{ padding: 20, borderLeft: `4px solid #1A1410` }}>
+                  <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>What you need to do next</div>
+                  <div className="lxf" style={{ fontSize: 15, fontWeight: 500, color: '#1A1410' }}>
+                    {pendingApprovals.length > 0 ? `Please approve ${pendingApprovals.length} pending materials.` : 
+                     pendingInvoices.length > 0 ? `Awaiting payment for invoice ${pendingInvoices[0].id}.` : 
+                     nextStage ? `Next step: ${nextStage.name}` : "Sit back and relax while we work."}
+                  </div>
+                  {(pendingApprovals.length > 0 || pendingInvoices.length > 0) && (
+                    <button onClick={() => setTab(pendingApprovals.length > 0 ? 'governance' : 'invoices')} className="lxf" style={{ marginTop: 10, background: 'none', border: 'none', color: ac, fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>Review Actions →</button>
+                  )}
                </div>
             </div>
 
-            {/* QUICK STATS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
-               <div className="p-card" style={{ padding: 20 }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Overall Progress</div>
-                  <div className="lxfh" style={{ fontSize: 24 }}>{myProj?.progress || 0}%</div>
-                  <div className="prog" style={{ height: 4, marginTop: 12 }}><div className="prog-f" style={{ width: `${myProj?.progress || 0}%`, background: ac }} /></div>
+            {/* 3. PAYMENT VISIBILITY */}
+            <div className="p-card" style={{ padding: 24 }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <h3 className="lxfh" style={{ fontSize: 20 }}>Payment Visibility</h3>
+                  <div className="lxfh" style={{ fontSize: 18, color: ac }}>Total: ${totalBudget.toLocaleString()}</div>
                </div>
-               <div className="p-card" style={{ padding: 20 }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Project Value</div>
-                  <div className="lxfh" style={{ fontSize: 24 }}>${totalBudget.toLocaleString()}</div>
+               
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+                  {[
+                    { label: 'Deposit', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.4 ? 'Paid' : 'Pending' },
+                    { label: 'Production', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.8 ? 'Paid' : 'Pending' },
+                    { label: 'Final', val: totalBudget * 0.2, status: paidAmount >= totalBudget ? 'Paid' : 'Pending' }
+                  ].map((m, i) => (
+                    <div key={i} style={{ background: '#F9F7F4', padding: 16, borderRadius: 12, textAlign: 'center' }}>
+                       <div style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>{m.label}</div>
+                       <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>${m.val.toLocaleString()}</div>
+                       <div style={{ fontSize: 10, fontWeight: 800, color: m.status === 'Paid' ? '#16A34A' : '#B45309' }}>{m.status}</div>
+                    </div>
+                  ))}
                </div>
-               <div className="p-card" style={{ padding: 20 }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Confirmed Paid</div>
-                  <div className="lxfh" style={{ fontSize: 24, color: '#16A34A' }}>${paidAmount.toLocaleString()}</div>
-               </div>
-               <div className="p-card" style={{ padding: 20, background: ac, color: '#fff' }}>
-                  <div className="lxf" style={{ fontSize: 11, color: 'rgba(255,255,255,.7)', textTransform: 'uppercase', marginBottom: 8 }}>Active Stage</div>
-                  <div className="lxfh" style={{ fontSize: 18, color: '#fff' }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
-               </div>
-               <div className="p-card" style={{ padding: 20, border: props.getSLA(myProj).delayed ? '1px solid #EF4444' : '1px solid #16A34A' }}>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 8 }}>Estimated Comp.</div>
-                  <div className="lxfh" style={{ fontSize: 20, color: props.getSLA(myProj).delayed ? '#EF4444' : '#1A1410' }}>{props.getSLA(myProj).date}</div>
-                  <div style={{ fontSize: 10, marginTop: 4, fontWeight: 700, color: props.getSLA(myProj).delayed ? '#EF4444' : '#16A34A' }}>{props.getSLA(myProj).delayed ? 'ACTION REQUIRED: DELAYED' : 'ON TRACK'}</div>
+
+               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '16px 20px', background: '#1A1410', borderRadius: 12, color: '#fff' }}>
+                  <div>
+                    <div style={{ fontSize: 11, opacity: 0.6, textTransform: 'uppercase' }}>Total Paid</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#16A34A' }}>${paidAmount.toLocaleString()}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 11, opacity: 0.6, textTransform: 'uppercase' }}>Outstanding Balance</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: ac }}>${(totalBudget - paidAmount).toLocaleString()}</div>
+                  </div>
                </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 32, alignItems: 'start' }}>
-               {/* VERTICAL TIMELINE STORY */}
-               <div className="p-card" style={{ padding: 32 }}>
-                  <h3 className="lxfh" style={{ fontSize: 22, marginBottom: 32 }}>The Project Story</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                    <div style={{ position: 'absolute', left: 19, top: 0, bottom: 0, width: 2, background: '#F0EBE5' }} />
-                    
-                    {PROJECT_STAGES.map((s, idx) => {
-                      const isCurrent = (myProj?.stage || 1) === s.id;
-                      const isPast = (myProj?.stage || 1) > s.id;
-                      const isLast = idx === PROJECT_STAGES.length - 1;
-                      
-                      return (
-                        <div key={s.id} style={{ display: 'flex', gap: 24, marginBottom: isLast ? 0 : 40, position: 'relative' }}>
-                          <div style={{ 
-                            width: 40, height: 40, borderRadius: '50%', 
-                            background: isPast ? s.color : isCurrent ? '#fff' : '#fff',
-                            border: isPast ? `2.5px solid ${s.color}` : isCurrent ? `2.5px solid ${s.color}` : '2.5px solid #DFD9D1',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            zIndex: 2, transition: 'all .4s cubic-bezier(0.4, 0, 0.2, 1)'
-                          }}>
-                            {isPast ? <Check size={20} color="#fff" strokeWidth={3} /> : <div style={{ width: 10, height: 10, borderRadius: '50%', background: isCurrent ? s.color : '#DFD9D1' }} />}
-                          </div>
-
-                          <div style={{ flex: 1, paddingTop: 6 }}>
-                             <div className="lxf" style={{ fontSize: 18, fontWeight: isCurrent ? 700 : 400, color: isCurrent ? '#1A1410' : isPast ? '#7A6E62' : '#B5AFA9' }}>{s.name}</div>
-                             {isCurrent && (
-                               <div style={{ marginTop: 12, padding: 20, background: '#F9F7F4', borderRadius: 12, border: '1px solid rgba(0,0,0,.04)' }}>
-                                  <div className="lxf" style={{ fontSize: 13, lineHeight: 1.6, color: '#473C2C' }}>We are currently processing this stage. Our team is working on the deliverables to ensure everything meets Glasstech standards.</div>
-                                  <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-                                     <button onClick={() => setTab('governance')} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12 }}>Check Approvals</button>
-                                     <button className="p-btn-light" style={{ padding: '8px 16px', fontSize: 12 }} onClick={() => setTab('project')}>View Timeline</button>
-                                  </div>
-                               </div>
-                             )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+            {/* 4. MEDIA GALLERY PREVIEW */}
+            <div className="p-card" style={{ padding: 24 }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <h3 className="lxfh" style={{ fontSize: 20 }}>Project Media</h3>
+                  <button onClick={() => setTab('gallery')} style={{ background: 'none', border: 'none', color: ac, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>View All Gallery</button>
                </div>
-
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-                  {/* FINANCIAL HEALTH */}
-                  <div className="p-card" style={{ padding: 24 }}>
-                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Financial Milestone</h3>
-                     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                        {[
-                          { label: 'Deposit (40%)', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.4 ? 'PAID' : 'DUE' },
-                          { label: 'Production (40%)', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.8 ? 'PAID' : 'DUE' },
-                          { label: 'Final (20%)', val: totalBudget * 0.2, status: paidAmount >= totalBudget ? 'PAID' : 'DUE' }
-                        ].map((m, i) => (
-                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div>
-                                 <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>{m.label}</div>
-                                 <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>${m.val.toLocaleString()}</div>
-                              </div>
-                              <SBadge s={m.status} />
-                           </div>
-                        ))}
-                     </div>
-                     <button onClick={() => setTab('invoices')} className="p-btn-dark lxf" style={{ width: '100%', marginTop: 24 }}>View Invoices</button>
-                  </div>
-
-                  {/* RECENT ACTIVITY */}
-                  <div className="p-card" style={{ padding: 24 }}>
-                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Recent Photos</h3>
-                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                        {myMedia.slice(0, 2).map(m => (
-                          <img key={m.id} src={m.url} style={{ aspectRatio: '1', width: '100%', objectFit: 'cover', borderRadius: 8 }} alt="progress" />
-                        ))}
-                        {myMedia.length === 0 && (
-                          <>
-                            <div style={{ aspectRatio: '1', background: '#f5f5f5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={20} color="#ccc" /></div>
-                            <div style={{ aspectRatio: '1', background: '#f5f5f5', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={20} color="#ccc" /></div>
-                          </>
-                        )}
-                     </div>
-                     <button onClick={() => setTab('gallery')} className="lxf" style={{ width: '100%', background: 'none', border: 'none', color: ac, fontSize: 12, fontWeight: 700, marginTop: 16, cursor: 'pointer' }}>View Full Gallery</button>
-                  </div>
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+                  {myMedia.slice(0, 4).map(m => (
+                    <div key={m.id} style={{ borderRadius: 12, overflow: 'hidden', aspectRatio: '1', position: 'relative' }}>
+                       <img src={m.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="progress" />
+                       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 8, background: 'linear-gradient(transparent, rgba(0,0,0,0.6))', color: '#fff', fontSize: 10 }}>{PROJECT_STAGES.find(s => s.id === m.stageId)?.name}</div>
+                    </div>
+                  ))}
+                  {myMedia.length === 0 && Array(4).fill(0).map((_, i) => (
+                    <div key={i} style={{ borderRadius: 12, background: '#F9F7F4', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Image size={24} color="#D0CCC6" /></div>
+                  ))}
                </div>
             </div>
           </div>
@@ -621,7 +591,7 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
         </div>
       </div>
 
-      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', display: 'flex', gap: 0, overflowX: 'auto' }}>
+      <div className="p-nav-row" style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', display: 'flex', gap: 0, overflowX: 'auto' }}>
         {tabs.map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`p-tab lxf${tab === id ? ' active' : ''}`} style={{ whiteSpace: 'nowrap' }}>{label}</button>)}
       </div>
 

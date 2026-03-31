@@ -47,15 +47,28 @@ function PModal({ open, onClose, title, children, w = 520 }) {
 function AdminDash({ clients, invoices, proposals, brand, getSLA, ...props }) {
   const ac = brand.color || '#C8A96E';
   const totalRev = (invoices || []).filter(i => i?.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
+  const pendingInvs = (invoices || []).filter(i => i?.status === 'Pending');
+  const totalUnpaid = pendingInvs.reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
+  const pendingApprovals = (props.approvals || []).filter(a => a.status === 'pending').length;
+  const delayedProjects = (clients || []).filter(c => (getSLA || props.getSLA) && c ? (getSLA || props.getSLA)(c).delayed : false).length;
+
   const dashboardStats = [
-    { label: 'Revenue', value: `$${(totalRev / 1000).toFixed(0)}k`, target: 100, icon: <DollarSign size={20} />, sub: 'On track to hit $100k', color: ac, trend: 18 },
-    { label: 'Active Clients', value: (clients || []).filter(c => c?.status === 'Active').length, target: 20, icon: <Users size={20} />, sub: 'Steady growth', color: '#16A34A', trend: 12 },
-    { label: 'Delayed Projects', value: (clients || []).filter(c => (getSLA || props.getSLA) && c ? (getSLA || props.getSLA)(c).delayed : false).length, target: 2, icon: <Clock size={20} />, sub: 'High risk alerts', color: '#ff4444', trend: -5 },
-    { label: 'Unpaid Invoices', value: (invoices || []).filter(i => i?.status === 'Pending').length, target: 5, icon: <Receipt size={20} />, sub: 'Awaiting clearance', color: '#B45309', trend: 2 },
+    { label: 'Revenue (Paid)', value: `$${(totalRev / 1000).toFixed(1)}k`, target: 100, icon: <DollarSign size={20} />, sub: 'Total settled funds', color: '#16A34A', trend: 18 },
+    { label: 'Unpaid Balance', value: `$${(totalUnpaid / 1000).toFixed(1)}k`, target: 10, icon: <Receipt size={20} />, sub: `${pendingInvs.length} invoices pending`, color: '#B45309', trend: 2 },
+    { label: 'Delayed Projects', value: delayedProjects, target: 0, icon: <Clock size={20} />, sub: 'High risk alerts', color: '#ff4444', trend: -5 },
+    { label: 'Pending Apps', value: pendingApprovals, target: 0, icon: <CheckCircle size={20} />, sub: 'Awaiting client sign-off', color: ac, trend: 12 },
   ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* QUICK ACTION BAR */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+        <button className="p-btn-dark lxf" style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, minHeight: 44, cursor: 'pointer' }}><Plus size={16} /> New Project</button>
+        <button className="p-btn-dark lxf" style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, minHeight: 44, cursor: 'pointer' }}><Users size={16} /> New Client</button>
+        <button className="p-btn-light lxf" style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, minHeight: 44, cursor: 'pointer' }}><FileText size={16} /> Send Invoice</button>
+        <button className="p-btn-light lxf" style={{ padding: '10px 20px', borderRadius: 10, fontSize: 13, minHeight: 44, cursor: 'pointer' }}><Truck size={16} /> Track Shipment</button>
+      </div>
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
         {dashboardStats.map(s => (
           <PulseTargetCard 
@@ -74,15 +87,17 @@ function AdminDash({ clients, invoices, proposals, brand, getSLA, ...props }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: 20 }}>
         <div className="p-card" style={{ padding: 24 }}>
           <div className="lxf" style={{ fontSize: 13, fontWeight: 600, color: '#1A1410', marginBottom: 20 }}>Revenue (Last 6 Months)</div>
-          <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={REV}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
-              <XAxis dataKey="m" tick={{ fill: '#B5AFA9', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#B5AFA9', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}k`} />
-              <Tooltip />
-              <Area type="monotone" dataKey="v" stroke={ac} fill={`${ac}12`} strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div style={{ height: 260, width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={REV}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
+                <XAxis dataKey="m" tick={{ fill: '#B5AFA9', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: '#B5AFA9', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}k`} />
+                <Tooltip />
+                <Area type="monotone" dataKey="v" stroke={ac} fill={`${ac}12`} strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         <div className="p-card" style={{ padding: 24 }}>
@@ -262,6 +277,8 @@ function AdminInstallations({ clients, updateProject, dbClients, brand, ...props
                <AdminTasks projectId={sel} projectTitle={proj.project} {...props} brand={brand} />
                <AdminProcurement projectId={sel} procurements={props.procurements} createProcurement={props.createProcurement} updateProcurement={props.updateProcurement} deleteProcurement={props.deleteProcurement} brand={brand} />
             </div>
+
+            <AdminProjectGallery projectId={sel} media={props.media} uploadMedia={props.uploadMedia} deleteMedia={props.deleteMedia} ac={ac} />
 
             <AdminGovernance projectId={sel} {...props} brand={brand} />
           </div>
@@ -502,6 +519,65 @@ function AdminGovernance({ projectId, approvals, createApproval, updateApproval,
             {myCRs.length === 0 && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic' }}>No change requests to manage.</div>}
          </div>
       </div>
+    </div>
+  );
+}
+
+function AdminProjectGallery({ projectId, media = [], uploadMedia, deleteMedia, ac }) {
+  const [showAdd, setShowAdd] = useState(false);
+  const [nm, setNm] = useState({ stage: 1, file: null, preview: '' });
+  const myMedia = media.filter(m => m.parentId === projectId);
+
+  const handleUpload = async () => {
+    if (!nm.file) return alert('Select a photo');
+    await uploadMedia(projectId, nm.file, parseInt(nm.stage));
+    setNm({ stage: 1, file: null, preview: '' });
+    setShowAdd(false);
+  };
+
+  const onFile = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setNm({...nm, file, preview: reader.result});
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="p-card" style={{ padding: 24 }}>
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+         <h3 className="lxfh" style={{ fontSize: 18 }}>Project Progress Photos</h3>
+         <button onClick={() => setShowAdd(!showAdd)} className="lxf" style={{ fontSize: 13, background: 'none', border: 'none', color: ac, fontWeight: 600, cursor: 'pointer' }}>+ Add Progress Photo</button>
+       </div>
+
+       {showAdd && (
+         <div style={{ background: '#F9F7F4', padding: 20, borderRadius: 12, marginBottom: 24, display: 'flex', gap: 20 }}>
+            <div style={{ width: 120, height: 120, borderRadius: 12, border: '2px dashed #DFD9D1', overflow: 'hidden', position: 'relative', background: '#fff' }}>
+               {nm.preview ? <img src={nm.preview} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Camera size={24} color="#B5AFA9" /></div>}
+               <input type="file" accept="image/*" onChange={e => onFile(e.target.files[0])} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} />
+            </div>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+               <PFormField label="Link to Project Stage">
+                  <select className="p-inp" value={nm.stage} onChange={e => setNm({...nm, stage: e.target.value})}>
+                    {PROJECT_STAGES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+               </PFormField>
+               <button onClick={handleUpload} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Upload to Phase</button>
+            </div>
+         </div>
+       )}
+
+       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 12 }}>
+          {myMedia.map(m => (
+            <div key={m.id} style={{ position: 'relative', borderRadius: 12, overflow: 'hidden', aspectRatio: '1' }}>
+               <img src={m.url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="progress" />
+               <div style={{ position: 'absolute', top: 6, right: 6 }}>
+                  <button onClick={() => deleteMedia(m.id, projectId)} style={{ background: 'rgba(255,255,255,.9)', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#ff4444' }}><Trash2 size={12} /></button>
+               </div>
+               <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '4px 8px', background: 'rgba(0,0,0,.6)', color: '#fff', fontSize: 9 }}>{PROJECT_STAGES.find(s => s.id === m.stageId)?.name}</div>
+            </div>
+          ))}
+          {myMedia.length === 0 && <div className="lxf" style={{ color: '#B5AFA9', fontSize: 12, fontStyle: 'italic', gridColumn: '1/-1' }}>No progress photos uploaded yet.</div>}
+       </div>
     </div>
   );
 }
@@ -758,11 +834,16 @@ function AdminAnalyticsPage({ clients, invoices, brand, getSLA }) {
   const ac = brand.color || '#C8A96E';
   const totalRev = (invoices || []).filter(i => i.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
   const outstanding = (invoices || []).filter(i => i.status === 'Pending').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
-  const delayed = (clients || []).filter(c => getSLA && c ? getSLA(c).delayed : false).length;
+  const delayed = (clients || []).filter(c => {
+    try { return getSLA && c ? getSLA(c).delayed : false; } catch(e) { return false; }
+  }).length;
 
   const exportCSV = () => {
     const headers = ['Project', 'Client', 'Stage', 'Deadline', 'Status'];
-    const rows = clients.map(c => [c.project, c.name, `Stage ${c.stage || 1}`, getSLA(c).date, getSLA(c).delayed ? 'DELAYED' : 'On Track']);
+    const rows = clients.map(c => {
+      const sla = (getSLA && c) ? getSLA(c) : { date: 'TBD', delayed: false };
+      return [c.project || c.title, c.name, `Stage ${c.stage || 1}`, sla.date, sla.delayed ? 'DELAYED' : 'On Track'];
+    });
     const content = [headers, ...rows].map(r => r.join(',')).join('\n');
     console.log('Exporting CSV:\n', content);
     alert('Project Report exported to console (Simulated CSV Download)');
@@ -771,7 +852,7 @@ function AdminAnalyticsPage({ clients, invoices, brand, getSLA }) {
   const perfData = [
     { name: 'Completed', value: 12, fill: '#16A34A' },
     { name: 'On Track', value: 8, fill: ac },
-    { name: 'Delayed', value: delayed, fill: '#ff4444' }
+    { name: 'Delayed', value: delayed || 0, fill: '#ff4444' }
   ];
 
   return (
@@ -814,8 +895,8 @@ function AdminAnalyticsPage({ clients, invoices, brand, getSLA }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20 }}>
         <div className="p-card" style={{ padding: 24 }}>
           <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Revenue Growth (Projected)</h3>
-          <div style={{ height: 300 }}>
-            <ResponsiveContainer>
+          <div style={{ height: 300, width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={ANALYTICS_MONTHLY}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#B5AFA9' }} />
@@ -830,8 +911,8 @@ function AdminAnalyticsPage({ clients, invoices, brand, getSLA }) {
 
         <div className="p-card" style={{ padding: 24 }}>
           <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Project Health Distribution</h3>
-          <div style={{ height: 260 }}>
-            <ResponsiveContainer>
+          <div style={{ height: 260, width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={perfData} innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
                   {perfData.map((entry, index) => <Cell key={index} fill={entry.fill} />)}
