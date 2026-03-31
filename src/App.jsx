@@ -119,7 +119,7 @@ export default function App() {
       ];
 
       // 1. Initialise Users
-      const userMap = {}; // email -> id
+      const userMap = {}; 
       for (const acc of DEMO_ACCOUNTS) {
         const id = acc.uid || acc.email.replace(/[.@]/g, '_');
         userMap[acc.email] = id;
@@ -137,55 +137,97 @@ export default function App() {
       // 3. Initialise Projects (Supporting multi-project for Elite Client)
       const ELITE_CLIENT_ID = userMap['client@luxespace.com'];
       
-      const ADDITIONAL_PROJECTS = [
-        { id: 'EP_001', name: 'Elite Client', title: 'Penthouse Interior Fit-out', email: 'client@luxespace.com', budget: '$120,000', progress: 15, stage: 2 },
-        { id: 'EP_002', name: 'Elite Client', title: 'Garden Showroom Glazing', email: 'client@luxespace.com', budget: '$35,000', progress: 85, stage: 10 }
+      const ALL_PROJECT_DATA = [
+        { 
+          id: 'PROJ_001', 
+          title: 'Glasshouse Penthouse', 
+          name: 'Elite Client', 
+          email: 'client@luxespace.com', 
+          budget: '$250,000', 
+          progress: 45, 
+          stage: 5,
+          cat: 'Structural Glazing & Interior',
+          milestones: [
+            { id: 'm1', name: 'Deposit (Initial)', amount: '$100,000', stageId: 1, status: 'Paid', paidAt: new Date().toISOString() },
+            { id: 'm2', name: 'Production Phase', amount: '$100,000', stageId: 5, status: 'Pending' },
+            { id: 'm3', name: 'Final Handover', amount: '$50,000', stageId: 12, status: 'Pending' }
+          ]
+        },
+        { 
+          id: 'PROJ_002', 
+          title: 'Coastal Villa Skylight', 
+          name: 'Elite Client', 
+          email: 'client@luxespace.com', 
+          budget: '$85,000', 
+          progress: 15, 
+          stage: 2,
+          cat: 'Custom Aluminum Fit-out',
+          milestones: [
+            { id: 'm1', name: 'Down Payment', amount: '$34,000', stageId: 1, status: 'Paid', paidAt: new Date().toISOString() },
+            { id: 'm2', name: 'Material Procurement', amount: '$34,000', stageId: 3, status: 'Pending' },
+            { id: 'm3', name: 'On-site Installation', amount: '$17,000', stageId: 10, status: 'Pending' }
+          ]
+        },
+        ...CLIENTS_DATA.filter(c => c.email !== 'client@luxespace.com')
       ];
 
-      const ALL_PROJECT_DATA = [...CLIENTS_DATA, ...ADDITIONAL_PROJECTS];
-
       for (const item of ALL_PROJECT_DATA) {
-        const pid = item.id.toString().startsWith('PROJ_') || item.id.toString().startsWith('EP_') ? item.id : `PROJ_${item.id || Math.random().toString(36).substr(2, 5)}`;
+        const pid = item.id.toString();
         const cid = item.email ? (userMap[item.email] || item.email.replace(/[.@]/g, '_')) : `CL_${pid}`;
         
         // Ensure client exists
         if (!userMap[item.email]) {
            await setDoc(doc(db, 'users', cid), { 
             id: cid, name: item.name, email: item.email || `${item.name.toLowerCase().replace(' ', '.')}@example.com`, 
-            phone: '+233 24 000 0000', company: item.project?.split(' ')[0] + ' Ltd' || 'Private', role: 'client', status: 'Active', joined: new Date().toISOString() 
+            phone: '+233 24 000 0000', company: 'Private Client', role: 'client', status: 'Active', joined: new Date().toISOString() 
           }, { merge: true });
           userMap[item.email] = cid;
         }
 
-        const milestones = [
-          { id: 'm1', name: 'Deposit (40%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.4).toLocaleString(), stageId: 1, paid: true },
-          { id: 'm2', name: 'Production Commencement (40%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.4).toLocaleString(), stageId: 4, paid: false },
-          { id: 'm3', name: 'Final Handover (20%)', amount: '$' + (parseFloat(item.budget.replace(/[$,]/g, '')) * 0.2).toLocaleString(), stageId: 11, paid: false }
+        const projectBudget = parseFloat(item.budget?.replace(/[$,]/g, '') || 0);
+        const defaultMilestones = [
+          { id: 'm1', name: 'Deposit (40%)', amount: '$' + (projectBudget * 0.4).toLocaleString(), stageId: 1, status: 'Paid' },
+          { id: 'm2', name: 'Production (40%)', amount: '$' + (projectBudget * 0.4).toLocaleString(), stageId: 4, status: 'Pending' },
+          { id: 'm3', name: 'Final (20%)', amount: '$' + (projectBudget * 0.2).toLocaleString(), stageId: 11, status: 'Pending' }
         ];
 
-        await setDoc(doc(db, 'projects', pid.toString()), { 
-          ...item, id: pid.toString(), title: item.project || item.title, clientId: cid, clientIds: [cid], milestones, managerId: 'EMP001', createdAt: new Date().toISOString() 
+        await setDoc(doc(db, 'projects', pid), { 
+          ...item, 
+          id: pid, 
+          title: item.project || item.title, 
+          clientId: cid, 
+          clientIds: [cid], 
+          milestones: item.milestones || defaultMilestones,
+          managerId: 'EMP001', 
+          createdAt: new Date().toISOString() 
         }, { merge: true });
 
-        // Seed some media for the Elite Client to show the new gallery
-        if (item.email === 'client@luxespace.com') {
-           const demoMedia = [
-             { url: 'https://images.unsplash.com/photo-1600585154340-be6199f7a096?auto=format&fit=crop&q=80', stageId: 1, type: 'image' },
-             { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80', stageId: 4, type: 'image' },
-             { url: 'https://images.unsplash.com/photo-1613545325278-f24b0cae1224?auto=format&fit=crop&q=80', stageId: 4, type: 'image' }
-           ];
-           for (const m of demoMedia) {
-             await addDoc(collection(db, 'projects', pid.toString(), 'media'), { ...m, createdAt: new Date().toISOString() });
-           }
+        // Seed some media for the new gallery
+        const demoMedia = [
+          { url: 'https://images.unsplash.com/photo-1600585154340-be6199f7a096?auto=format&fit=crop&q=80', stageId: 1, type: 'image' },
+          { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80', stageId: item.stage || 1, type: 'image' },
+          { url: 'https://images.unsplash.com/photo-1613545325278-f24b0cae1224?auto=format&fit=crop&q=80', stageId: item.stage || 1, type: 'image' }
+        ];
+        
+        for (const m of demoMedia) {
+          await addDoc(collection(db, 'projects', pid, 'media'), { ...m, createdAt: new Date().toISOString() });
+        }
 
-           await setDoc(doc(collection(db, 'projects', pid.toString(), 'procurements'), 'SHIP_001'), {
-             item: 'High-Pressure Glazing Panels', supplier: 'Foshan Glass Co.', status: 'Shipped', eta: 'April 15, 2026', container: 'MSC-9231-GH', createdAt: new Date().toISOString()
-           });
+        // Add a sample procurement tracking
+        if (item.email === 'client@luxespace.com') {
+          await setDoc(doc(collection(db, 'projects', pid, 'procurements'), 'SHIP_'+pid), {
+            item: 'Premium Structural Glass Components', 
+            supplier: 'Glasstech Intl.', 
+            status: item.stage > 3 ? 'Shipped' : 'Order Placed', 
+            eta: 'May 12, 2026', 
+            container: 'MSC-XYZ-'+pid, 
+            createdAt: new Date().toISOString()
+          });
         }
       }
-      notify('success', 'Glasstech Multi-Project CMS Initialized');
+      notify('success', 'Glasstech Multi-Project Architecture Deployed');
       fetchData();
-    } catch (err) { console.error(err); notify('error', 'Initialization failed'); } finally { setLoading(false); }
+    } catch (err) { console.error(err); notify('error', 'Seeding failed'); } finally { setLoading(false); }
   };
 
   const fetchData = async () => {

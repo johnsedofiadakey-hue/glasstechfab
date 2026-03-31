@@ -117,6 +117,7 @@ p, .lxf { font-family: var(--font-primary, 'DM Sans', sans-serif); line-height: 
   font-family: 'DM Sans', sans-serif; transition: all .3s; 
   text-transform: uppercase; border-radius: 12px; min-height: 48px;
   display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px;
 } 
 .p-btn-gold:hover { filter: brightness(1.08); transform: translateY(-1px); }
 .p-btn-gold:active { transform: translateY(0); }
@@ -127,6 +128,7 @@ p, .lxf { font-family: var(--font-primary, 'DM Sans', sans-serif); line-height: 
   letter-spacing: .06em; text-transform: uppercase; 
   border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; min-height: 48px;
   display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 12px 24px;
 } 
 .p-btn-light:hover { background: #F0EDE8; border-color: rgba(0,0,0,0.12); }
 .p-stat-card{background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:10px;padding:20px;transition:all .3s;} .p-stat-card:hover{border-color:rgba(200,169,110,.3);box-shadow:0 4px 20px rgba(200,169,110,.08);}
@@ -202,7 +204,7 @@ button, input, select, textarea { min-height: 44px; }
   }
   
   /* FLEX STACKING */
-  div[style*="display: flex"] { 
+  div[style*="display: flex"]:not(.p-nav-row):not(.lxf-mobile-header) { 
     flex-direction: column !important; 
     align-items: stretch !important;
   }
@@ -214,8 +216,16 @@ button, input, select, textarea { min-height: 44px; }
     justify-content: space-between !important;
   }
 
-  .p-nav { padding: 14px 16px !important; }
-  .p-btn-gold, .p-btn-dark, .p-btn-light { width: 100% !important; min-height: 56px !important; font-size: 15px !important; }
+  .p-sticky-nav {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: #fff !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05) !important;
+  }
+
+  .p-nav { padding: 16px !important; min-height: 52px !important; }
+  .p-btn-gold, .p-btn-dark, .p-btn-light { width: 100% !important; min-height: 52px !important; font-size: 15px !important; }
   
   /* Table to Card conversion helper */
   .resp-table thead { display: none; }

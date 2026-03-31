@@ -227,23 +227,25 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
                </div>
             </div>
 
-            {/* 3. PAYMENT VISIBILITY */}
+            {/* 3. PAYMENT VISIBILITY - DYNAMIC MILESTONES */}
             <div className="p-card" style={{ padding: 24 }}>
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                   <h3 className="lxfh" style={{ fontSize: 20 }}>Payment Visibility</h3>
                   <div className="lxfh" style={{ fontSize: 18, color: ac }}>Total: ${totalBudget.toLocaleString()}</div>
                </div>
                
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
-                  {[
-                    { label: 'Deposit', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.4 ? 'Paid' : 'Pending' },
-                    { label: 'Production', val: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.8 ? 'Paid' : 'Pending' },
-                    { label: 'Final', val: totalBudget * 0.2, status: paidAmount >= totalBudget ? 'Paid' : 'Pending' }
-                  ].map((m, i) => (
-                    <div key={i} style={{ background: '#F9F7F4', padding: 16, borderRadius: 12, textAlign: 'center' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16, marginBottom: 24 }}>
+                  {(activeProject?.milestones || [
+                    { label: 'Deposit', amount: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.4 ? 'Paid' : 'Pending' },
+                    { label: 'Production', amount: totalBudget * 0.4, status: paidAmount >= totalBudget * 0.8 ? 'Paid' : 'Pending' },
+                    { label: 'Final', amount: totalBudget * 0.2, status: paidAmount >= totalBudget ? 'Paid' : 'Pending' }
+                  ]).map((m, i) => (
+                    <div key={i} style={{ background: '#F9F7F4', padding: 16, borderRadius: 12, textAlign: 'center', border: m.status === 'Paid' ? `1px solid rgba(22,163,74,0.1)` : '1px solid transparent' }}>
                        <div style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>{m.label}</div>
-                       <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>${m.val.toLocaleString()}</div>
-                       <div style={{ fontSize: 10, fontWeight: 800, color: m.status === 'Paid' ? '#16A34A' : '#B45309' }}>{m.status}</div>
+                       <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>${(parseFloat(m.amount) || 0).toLocaleString()}</div>
+                       <div style={{ fontSize: 10, fontWeight: 800, color: m.status === 'Paid' ? '#16A34A' : '#B45309' }}>
+                         {m.status?.toUpperCase() || 'PENDING'}
+                       </div>
                     </div>
                   ))}
                </div>
@@ -400,27 +402,52 @@ export default function ClientPortal({ client, brand, onLogout, ...props }) {
             )}
           </div>
         );
-      case 'gallery':
+      case 'gallery': {
+        const groupedMedia = myMedia.reduce((acc, m) => {
+          const sId = m.stageId || 0;
+          if (!acc[sId]) acc[sId] = [];
+          acc[sId].push(m);
+          return acc;
+        }, {});
+
+        // Sort stages
+        const sortedStages = Object.keys(groupedMedia).sort((a, b) => parseInt(a) - parseInt(b));
+
         return (
           <div className="p-card" style={{ padding: 32 }}>
-            <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 24 }}>Project Gallery</h3>
+            <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 32 }}>Stage-Based Gallery</h3>
             {myMedia.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: '#B5AFA9' }}>The gallery will be updated as work progresses.</div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
-                {myMedia.map(m => (
-                  <div key={m.id} className="p-card" style={{ overflow: 'hidden' }}>
-                    <img src={m.url} style={{ width: '100%', aspectRatio: '1.2', objectFit: 'cover' }} alt="milestone" />
-                    <div style={{ padding: 12 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>{PROJECT_STAGES.find(s => s.id === m.stageId)?.name || 'Project Photo'}</div>
-                      <div style={{ fontSize: 11, color: '#B5AFA9' }}>{new Date(m.createdAt).toLocaleDateString()}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+                {sortedStages.map(sId => {
+                  const stage = PROJECT_STAGES.find(s => s.id === parseInt(sId));
+                  return (
+                    <div key={sId}>
+                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                          <div style={{ width: 12, height: 12, borderRadius: '50%', background: stage?.color || ac }} />
+                          <h4 className="lxfh" style={{ fontSize: 18 }}>{stage?.name || 'Initial Phase'}</h4>
+                          <div style={{ height: 1, flex: 1, background: 'rgba(0,0,0,0.05)' }} />
+                       </div>
+                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+                          {groupedMedia[sId].map(m => (
+                            <div key={m.id} className="p-card" style={{ overflow: 'hidden', border: 'none', shadow: 'none', background: '#F9F7F4' }}>
+                              <img src={m.url} style={{ width: '100%', aspectRatio: '1.4', objectFit: 'cover' }} alt="milestone" />
+                              <div style={{ padding: 12 }}>
+                                <div style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase' }}>{new Date(m.createdAt).toLocaleDateString()}</div>
+                                <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4 }}>{m.label || 'Progress Photo'}</div>
+                              </div>
+                            </div>
+                          ))}
+                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         );
+      }
       case 'invoices':
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
