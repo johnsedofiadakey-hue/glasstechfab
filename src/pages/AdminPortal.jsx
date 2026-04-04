@@ -20,6 +20,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
   const [view, setView] = useState('dash');
   const [showAI, setShowAI] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState(null);
+  const [mod, setMod] = useState(null); // 'AddClient', 'AddProject', etc.
   const { brand } = props;
 
   const handleSelectClient = (id) => {
@@ -31,6 +32,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
     const common = { 
       user, brand, content, setContent, 
       setAI: () => setShowAI(true), 
+      setMod,
       onSelectClient: handleSelectClient,
       PROJECT_STAGES,
       ...props 
@@ -62,6 +64,19 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
     >
       {renderView()}
       <AIProposalGenerator open={showAI} onClose={() => setShowAI(false)} onSubmit={props.createProposal} brand={brand} />
+      
+      {/* GLOBAL MODALS */}
+      {mod === 'AddClient' && view !== 'operations' && (
+        <AdminClients 
+          {...props} 
+          brand={brand} 
+          dbClients={props.dbClients} 
+          createClient={props.createClient}
+          updateClient={props.updateClient}
+          autoOpen={true} 
+          onClose={() => setMod(null)} 
+        />
+      )}
     </AdminLayout>
   );
 }

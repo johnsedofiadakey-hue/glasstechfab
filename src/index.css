@@ -252,3 +252,111 @@ body {
 /* THEME SPECIFIC OVERRIDES */
 [data-theme='minimal'] .eyebrow { letter-spacing: 0.3em; font-weight: 700; }
 [data-theme='avant-garde'] .p-card { border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+
+/* ADMIN REDESIGN: OPERATIONS COMMAND SYSTEM */
+.admin-matrix {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.glass-matrix {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(14px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-matrix:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+  border-color: var(--ac);
+}
+
+.p-sidebar-narrow {
+  width: 80px;
+  background: #1A1410;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  transition: width 0.3s ease;
+}
+
+.p-sidebar-narrow:hover {
+  width: 240px;
+}
+
+.p-sidebar-narrow .n-label {
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+  font-size: 13px;
+  margin-left: 12px;
+}
+
+.p-sidebar-narrow:hover .n-label {
+  opacity: 1;
+}
+
+.p-nav-float {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: rgba(249, 247, 244, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 16px 0;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pulse-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.pulse-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--ac), transparent);
+  animation: scan 3s linear infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.luxe-table {
+  width: 100%;
+  border-spacing: 0 8px;
+  border-collapse: separate;
+}
+
+.luxe-table tr {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.luxe-table td {
+  padding: 16px;
+}
+
+.luxe-table td:first-child { border-radius: 12px 0 0 12px; }
+.luxe-table td:last-child { border-radius: 0 12px 12px 0; }
+
+.hub-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}

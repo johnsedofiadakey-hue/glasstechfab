@@ -26,80 +26,68 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-      {/* 1. STICKY QUICK ACTION BAR */}
-      <div className="p-card p-sticky-nav" style={{ padding: '12px 24px', display: 'flex', gap: 12, alignItems: 'center', borderRadius: 0, margin: '0 -32px', borderLeft: 'none', borderRight: 'none' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.1em', marginRight: 12 }}>Command Center</div>
-        <button onClick={() => props.setMod('AddProject')} className="p-btn-dark lxf" style={{ padding: '8px 16px', borderRadius: 10, fontSize: 12, minHeight: 40, cursor: 'pointer' }}><Plus size={14} /> Project</button>
-        <button onClick={() => props.setMod('AddClient')} className="p-btn-dark lxf" style={{ padding: '8px 16px', borderRadius: 10, fontSize: 12, minHeight: 40, cursor: 'pointer' }}><Users size={14} /> Client</button>
-        <button onClick={() => props.setAI()} className="p-btn-gold lxf" style={{ padding: '8px 16px', borderRadius: 10, fontSize: 12, minHeight: 40, cursor: 'pointer', background: ac, color: '#fff', border: 'none' }}><Sparkles size={14} /> AI Genesis</button>
-        <button onClick={() => props.setMod('SendInvoice')} className="p-btn-light lxf" style={{ padding: '8px 16px', borderRadius: 10, fontSize: 12, minHeight: 40, cursor: 'pointer' }}><FileText size={14} /> Invoice</button>
-        <button onClick={() => props.setMod('TrackShipment')} className="p-btn-light lxf" style={{ padding: '8px 16px', borderRadius: 10, fontSize: 12, minHeight: 40, cursor: 'pointer' }}><Truck size={14} /> Shipment</button>
-      </div>
-
-      {/* 2. OPERATIONAL ALERTS (CRITICAL) */}
-      {(totalUnpaid > 50000 || delayedProjects > 0) && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="eyebrow" style={{ color: '#DC2626' }}>Operational Alerts</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
-            {totalUnpaid > 50000 && (
-              <div className="p-card" style={{ padding: 16, borderLeft: '4px solid #DC2626', background: 'rgba(220,38,38,0.02)', display: 'flex', gap: 16, alignItems: 'center' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(220,38,38,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#DC2626' }}><AlertTriangle size={20} /></div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>High Unpaid Balance</div>
-                  <div style={{ fontSize: 12, color: '#DC2626' }}>${totalUnpaid.toLocaleString()} across {pendingInvs.length} invoices. Action required.</div>
-                </div>
-              </div>
-            )}
-            {delayedProjects > 0 && (
-              <div className="p-card" style={{ padding: 16, borderLeft: '4px solid #B45309', background: 'rgba(180,83,9,0.02)', display: 'flex', gap: 16, alignItems: 'center' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: 'rgba(180,83,9,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B45309' }}><Clock size={20} /></div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>Delayed Projects Detected</div>
-                  <div style={{ fontSize: 12, color: '#B45309' }}>{delayedProjects} sites are past their target milestones.</div>
-                </div>
-              </div>
-            )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+      {/* 1. OPERATIONS QUICK-ACCESS BRIDGE */}
+      <div className="glass-matrix pulse-card" style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <div className="lxf" style={{ fontSize: 10, fontWeight: 800, color: ac, textTransform: 'uppercase', letterSpacing: '.15em' }}>Control Bridge</div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => props.setMod && props.setMod('AddProject')} className="p-btn-dark lxf" style={{ padding: '8px 16px', borderRadius: 8, fontSize: 11 }}><Plus size={14} /> Project</button>
+            <button onClick={() => props.setMod && props.setMod('AddClient')} className="p-btn-dark lxf" style={{ padding: '8px 16px', borderRadius: 8, fontSize: 11 }}><Users size={14} /> Client</button>
+            <button onClick={() => props.setAI && props.setAI()} className="p-btn-gold lxf" style={{ padding: '8px 16px', borderRadius: 8, fontSize: 11, background: ac }}><Sparkles size={14} /> Genesis AI</button>
           </div>
         </div>
-      )}
+        <div className="dt-flex" style={{ gap: 24 }}>
+           <div style={{ textAlign: 'right' }}>
+              <div className="lxf" style={{ fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase' }}>Active Invoices</div>
+              <div className="lxf" style={{ fontSize: 13, fontWeight: 700 }}>{pendingInvs.length} Pending</div>
+           </div>
+           <div style={{ textAlign: 'right' }}>
+              <div className="lxf" style={{ fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase' }}>Unpaid Volume</div>
+              <div className="lxf" style={{ fontSize: 13, fontWeight: 700, color: totalUnpaid > 50000 ? '#ff4444' : 'inherit' }}>${(totalUnpaid/1000).toFixed(1)}k</div>
+           </div>
+        </div>
+      </div>
 
-      {/* 3. REFACTORED METRICS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14 }}>
-        {dashboardStats.map(s => (
-          <PulseTargetCard 
-            key={s.label}
-            label={s.label}
-            value={s.value}
-            target={s.target}
-            icon={s.icon}
-            sub={s.sub}
-            color={s.color}
-            trend={s.trend}
-          />
+      {/* 2. CORE METRICS MATRIX */}
+      <div className="admin-matrix">
+        {dashboardStats.map((s, i) => (
+          <div key={i} className="glass-matrix" style={{ padding: 24, position: 'relative' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ padding: 10, background: `${s.color}15`, borderRadius: 12, color: s.color }}>{s.icon}</div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: s.trend > 0 ? '#16A34A' : '#B5AFA9', background: s.trend > 0 ? 'rgba(22,163,74,0.1)' : 'rgba(0,0,0,0.04)', padding: '4px 8px', borderRadius: 100 }}>{s.trend > 0 ? `+${s.trend}%` : s.trend === 0 ? 'Stable' : `${s.trend}%`}</span>
+            </div>
+            <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 4 }}>{s.label}</div>
+            <div className="lxfh" style={{ fontSize: 26 }}>{s.value}</div>
+            <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', marginTop: 4 }}>{s.sub}</div>
+          </div>
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: 20 }}>
-        <div className="p-card" style={{ padding: 24, minHeight: 340 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-             <div className="lxf" style={{ fontSize: 13, fontWeight: 600, color: '#1A1410' }}>Revenue Momentum</div>
-             <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 700 }}>↑ +18% vs Last Month</div>
-          </div>
-          <div style={{ height: 240, width: '100%' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1.2fr', gap: 32 }}>
+        {/* 3. REVENUE MOMENTUM MATRIX */}
+        <div className="glass-matrix" style={{ padding: 32 }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+              <div>
+                <h3 className="lxfh" style={{ fontSize: 20 }}>Revenue Momentum</h3>
+                <p className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Live financial throughput analysis.</p>
+              </div>
+              <button className="p-btn-light lxf" style={{ padding: '8px 16px', fontSize: 11, borderRadius: 10 }}>Export Analytics</button>
+           </div>
+           <div style={{ height: 260, width: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={REV}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.04)" vertical={false} />
                 <XAxis dataKey="m" tick={{ fill: '#B5AFA9', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#B5AFA9', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}k`} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }} 
+                  contentStyle={{ borderRadius: 16, border: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.12)', background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)' }} 
                   itemStyle={{ fontSize: 12, fontWeight: 700 }}
                 />
                 <Area type="monotone" dataKey="v" stroke={ac} fill="url(#colorRev)" strokeWidth={3} />
                 <defs>
                    <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={ac} stopOpacity={0.15}/>
+                      <stop offset="5%" stopColor={ac} stopOpacity={0.2}/>
                       <stop offset="95%" stopColor={ac} stopOpacity={0}/>
                    </linearGradient>
                 </defs>
@@ -108,28 +96,29 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
           </div>
         </div>
 
-        <div className="p-card" style={{ padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h3 className="lxfh" style={{ fontSize: 18 }}>Activity Stream</h3>
-            <Activity size={16} color="#B5AFA9" />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {(props.logs || []).slice(0, 6).map(l => (
-              <div key={l.id} style={{ display: 'flex', gap: 14, alignItems: 'start' }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                   {l.type === 'Stage' ? <Target size={14} color={ac} /> : <FileText size={14} color="#7E22CE" />}
+        {/* 4. LIVE SYSTEM FEED */}
+        <div className="glass-matrix" style={{ padding: 32, display: 'flex', flexDirection: 'column' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <h3 className="lxfh" style={{ fontSize: 18 }}>System Activity</h3>
+              <Activity size={16} color={ac} />
+           </div>
+           <div style={{ display: 'flex', flexDirection: 'column', gap: 20, flex: 1 }}>
+              {(props.logs || []).slice(0, 5).map(l => (
+                <div key={l.id} style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                   <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: l.type === 'Stage' ? ac : '#16A34A' }} />
+                   </div>
+                   <div style={{ flex: 1 }}>
+                      <div className="lxf" style={{ fontSize: 13, fontWeight: 600, color: '#1A1410' }}>{l.action}</div>
+                      <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{l.project_title || 'General'} · {l.user_name}</div>
+                   </div>
                 </div>
-                <div>
-                  <div className="lxf" style={{ fontSize: 13, fontWeight: 600, color: '#1A1410' }}>{l.action}</div>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', marginTop: 2 }}>{l.created_at ? new Date(l.created_at).toLocaleDateString() : 'Just now'} · {l.user_name}</div>
-                </div>
-              </div>
-            ))}
-            {(!props.logs || props.logs.length === 0) && <div className="lxf" style={{ color: '#B5AFA9', fontSize: 13, textAlign: 'center', padding: '40px 0' }}>Listening for operational updates...</div>}
-          </div>
-          {props.logs?.length > 0 && (
-             <button className="lxf" style={{ width: '100%', marginTop: 12, padding: '10px', background: '#F9F7F4', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, color: '#7A6E62', cursor: 'pointer' }}>View Full Audit Trail</button>
-          )}
+              ))}
+              {(!props.logs || props.logs.length === 0) && (
+                <div className="lxf" style={{ color: '#B5AFA9', fontSize: 13, textAlign: 'center', padding: '40px 0', border: '1px dashed rgba(0,0,0,0.05)', borderRadius: 16 }}>No recent operations logged.</div>
+              )}
+           </div>
+           <button className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 700, fontSize: 12, marginTop: 24, cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6 }}>Full Activity Log <Target size={14} /></button>
         </div>
       </div>
     </div>

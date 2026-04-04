@@ -627,12 +627,38 @@ export default function App() {
       notify('error', 'Failed to save changes');
     }
   };
+  
+  const createClient = async (data) => {
+    try {
+      const id = data.email.replace(/[.@]/g, '_');
+      const payload = { ...data, id, role: 'client', status: 'Active', joined: new Date().toISOString() };
+      if (db) await setDoc(doc(db, 'users', id), payload);
+      setDbClients(prev => [payload, ...prev]);
+      notify('success', 'New Client Registered');
+      logAction(null, 'CRM', `Registered Client: ${data.name}`);
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Failed to register client');
+    }
+  };
+
+  const updateClient = async (id, data) => {
+    try {
+      if (db) await updateDoc(doc(db, 'users', id), data);
+      setDbClients(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
+      notify('success', 'Profile Updated');
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Update failed');
+    }
+  };
 
   const commonProps = {
     page, setPage,
     brand, setBrand, content, setContent,
     clients, updateProject: syncProjects,
     dbClients, setDbClients,
+    createClient, updateClient,
     teamMembers, setTeamMembers,
     logs, logAction, 
     invoices, setInvoices,
@@ -651,7 +677,7 @@ export default function App() {
     transactions, recordOfflinePayment,
     updateStage, calculateProjectPulse,
     userNotifications, markNotificationRead,
-    migrateToFirebase, getSLA, syncCMS
+    migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
   };
 
   if (authLoading) return (
