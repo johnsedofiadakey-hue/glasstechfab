@@ -3,7 +3,8 @@ import {
   ArrowLeft, ShoppingCart, Truck, LayoutDashboard, 
   MessageSquare, FileText, CheckCircle, Clock, 
   ChevronDown, ExternalLink, Printer, Plus, Download,
-  Globe, Package, Camera, Info, Sparkles, DollarSign
+  Globe, Package, Camera, Info, Sparkles, DollarSign,
+  Hammer, Search, MoreVertical
 } from 'lucide-react';
 import { PAv, PSBadge, SBadge, FF as PFormField } from '../../components/Shared';
 import { PROJECT_STAGES } from '../../data';

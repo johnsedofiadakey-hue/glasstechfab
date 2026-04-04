@@ -274,6 +274,7 @@ export default function App() {
   };
 
   const logAction = async (pid, type, action, projectTitle) => {
+    if (!db) return;
     const log = { user_id: user?.id, user_name: user?.name || user?.email || 'System', type, action, project_title: projectTitle, created_at: new Date().toISOString() };
     try {
       if (pid) await addDoc(collection(db, 'projects', pid, 'activity_logs'), log);
@@ -282,7 +283,7 @@ export default function App() {
   };
 
   const notifyUser = async (userId, message, type, link = '') => {
-    if (!userId) return;
+    if (!userId || !db) return;
     try { await addDoc(collection(db, 'notifications'), { userId, message, type, link, read: false, createdAt: new Date().toISOString() }); }
     catch (e) { console.error("Notification failed", e); }
   };
@@ -434,6 +435,7 @@ export default function App() {
   };
 
   const createProposal = async (data) => {
+    if (!db) return;
     try {
       const docRef = await addDoc(collection(db, 'proposals'), {
         ...data,
@@ -450,6 +452,7 @@ export default function App() {
   };
 
   const createApproval = async (projectId, data) => {
+    if (!db) return;
     try {
       await addDoc(collection(db, 'projects', projectId, 'approvals'), { ...data, status: 'pending', createdAt: new Date().toISOString() });
       notifyUser(dbClients.find(c => c.id === clients.find(p => p.id === projectId)?.clientId)?.id, "New technical item requires your approval", "approval");
@@ -457,6 +460,7 @@ export default function App() {
   };
 
   const updateApproval = async (id, data, projectId) => {
+    if (!db) return;
     try {
       await updateDoc(doc(db, 'projects', projectId, 'approvals', id), data);
       logAction(projectId, 'Approval', `Item ${id} marked as ${data.status}`);
@@ -464,6 +468,7 @@ export default function App() {
   };
 
   const createChangeRequest = async (projectId, data) => {
+    if (!db) return;
     try {
       await addDoc(collection(db, 'projects', projectId, 'change_requests'), { ...data, status: 'pending', createdAt: new Date().toISOString() });
       // Notify Admin
@@ -474,6 +479,7 @@ export default function App() {
   };
 
   const updateChangeRequest = async (id, data, projectId) => {
+    if (!db) return;
     try {
       await updateDoc(doc(db, 'projects', projectId, 'change_requests', id), data);
       logAction(projectId, 'ChangeRequest', `Request ${id} updated to ${data.status}`);
@@ -481,6 +487,7 @@ export default function App() {
   };
 
   const payInvoice = async (id, projectId, method = 'Paystack') => {
+    if (!db) return;
     try {
       await updateDoc(doc(db, 'projects', projectId, 'payments', id), { status: 'Paid', paidAt: new Date().toISOString(), method });
       
@@ -518,6 +525,7 @@ export default function App() {
   };
 
   const syncProjects = async (id, fields) => {
+    if (!db) return;
     try {
       notify('pending', 'Updating...');
       await updateDoc(doc(db, 'projects', id), fields);
@@ -553,19 +561,23 @@ export default function App() {
   };
 
   const createProcurement = async (projectId, data) => {
+    if (!db) return;
     try { await addDoc(collection(db, 'projects', projectId, 'procurements'), { ...data, createdAt: new Date().toISOString() }); notify('success', 'Tracker Updated'); } 
     catch(e) { notify('error', 'Failed to update procurement'); }
   };
   const updateProcurement = async (projectId, id, data) => {
+    if (!db) return;
     try { await updateDoc(doc(db, 'projects', projectId, 'procurements', id), data); notify('success', 'Tracker Updated'); } 
     catch(e) { notify('error', 'Failed to update procurement'); }
   };
   const deleteProcurement = async (projectId, id) => {
+    if (!db) return;
     try { await deleteDoc(doc(db, 'projects', projectId, 'procurements', id)); notify('success', 'Tracker Item Deleted'); } 
     catch(e) { notify('error', 'Failed to delete tracking item'); }
   };
 
   const createShipment = async (data) => {
+    if (!db) return;
     try { 
       // Shipments are linked to a project, default to first active if not specified
       const pid = data.projectId || (clients.length > 0 ? clients[0].id : null);
@@ -575,6 +587,7 @@ export default function App() {
     } catch(e) { notify('error', 'Failed to create shipment'); }
   };
   const updateShipment = async (id, fields) => {
+    if (!db) return;
     try {
       const s = shipments.find(x => x.id === id);
       if (!s || !s.parentId) return notify('error', 'Shipment context not found');
@@ -584,14 +597,17 @@ export default function App() {
   };
 
   const createNote = async (projectId, data) => {
+    if (!db) return;
     try { await addDoc(collection(db, 'projects', projectId, 'notes'), { ...data, createdAt: new Date().toISOString() }); }
     catch(e) { console.error(e); }
   };
   const deleteNote = async (projectId, id) => {
+    if (!db) return;
     try { await deleteDoc(doc(db, 'projects', projectId, 'notes', id)); }
     catch(e) { console.error(e); }
   };
   const uploadMedia = async (projectId, file, stageId) => {
+    if (!db) return;
     try {
       notify('pending', 'Uploading production media...');
       const fileName = `${Date.now()}_${file.name}`;
@@ -612,6 +628,7 @@ export default function App() {
   };
 
   const deleteMedia = async (id, projectId) => {
+    if (!db) return;
     try { await deleteDoc(doc(db, 'projects', projectId, 'media', id)); notify('success', 'Media removed'); }
     catch(e) { console.error(e); }
   };

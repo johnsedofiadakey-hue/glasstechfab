@@ -74,7 +74,7 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
               </div>
               <button className="p-btn-light lxf" style={{ padding: '8px 16px', fontSize: 11, borderRadius: 10 }}>Export Analytics</button>
            </div>
-           <div style={{ height: 260, width: '100%' }}>
+           <div style={{ height: 260, width: '100%', minHeight: 260 }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={REV}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.04)" vertical={false} />
