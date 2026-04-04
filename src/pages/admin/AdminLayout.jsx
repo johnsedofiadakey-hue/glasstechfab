@@ -11,15 +11,10 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
 
   const menu = [
     { id: 'dash', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-    { id: 'clients', label: 'Client Directory', icon: <Users size={18} /> },
-    { id: 'crm', label: 'Installations', icon: <Truck size={18} /> },
-    { id: 'factory', label: 'Factory Floor', icon: <Wrench size={18} /> },
-    { id: 'inventory', label: 'Project Procurement', icon: <Package size={18} /> },
-    { id: 'logistics', label: 'Logistics', icon: <Globe size={18} /> },
+    { id: 'operations', label: 'Global Operations', icon: <Globe size={18} /> },
     { id: 'cms', label: 'Website CMS', icon: <Settings size={18} /> },
-    { id: 'portfolio', label: 'Portfolio', icon: <ImgIcon size={18} /> },
-    { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
     { id: 'analytics', label: 'Analytics', icon: <Activity size={18} /> },
+    { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
     { id: 'email', label: 'Email Center', icon: <Mail size={18} /> },
     { id: 'staff', label: 'Staff Management', icon: <Users size={18} /> },
   ];

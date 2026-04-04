@@ -14,6 +14,7 @@ import AIProposalGenerator from '../components/AIProposalGenerator';
 import ClientHub from './admin/ClientHub';
 import FabricationKanban from './admin/FabricationKanban';
 import ProjectProcurement from './admin/ProjectProcurement';
+import { PROJECT_STAGES } from '../data';
 
 export default function AdminPortal({ user, onLogout, onPreview, content, setContent, ...props }) {
   const [view, setView] = useState('dash');
@@ -31,16 +32,13 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       user, brand, content, setContent, 
       setAI: () => setShowAI(true), 
       onSelectClient: handleSelectClient,
+      PROJECT_STAGES,
       ...props 
     };
     switch (view) {
       case 'dash': return <AdminDashboard {...common} />;
-      case 'clients': return <AdminClients {...common} />;
-      case 'client-hub': return <ClientHub clientId={selectedClientId} onBack={() => setView('clients')} {...common} />;
-      case 'crm': return <AdminInstallations {...common} />;
-      case 'logistics': return <AdminLogistics shipments={props.shipments} setShipments={props.setShipments} {...common} />;
-      case 'factory': return <FabricationKanban {...common} />;
-      case 'inventory': return <ProjectProcurement {...common} />;
+      case 'operations': return <AdminClients {...common} />;
+      case 'client-hub': return <ClientHub clientId={selectedClientId} onBack={() => setView('operations')} {...common} />;
       case 'cms': return <AdminCMS {...common} onPreview={onPreview} />;
       case 'portfolio': return <AdminPortfolio {...common} />;
       case 'bookings': return <AdminBookings {...common} />;

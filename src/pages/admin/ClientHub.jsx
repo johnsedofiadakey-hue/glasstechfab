@@ -11,6 +11,8 @@ import AdminTasks from './AdminTasks';
 import AdminProcurement from './AdminProcurement';
 import AdminProjectGallery from './AdminProjectGallery';
 import MaterialSelector from '../../components/MaterialSelector';
+import FabricationKanban from './FabricationKanban';
+import ProjectProcurement from './ProjectProcurement';
 
 export default function ClientHub({ clientId, dbClients = [], clients = [], onBack, ...props }) {
   const brand = props.brand || {};
@@ -145,54 +147,86 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
       {/* HUB NAVIGATION */}
       <div style={{ display: 'flex', gap: 12 }}>
          {[
-           { id: 'buying', label: 'Procurement (Buying)', icon: <ShoppingCart size={16} /> },
-           { id: 'logistics', label: 'Logistics Tracker', icon: <Truck size={16} /> },
-           { id: 'materials', label: 'Material Selections', icon: <Sparkles size={16} /> },
-           { id: 'ops', label: 'Project Operations', icon: <LayoutDashboard size={16} /> },
-           { id: 'docs', label: 'Financial Docs', icon: <FileText size={16} /> },
-           { id: 'chat', label: 'Communications', icon: <MessageSquare size={16} /> },
+           { id: 'ops', label: 'Command Hub', icon: <LayoutDashboard size={16} /> },
+           { id: 'factory', label: 'Factory Floor', icon: <Hammer size={16} /> },
+           { id: 'buying', label: 'Procurement', icon: <ShoppingCart size={16} /> },
+           { id: 'logistics', label: 'Logistics', icon: <Truck size={16} /> },
+           { id: 'materials', label: 'Materials', icon: <Sparkles size={16} /> },
+           { id: 'docs', label: 'Finances', icon: <FileText size={16} /> },
+           { id: 'chat', label: 'Updates', icon: <MessageSquare size={16} /> },
          ].map(t => (
            <button 
             key={t.id} 
             onClick={() => setTab(t.id)}
             className={`lxf ${tab === t.id ? 'p-btn-dark' : 'p-btn-light'}`}
-            style={{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 16 }}
+            style={{ flex: 1, padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, borderRadius: 16, fontSize: 12 }}
            >{t.icon} {t.label}</button>
          ))}
       </div>
 
       <div className="fade-in">
+        {tab === 'ops' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }}>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div className="p-card" style={{ padding: 24 }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                      <h3 className="lxfh" style={{ fontSize: 20 }}>Project Timeline</h3>
+                      <button className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 11 }}>Update Stage</button>
+                   </div>
+                   <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: 30 }}>
+                      <div style={{ position: 'absolute', left: 9, top: 0, bottom: 0, width: 2, background: '#F0EBE5' }} />
+                      {PROJECT_STAGES.map(s => {
+                        const isDone = (activeProject?.stage || 1) > s.id;
+                        const isCurrent = (activeProject?.stage || 1) === s.id;
+                        return (
+                          <div key={s.id} style={{ position: 'relative', paddingBottom: 32, opacity: isDone || isCurrent ? 1 : 0.4 }}>
+                             <div style={{ position: 'absolute', left: -26, width: 14, height: 14, borderRadius: '50%', background: isDone ? '#16A34A' : isCurrent ? ac : '#F0EBE5', border: '3px solid #fff', zIndex: 2 }} />
+                             <div className="lxf" style={{ fontSize: 15, fontWeight: isCurrent ? 700 : 500 }}>{s.name}</div>
+                             <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>{isDone ? 'Completed' : isCurrent ? 'Active Phase' : 'Upcoming'}</div>
+                          </div>
+                        );
+                      })}
+                   </div>
+                </div>
+                <AdminProjectGallery projectId={activeProjectId} media={props.media} uploadMedia={props.uploadMedia} deleteMedia={props.deleteMedia} ac={ac} />
+             </div>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <AdminTasks projectId={activeProjectId} projectTitle={activeProject?.project} {...props} brand={brand} />
+                <div className="p-card luxe-pulse" style={{ padding: 20, background: '#1A1410', color: '#fff' }}>
+                   <h4 className="lxf" style={{ fontSize: 13, textTransform: 'uppercase', color: ac, marginBottom: 8 }}>Genesis Suggestion</h4>
+                   <p className="lxf" style={{ fontSize: 13, lineHeight: 1.5, opacity: 0.8 }}>Based on current {activeProject?.cat} progress, we recommend initiating Material Approval for Stage {(activeProject?.stage || 1) + 1} now to avoid logistics delays.</p>
+                </div>
+             </div>
+          </div>
+        )}
+
+        {tab === 'factory' && (
+          <div className="p-card" style={{ padding: 32 }}>
+            <FabricationKanban clients={myProjects} brand={brand} {...props} isSubView={true} />
+          </div>
+        )}
+
         {tab === 'buying' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 400px', gap: 24 }}>
                 <div className="p-card" style={{ padding: 24 }}>
                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                      <h3 className="lxfh" style={{ fontSize: 18 }}>Buying Strategy</h3>
-                      <div className="lxf" style={{ fontSize: 11, padding: '4px 8px', borderRadius: 100, background: '#1A1410', color: '#fff' }}>PROJECT: {activeProject?.project}</div>
+                      <h3 className="lxfh" style={{ fontSize: 18 }}>Procurement Portfolio</h3>
+                      <div className="lxf" style={{ fontSize: 11, padding: '4px 8px', borderRadius: 100, background: '#1A1410', color: '#fff' }}>PHASE: {activeProject?.project}</div>
                    </div>
-                   <AdminProcurement 
+                   <ProjectProcurement 
                       projectId={activeProjectId} 
-                      procurements={props.procurements} 
-                      createProcurement={props.createProcurement} 
-                      updateProcurement={props.updateProcurement} 
-                      deleteProcurement={props.deleteProcurement} 
+                      {...props} 
                       brand={brand} 
                    />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                    <div className="p-card" style={{ padding: 24, background: '#1A1410', color: '#fff' }}>
-                      <h4 className="lxfh" style={{ fontSize: 16, color: ac, marginBottom: 12 }}>Financial Generation</h4>
+                      <h4 className="lxfh" style={{ fontSize: 16, color: ac, marginBottom: 12 }}>Quote Engine</h4>
                       <p className="lxf" style={{ fontSize: 13, opacity: 0.7, marginBottom: 20 }}>Generate polished PDFs for the current procurement phase to share with {client.name}.</p>
                       <div style={{ display: 'flex', gap: 10 }}>
-                         <button onClick={() => setShowPrint('quote')} className="p-btn-gold" style={{ flex: 1, height: 44, fontSize: 12 }}><Sparkles size={14} /> Generate Quote</button>
-                         <button onClick={() => setShowPrint('invoice')} className="p-btn-light" style={{ flex: 1, height: 44, fontSize: 12, background: 'rgba(255,255,255,0.1)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}><DollarSign size={14} /> Final Invoice</button>
-                      </div>
-                   </div>
-                   <div className="p-card" style={{ padding: 24 }}>
-                      <h4 className="lxfh" style={{ fontSize: 16, marginBottom: 16 }}>Inventory Alerts</h4>
-                      <div style={{ padding: 16, borderRadius: 12, background: '#FFF7ED', border: '1px solid #FFEDD5', color: '#9A3412', display: 'flex', gap: 12 }}>
-                         <Info size={20} />
-                         <div style={{ fontSize: 13 }}>3/5 materials for this project phase require <b>International Procurement</b> via logistics gateway.</div>
+                         <button onClick={() => setShowPrint('quote')} className="p-btn-gold" style={{ flex: 1, height: 44, fontSize: 12 }}><Sparkles size={14} /> View Quote</button>
+                         <button onClick={() => setShowPrint('invoice')} className="p-btn-light" style={{ flex: 1, height: 44, fontSize: 12, background: 'rgba(255,255,255,0.1)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}><DollarSign size={14} /> Send Invoice</button>
                       </div>
                    </div>
                 </div>
