@@ -51,19 +51,21 @@ export default function FabricationKanban({ clients = [], brand, ...props }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-           <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400 }}>Factory Floor</h2>
-           <p className="lxf" style={{ color: '#B5AFA9', fontSize: 13 }}>Real-time fabrication queue and workshop throughput.</p>
+      {!props.isSubView && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+             <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400 }}>Factory Floor</h2>
+             <p className="lxf" style={{ color: '#B5AFA9', fontSize: 13 }}>Real-time fabrication queue and workshop throughput.</p>
+          </div>
+          <div style={{ display: 'flex', gap: 12 }}>
+             <div className="p-card" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Activity size={16} color={ac} />
+                <span className="lxf" style={{ fontSize: 12, fontWeight: 700 }}>8 Active Jobs</span>
+             </div>
+             <button className="p-btn-dark lxf" style={{ padding: '10px 20px' }}><Plus size={16} /> New Job</button>
+          </div>
         </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-           <div className="p-card" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Activity size={16} color={ac} />
-              <span className="lxf" style={{ fontSize: 12, fontWeight: 700 }}>8 Active Jobs</span>
-           </div>
-           <button className="p-btn-dark lxf" style={{ padding: '10px 20px' }}><Plus size={16} /> New Job</button>
-        </div>
-      </div>
+      )}
 
       <div className="lx-scroll" style={{ display: 'flex', gap: 20, overflowX: 'auto', paddingBottom: 20, minHeight: 'calc(100vh - 250px)' }}>
         {STAGES.map(s => (
