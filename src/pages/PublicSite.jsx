@@ -16,7 +16,8 @@ import {
   Zap, 
   Settings, 
   Hammer,
-  Palette
+  Palette,
+  Package
 } from 'lucide-react';
 
 // --- SHARED COMPONENTS ---
@@ -61,6 +62,7 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
     { n: 'Home', id: 'home' },
     { n: 'Services', id: 'services' },
     { n: 'Portfolio', id: 'portfolio' },
+    { n: 'Catalog', id: 'catalog' },
     { n: 'About', id: 'about' },
     { n: 'Contact', id: 'contact' }
   ];
@@ -135,12 +137,12 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
           <button onClick={() => { setMenuOpen(false); onPortal('client'); }} className="lxfh" style={{
             background: 'none', border: 'none', cursor: 'pointer', fontSize: 32,
             color: '#121212', fontWeight: 300, textAlign: 'left', padding: 0
-          }}>Login</button>
+          }}>Portal</button>
 
           <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: 40 }}>
             <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 12 }}>Contact Inquiry</div>
-            <div className="lxfh" style={{ fontSize: 24, color: '#121212' }}>+233 24 555 0000</div>
-            <div className="lxf" style={{ fontSize: 13, color: '#666', marginTop: 8 }}>Available 24/7 for urgent consultations</div>
+            <div className="lxfh" style={{ fontSize: 24, color: ac }}>{brand.phone}</div>
+            <div className="lxf" style={{ fontSize: 13, color: '#666', marginTop: 8 }}>Operational Hours: 24/7 Service</div>
           </div>
         </div>
 
@@ -168,7 +170,7 @@ export function Footer({ brand, setPage, onPortal }) {
           <div>
             <div className="eyebrow lxf" style={{ color: '#fff', marginBottom: 24 }}>Navigation</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Home', 'Services', 'Portfolio', 'About', 'Contact'].map(n => (
+              {['Home', 'Services', 'Portfolio', 'Catalog', 'About', 'Contact'].map(n => (
                 <button key={n} onClick={() => setPage(n.toLowerCase())} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
               ))}
             </div>
@@ -229,7 +231,7 @@ export function Hero({ slides, brand, setPage }) {
           }}>
             <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto' }}>
               <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontSize: 13 }}>Complete Interior & Finishing Solutions</div>
-              <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(44px, 8vw, 110px)', color: '#fff', fontWeight: 300, lineHeight: 1.1, marginBottom: 40, maxWidth: 950 }}>
+              <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(32px, 8vw, 110px)', color: '#fff', fontWeight: 300, lineHeight: 1.1, marginBottom: 40, maxWidth: 950 }}>
                 {s.title.split(' ').map((w, j) => j === 1 ? <em key={j} style={{ fontStyle: 'italic', color: ac }}>{w} </em> : w + ' ')}
               </h1>
               <div className="afu d3" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
@@ -268,7 +270,7 @@ export function ServicesPreview({ brand, setPage }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
           {services.map((s, i) => (
-            <div key={i} style={{ padding: '60px 40px', background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 2, transition: 'all .3s' }}>
+            <div key={i} className="p-card magnetic-card rev afu" style={{ padding: '60px 40px', background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 2, transition: 'all .3s' }}>
               <div style={{ color: ac, marginBottom: 32 }}>{s.i}</div>
               <h3 className="lxfh" style={{ fontSize: 26, marginBottom: 16 }}>{s.n}</h3>
               <p className="lxf" style={{ fontSize: 16, color: '#4A4A4A', lineHeight: 1.8, marginBottom: 32 }}>{s.d}</p>
@@ -397,7 +399,7 @@ export function PortfolioPage({ brand, setPage, content }) {
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 40 }}>
             {shown.map((p, i) => (
-              <div key={p.id} onClick={() => setPage(`project-${p.id}`)} style={{ cursor: 'pointer' }}>
+              <div key={p.id} className="magnetic-card rev afu" onClick={() => setPage(`project-${p.id}`)} style={{ cursor: 'pointer', marginBottom: 20 }}>
                 <div style={{ height: 480, overflow: 'hidden', marginBottom: 24, borderRadius: 2, position: 'relative' }} className="hover-img">
                   <img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.8s ease' }} className="hover-scale" />
                   <div style={{ position: 'absolute', top: 20, left: 20, background: ac, color: '#121212', padding: '6px 12px', fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{p.cat}</div>
@@ -454,6 +456,64 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function CatalogPage({ brand, setPage, content }) {
+  const ac = brand.color || '#B08D57';
+  const products = content.products || [];
+  const [filter, setFilter] = useState('All');
+  const cats = ['All', ...new Set(products.map(p => p.cat))];
+  const shown = filter === 'All' ? products : products.filter(p => p.cat === filter);
+
+  return (
+    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
+      <section style={{ padding: '80px 24px', background: '#121212' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 20 }}>Product Catalog</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 6vw, 96px)', color: '#fff', fontWeight: 300, lineHeight: 1.1 }}>Industrial & <em style={{ fontStyle: 'italic', color: ac }}>Structural</em> Materials</h1>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 48 }}>
+            {cats.map(c => (
+              <button key={c} onClick={() => setFilter(c)} className="lxf" style={{
+                padding: '10px 20px', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase',
+                background: filter === c ? ac : 'rgba(255,255,255,0.05)',
+                color: filter === c ? '#121212' : '#fff', border: 'none', cursor: 'pointer', fontWeight: 600
+              }}>{c}</button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ padding: '80px 24px' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 32 }}>
+            {shown.map((p, i) => (
+              <div key={p.id} className="p-card magnetic-card rev afu" style={{ padding: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ height: 260, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #F0EBE5' }}>
+                  {p.img ? <img src={p.img} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 40 }} /> : <Package size={48} color="#B5AFA9" />}
+                </div>
+                <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ color: ac, fontSize: 10, fontWeight: 750, textTransform: 'uppercase', marginBottom: 8, letterSpacing: '.08em' }}>{p.cat}</div>
+                  <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 8 }}>{p.name}</h3>
+                  <p className="lxf" style={{ fontSize: 14, color: '#666', lineHeight: 1.6, marginBottom: 24 }}>{p.desc}</p>
+                  
+                  <div style={{ background: '#FDFCFB', padding: '12px 16px', borderRadius: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, border: '1px solid #F0EBE5' }}>
+                     <span style={{ fontSize: 11, color: '#B5AFA9', fontWeight: 700, textTransform: 'uppercase' }}>Availability</span>
+                     <span style={{ fontSize: 12, fontWeight: 700, color: ac }}>Price on Request</span>
+                  </div>
+
+                  <div style={{ marginTop: 'auto', display: 'flex', gap: 10 }}>
+                    <button onClick={() => setPage('contact')} className="pub-btn-dark lxf" style={{ flex: 1, padding: '12px', fontSize: 11 }}>Inquire Today</button>
+                    <button onClick={() => { alert(`Downloading: ${p.name}_Specifications.pdf (Simulated Download)`); }} className="pub-btn-outline lxf" style={{ padding: '12px', border: '1px solid #121212', color: '#121212', fontSize: 11 }}>Specs</button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {shown.length === 0 && <div style={{ textAlign: 'center', padding: 80, color: '#B5AFA9' }}>No products found in this category.</div>}
+        </div>
+      </section>
     </div>
   );
 }
@@ -545,6 +605,7 @@ export default function PublicSite({ page, setPage, brand, content, onPortal }) 
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
     if (p === 'portfolio') return <PortfolioPage brand={brand} setPage={setPage} content={content} />;
+    if (p === 'catalog') return <CatalogPage brand={brand} setPage={setPage} content={content} />;
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
     if (p === 'contact') return <ContactPage brand={brand} />;
     if (p.startsWith('project-')) return <ProjectDetailPage projectId={p.split('-')[1]} brand={brand} setPage={setPage} content={content} />;

@@ -16,6 +16,15 @@ export const PROJECT_STAGES = [
   { id: 12, name: 'Handover', days: 2, color: '#16A34A' }
 ];
 
+export const PROCUREMENT_STAGES = [
+  { id: 'to-buy', name: 'To Buy', icon: '🛒', color: '#DFD9D1' },
+  { id: 'ordered', name: 'Order Placed', icon: '📝', color: '#FF9800' },
+  { id: 'production', name: 'In Production', icon: '🏭', color: '#1A1410' },
+  { id: 'warehouse', name: 'At Warehouse', icon: '📦', color: '#3F51B5' },
+  { id: 'transit', name: 'In Transit', icon: '🚢', color: '#9C27B0' },
+  { id: 'site', name: 'At Site', icon: '🏠', color: '#16A34A' }
+];
+
 export const ABOUT_DATA = {
   founder: 'Ama Asante',
   role: 'Managing Director',

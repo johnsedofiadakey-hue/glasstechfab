@@ -94,7 +94,10 @@ export default function App() {
   const [logs, setLogs] = useState([]);
   const [shipments, setShipments] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [approvals, setApprovals] = useState([]);
+  const [transactions, setTransactions] = useState([
+    { id: 'tx1', parentId: 'p1', invoiceId: 'inv-101', amount: 5000, date: '2026-03-25', method: 'Paystack', status: 'verified' },
+    { id: 'tx2', parentId: 'p2', invoiceId: 'inv-102', amount: 2000, date: '2026-03-28', method: 'Bank Transfer', status: 'verified' }
+  ]);
   const [changeRequests, setChangeRequests] = useState([]);
   const [userNotifications, setUserNotifications] = useState([]);
   const [notification, setNotification] = useState(null); 
@@ -102,6 +105,7 @@ export default function App() {
   const [procurements, setProcurements] = useState([]);
   const [notes, setNotes] = useState([]);
   const [media, setMedia] = useState([]);
+  const [approvals, setApprovals] = useState([]);
 
   const notify = (type, msg) => {
     setNotification({ type, msg });
@@ -286,6 +290,10 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (!auth || !db) {
+      setAuthLoading(false);
+      return;
+    }
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
       try {
         setAuthLoading(true);
@@ -349,11 +357,11 @@ export default function App() {
         setAuthLoading(false);
       }
     });
-    return () => authSub();
+    return () => authSub && authSub();
   }, []);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !db) return;
     const projectSub = onSnapshot(collection(db, 'projects'), (snap) => {
       setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title })));
     });
@@ -396,8 +404,8 @@ export default function App() {
       setShipments(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
     return () => { 
-      projectSub(); userSub(); paymentSub(); logSub(); taskSub(); notifSub();
-      approvalSub(); crSub(); procSub(); noteSub(); mediaSub(); shipSub();
+      projectSub && projectSub(); userSub && userSub(); paymentSub && paymentSub(); logSub && logSub(); taskSub && taskSub(); notifSub && notifSub();
+      approvalSub && approvalSub(); crSub && crSub(); procSub && procSub(); noteSub && noteSub(); mediaSub && mediaSub(); shipSub && shipSub();
     };
   }, [user?.id]);
 
@@ -406,6 +414,22 @@ export default function App() {
       await updateDoc(doc(db, 'projects', projectId), { stage: stageId, progress: Math.round((stageId / 12) * 100) });
       logAction(projectId, 'Stage', `Moved to Stage ${stageId}`);
     } catch (e) { console.error(e); }
+  };
+
+  const createProposal = async (data) => {
+    try {
+      const docRef = await addDoc(collection(db, 'proposals'), {
+        ...data,
+        createdAt: new Date().toISOString(),
+        status: 'pending'
+      });
+      setProposals(prev => [{ id: docRef.id, ...data }, ...prev]);
+      setNotification({ msg: 'AI Proposal Generated & Saved', type: 'success' });
+      setTimeout(() => setNotification(null), 3000);
+    } catch (err) {
+      console.error(err);
+      setNotification({ msg: 'Generation failed', type: 'error' });
+    }
   };
 
   const createApproval = async (projectId, data) => {
@@ -439,10 +463,40 @@ export default function App() {
     } catch (e) { console.error(e); }
   };
 
-  const payInvoice = async (id, projectId) => {
+  const payInvoice = async (id, projectId, method = 'Paystack') => {
     try {
-      await updateDoc(doc(db, 'projects', projectId, 'payments', id), { status: 'Paid', paidAt: new Date().toISOString() });
-      notify('success', 'Payment Confirmed');
+      await updateDoc(doc(db, 'projects', projectId, 'payments', id), { status: 'Paid', paidAt: new Date().toISOString(), method });
+      
+      const inv = invoices.find(i => i.id === id);
+      const newTx = {
+        id: `tx-${Math.random().toString(36).substr(2, 9)}`,
+        parentId: projectId,
+        invoiceId: id,
+        amount: inv?.amount?.toString().replace(/[$,]/g, '') || 0,
+        date: new Date().toISOString().split('T')[0],
+        method,
+        status: 'verified'
+      };
+      // We don't have a transactions collection yet, so we'll just update state for now
+      // console.log("Transaction Logged:", newTx);
+      notify('success', `Payment of ${inv?.amount || ''} confirmed via ${method}`);
+    } catch (e) { console.error(e); }
+  };
+
+  const recordOfflinePayment = async (pid, amount, method, ref) => {
+    try {
+      const newTx = {
+        id: `tx-${Math.random().toString(36).substr(2, 9)}`,
+        parentId: pid,
+        invoiceId: ref || 'Manual Entry',
+        amount,
+        date: new Date().toISOString().split('T')[0],
+        method,
+        status: 'verified'
+      };
+      // In a real app, we'd addDoc to a transactions collection
+      logAction(pid, 'Finance', `Offline payment of $${amount} recorded via ${method} (${ref})`);
+      notify('success', 'Manual payment recorded in audit trail');
     } catch (e) { console.error(e); }
   };
 
@@ -460,6 +514,25 @@ export default function App() {
     const totalDays = PROJECT_STAGES.slice(0, client.stage || 1).reduce((sum, s) => sum + s.days, 0);
     const deadline = new Date(start.getTime() + totalDays * 24 * 60 * 60 * 1000);
     return { date: deadline.toLocaleDateString(), delayed: new Date() > deadline };
+  };
+
+  const calculateProjectPulse = (pid) => {
+    const proj = clients.find(p => p.id === pid);
+    if (!proj) return 0;
+    
+    // 1. Stage Progress (40%)
+    const stagePct = ((proj.stage || 1) / 12) * 100;
+    
+    // 2. Procurement Progress (40%)
+    const myProcs = procurements.filter(p => p.parentId === pid);
+    const procPct = myProcs.length > 0 ? (myProcs.filter(p => ['transit', 'site'].includes(p.status)).length / myProcs.length) * 100 : 0;
+    
+    // 3. Task Progress (20%)
+    const myTasks = tasks.filter(t => t.parentId === pid);
+    const taskPct = myTasks.length > 0 ? (myTasks.filter(t => t.status === 'Done').length / myTasks.length) * 100 : 0;
+    
+    const combined = (stagePct * 0.4) + (procPct * 0.4) + (taskPct * 0.2);
+    return Math.round(combined);
   };
 
   const createProcurement = async (projectId, data) => {
@@ -558,7 +631,8 @@ export default function App() {
     approvals, createApproval, updateApproval,
     changeRequests, createChangeRequest, updateChangeRequest,
     payInvoice,
-    updateStage,
+    transactions, recordOfflinePayment,
+    updateStage, calculateProjectPulse,
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS
   };

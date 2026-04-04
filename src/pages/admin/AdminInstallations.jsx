@@ -1,0 +1,214 @@
+import React, { useState } from 'react';
+import { Search, ArrowLeft, Check, Plus, Camera, FileText, DollarSign } from 'lucide-react';
+import { PSBadge, SBadge } from '../../components/Shared';
+import { PROJECT_STAGES } from '../../data';
+import AdminTasks from './AdminTasks';
+import AdminProcurement from './AdminProcurement';
+import AdminProjectGallery from './AdminProjectGallery';
+import AdminGovernance from './AdminGovernance';
+
+export default function AdminInstallations({ clients = [], updateProject, dbClients, brand, transactions = [], recordOfflinePayment, calculateProjectPulse, ...props }) {
+  const ac = brand.color || '#C8A96E';
+  const [search, setSearch] = useState('');
+  const [sel, setSel] = useState(null);
+  const [showManual, setShowManual] = useState(false);
+  const [manData, setManData] = useState({ amount: '', method: 'Bank Transfer', ref: '' });
+
+  const handleManual = async () => {
+    if (!manData.amount) return alert('Amount required');
+    await recordOfflinePayment(sel, manData.amount, manData.method, manData.ref);
+    setShowManual(false);
+    setManData({ amount: '', method: 'Bank Transfer', ref: '' });
+  };
+  const filtered = (clients || []).filter(c => (c.project || '').toLowerCase().includes(search.toLowerCase()));
+
+  if (sel) {
+    const proj = clients.find(x => x.id === sel);
+    if (!proj) return <div className="lxf" style={{ padding: 40, textAlign: 'center' }}>Project data missing. <button onClick={() => setSel(null)}>Back</button></div>;
+    
+    const paidAmount = (props.invoices || []).filter(i => i.parentId === sel && i.status === 'Paid').reduce((a, b) => a + parseFloat(b.amount?.replace(/[$,]/g, '') || 0), 0);
+    const totalBudget = parseFloat(proj.budget?.replace(/[$,]/g, '') || 0);
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={() => setSel(null)} className="p-btn-light" style={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowLeft size={18} /></button>
+            <div>
+              <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 400 }}>{proj.project}</h2>
+              <div className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>{proj.cat || 'Full Interior Finishing'} • {proj.name}</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right', display: 'flex', gap: 24 }}>
+            <div>
+              <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.15em' }}>Fabrication Progress</div>
+              <div className="lxfh" style={{ fontSize: 18, color: '#7A6E62', textAlign: 'right' }}>{proj.progress || 0}%</div>
+            </div>
+            <div style={{ paddingLeft: 24, borderLeft: '1px solid #F0EBE5' }}>
+              <div className="lxf" style={{ fontSize: 10, color: ac, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.15em' }}>Overall Project Pulse</div>
+              <div className="lxfh" style={{ fontSize: 24, color: ac, textAlign: 'right' }}>{calculateProjectPulse(proj.id)}%</div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 32, alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            
+            {/* TIMELINE EDITOR */}
+            <div className="p-card" style={{ padding: 24 }}>
+              <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 24 }}>Project Journey</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 15, top: 0, bottom: 0, width: 2, background: '#F0EBE5' }} />
+                
+                {PROJECT_STAGES.map((s, idx) => {
+                  const isCurrent = (proj.stage || 1) === s.id;
+                  const isPast = (proj.stage || 1) > s.id;
+                  const isLast = idx === PROJECT_STAGES.length - 1;
+                  
+                  return (
+                    <div key={s.id} style={{ display: 'flex', gap: 20, marginBottom: isLast ? 0 : 32, position: 'relative' }}>
+                      <div 
+                        onClick={() => props.updateStage && props.updateStage(proj.id, s.id)}
+                        style={{ 
+                          width: 32, height: 32, borderRadius: '50%', 
+                          background: isPast ? s.color : isCurrent ? '#fff' : '#fff',
+                          border: isPast ? `2px solid ${s.color}` : isCurrent ? `2px solid ${s.color}` : '2px solid #DFD9D1',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          zIndex: 2, cursor: 'pointer', transition: 'all .3s'
+                        }}
+                      >
+                        {isPast ? <Check size={16} color="#fff" strokeWidth={3} /> : <div style={{ width: 8, height: 8, borderRadius: '50%', background: isCurrent ? s.color : '#DFD9D1' }} />}
+                      </div>
+
+                      <div style={{ flex: 1, paddingTop: 4 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <div className="lxf" style={{ fontSize: 15, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : isPast ? '#7A6E62' : '#B5AFA9' }}>{s.name}</div>
+                            {isCurrent && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginTop: 4 }}>Active stage • Estimated {s.days} days remaining</div>}
+                          </div>
+                          {isCurrent && (
+                            <div style={{ display: 'flex', gap: 8 }}>
+                               <button onClick={() => props.updateStage && props.updateStage(proj.id, s.id + 1)} className="p-btn-gold" style={{ padding: '6px 12px', fontSize: 11 }}>Next Stage</button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* TASKS & PROCUREMENT */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+               <AdminTasks projectId={sel} projectTitle={proj.project} {...props} brand={brand} />
+               <AdminProcurement projectId={sel} procurements={props.procurements} createProcurement={props.createProcurement} updateProcurement={props.updateProcurement} deleteProcurement={props.deleteProcurement} brand={brand} />
+            </div>
+
+            <AdminProjectGallery projectId={sel} media={props.media} uploadMedia={props.uploadMedia} deleteMedia={props.deleteMedia} ac={ac} />
+
+            <AdminGovernance projectId={sel} {...props} brand={brand} />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* FINANCIAL AUDIT LEDGER */}
+            <div className="p-card" style={{ padding: 24 }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <h3 className="lxfh" style={{ fontSize: 18 }}>Project Ledger</h3>
+                  <button onClick={() => setShowManual(true)} className="lxf" style={{ fontSize: 11, background: 'none', border: 'none', color: ac, fontWeight: 700, cursor: 'pointer' }}>+ Record External</button>
+               </div>
+               
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.05em' }}>Transactions</div>
+                  {(transactions || []).filter(t => t.parentId === sel).map(t => (
+                    <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#F9F7F4', borderRadius: 8, borderLeft: `3px solid ${ac}` }}>
+                       <div>
+                          <div className="lxf" style={{ fontSize: 12, fontWeight: 700 }}>${parseFloat(t.amount).toLocaleString()}</div>
+                          <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9' }}>{t.date} via {t.method}</div>
+                       </div>
+                       <SBadge s="VERIFIED" />
+                    </div>
+                  ))}
+                  {(transactions || []).filter(t => t.parentId === sel).length === 0 && <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', fontStyle: 'italic' }}>No transactions recorded.</div>}
+               </div>
+
+               <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(0,0,0,.05)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Total Verified</span>
+                    <span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#16A34A' }}>${(transactions || []).filter(t => t.parentId === sel).reduce((a, b) => a + parseFloat(b.amount), 0).toLocaleString()}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Remaining Balance</span>
+                    <span className="lxf" style={{ fontSize: 14, fontWeight: 700, color: '#ff4444' }}>${(totalBudget - (transactions || []).filter(t => t.parentId === sel).reduce((a, b) => a + parseFloat(b.amount), 0)).toLocaleString()}</span>
+                  </div>
+               </div>
+            </div>
+
+            {/* QUICK ACTIONS */}
+            <div className="p-card" style={{ padding: 24, background: ac, color: '#fff' }}>
+               <h3 className="lxfh" style={{ fontSize: 16, marginBottom: 16, color: '#fff' }}>Quick Actions</h3>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><Plus size={14} /> Task</button>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><Camera size={14} /> Photo</button>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><FileText size={14} /> Approval</button>
+                  <button className="glass-btn" style={{ fontSize: 11, padding: '10px 0', borderColor: 'rgba(255,255,255,.2)', color: '#fff' }}><DollarSign size={14} /> Invoice</button>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MANUAL PAYMENT MODAL */}
+        {showManual && (
+          <div className="overlay-modal" onClick={() => setShowManual(false)}>
+             <div className="modal-box lxf" style={{ maxWidth: 400 }} onClick={e => e.stopPropagation()}>
+                <h3 className="lxfh" style={{ fontSize: 22, marginBottom: 8 }}>Record External Payment</h3>
+                <p style={{ fontSize: 13, color: '#B5AFA9', marginBottom: 24 }}>Manually add a payment for audit purposes (Cash, Bank Trace, etc).</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                   <PFormField label="Amount ($)"><input className="p-inp" type="number" value={manData.amount} onChange={e => setManData({...manData, amount: e.target.value})} /></PFormField>
+                   <PFormField label="Method">
+                      <select className="p-inp" value={manData.method} onChange={e => setManData({...manData, method: e.target.value})}>
+                         <option value="Bank Transfer">Bank Transfer</option>
+                         <option value="Cash">Cash</option>
+                         <option value="Cheque">Cheque</option>
+                         <option value="Mobile Money">Mobile Money</option>
+                      </select>
+                   </PFormField>
+                   <PFormField label="Reference / Note"><input className="p-inp" value={manData.ref} onChange={e => setManData({...manData, ref: e.target.value})} placeholder="e.g. TR-9921 / Site Cash" /></PFormField>
+                   <button onClick={handleManual} className="p-btn-dark" style={{ padding: 14, marginTop: 10 }}>Confirm & Log Transaction</button>
+                </div>
+             </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400 }}>Fabrication & Installations</h2>
+        <div style={{ position: 'relative' }}>
+          <Search size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} />
+          <input className="p-inp" placeholder="Search projects..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 34, width: 240 }} />
+        </div>
+      </div>
+      <div className="p-card overflow-hidden">
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr>{['Installation', 'Category', 'Client(s)', 'Current Stage', 'Progress', 'Actions'].map(h => <th key={h} className="t-head">{h}</th>)}</tr></thead>
+          <tbody>
+            {filtered.map(c => (
+              <tr key={c.id} className="t-row">
+                <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>{c.project}</div></td>
+                <td style={{ padding: '14px 16px' }}><span className="lxf" style={{ fontSize: 12, color: ac, fontWeight: 600 }}>{c.cat || 'Full Interior'}</span></td>
+                <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 13, color: '#7A6E62' }}>{c.name}</div></td>
+                <td style={{ padding: '14px 16px' }}><PSBadge s={PROJECT_STAGES.find(s=>s.id === (c.stage || 1))?.name || 'Order Confirmed'} /></td>
+                <td style={{ padding: '14px 16px' }}><div className="prog" style={{ width: 80 }}><div className="prog-f" style={{ width: `${c.progress || 0}%`, background: ac }} /></div></td>
+                <td style={{ padding: '14px 16px' }}><button onClick={() => setSel(c.id)} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>Manage Operations</button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
