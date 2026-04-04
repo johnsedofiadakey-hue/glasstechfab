@@ -4,7 +4,7 @@ import {
   Calendar, FolderOpen, Check, Lock, X, Printer, Camera,
   Eye, MessageSquare, Image, ThumbsUp, ThumbsDown, Plus, 
   AlertTriangle, FileText, Target, Moon, Sun, ShoppingCart, 
-  Truck, Sparkles, Globe
+  Truck, Sparkles, Globe, CheckSquare
 } from 'lucide-react';
 import { 
   Av, SBadge, Modal, FF as PFormField, PAv, PSBadge,
@@ -114,7 +114,7 @@ function ClientBookingView({ brand, bookings, clientEmail }) {
 // --- MAIN CLIENT PORTAL ---
 export default function ClientPortal({ client, brand, onLogout, calculateProjectPulse, ...props }) {
   const [theme, setTheme] = useState(localStorage.getItem('lx-theme') || 'light');
-  const [tab, setTab] = useState('overview');
+  const [tab, setTab] = useState('hub');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const ac = brand.color || '#C8A96E';
   const { proposals, invoices, procurements } = props;
@@ -150,7 +150,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
   const [paidIds, setPaidIds] = useState([]);
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: <Target size={16} /> }, 
+    { id: 'hub', label: 'Project Hub', icon: <Target size={16} /> }, 
     { id: 'timeline', label: 'Timeline', icon: <Calendar size={16} /> }, 
     { id: 'materials', label: 'Materials Approval', icon: <Sparkles size={16} /> },
     { id: 'shipments', label: 'Logistics Tracker', icon: <Truck size={16} /> },
@@ -163,88 +163,100 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
 
   const renderContent = () => {
     switch (tab) {
-      case 'overview': {
+      case 'hub': {
         const myProj = activeProject;
+        const pendingMat = myMaterials.filter(m => m.status === 'pending');
+        const activeShip = myProcurements.filter(p => p.isShipment || p.status === 'Shipped').slice(0, 1);
+        const nextInv = myInvs.filter(i => i.status !== 'Paid' && !paidIds.includes(i.id))[0];
+
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div className="p-card" style={{ padding: '40px 32px', background: 'var(--card-bg)', color: 'var(--fg)', position: 'relative', overflow: 'hidden' }}>
+            {/* HERO PULSE */}
+            <div className="p-card pulse-shadow" style={{ padding: '40px 32px', background: 'var(--card-bg)', color: 'var(--fg)', position: 'relative', overflow: 'hidden' }}>
                <div style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '100%', background: `linear-gradient(90deg, transparent, ${ac}05)` }} />
-               
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 2 }}>
                   <div>
-                    <div className="eyebrow" style={{ color: ac, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Target size={14} /> Overall Completion Pulse</div>
-                    <div className="lxfh" style={{ fontSize: 64, margin: 0, lineHeight: 1 }}>{calculateProjectPulse(selectedProjectId)}%</div>
+                    <div className="eyebrow" style={{ color: ac, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Target size={14} /> Global Pulse</div>
+                    <div className="lxfh" style={{ fontSize: 72, margin: 0, lineHeight: 1 }}>{calculateProjectPulse(selectedProjectId || myProj.id)}%</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                     <div style={{ fontSize: 11, color: ac, fontWeight: 800 }}>FABRICATION STAGE</div>
+                     <div style={{ fontSize: 11, color: ac, fontWeight: 800 }}>CURRENT STAGE</div>
                      <div className="lxfh" style={{ fontSize: 24, margin: 0 }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
-                     <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 4 }}>Handover: {props.getSLA(myProj).date}</div>
+                     <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 4 }}>Exp. Handover: {props.getSLA(myProj).date}</div>
                   </div>
                </div>
-
-               <div className="prog" style={{ height: 12, background: 'var(--bg)', borderRadius: 10, margin: '24px 0 12px', position: 'relative', zIndex: 2 }}>
-                  <div className="prog-f pulse" style={{ width: `${calculateProjectPulse(selectedProjectId)}%`, background: ac, borderRadius: 10 }} />
-               </div>
-               
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 24, fontSize: 11, fontWeight: 700, color: 'var(--dim)', position: 'relative', zIndex: 2 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: ac }} /> Fabrication ({myProj.progress}%)
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: ac }} /> Supply Chain
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: ac }} /> Site Readiness
-                  </div>
+               <div className="prog" style={{ height: 12, background: 'var(--bg)', borderRadius: 10, margin: '32px 0 12px', position: 'relative', zIndex: 2 }}>
+                  <div className="prog-f pulse" style={{ width: `${calculateProjectPulse(selectedProjectId || myProj.id)}%`, background: ac, borderRadius: 10 }} />
                </div>
             </div>
 
-            {/* PROJECT SCOPE & OUTCOMES */}
-            <div className="p-card" style={{ padding: 24, borderLeft: `4px solid ${ac}` }}>
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <h3 className="lxfh" style={{ fontSize: 20 }}>Project Scope & Outcomes</h3>
-                  <CheckSquare size={20} color={ac} />
-               </div>
-               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 12 }}>
-                  {myDeliverables.map(d => (
-                    <div key={d.id} className="fade-in" style={{ padding: 16, background: 'var(--bg)', borderRadius: 12, border: '1px solid var(--border)' }}>
-                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                             {d.outcomeStatus === 'verified' ? <CheckCircle size={18} color="#16A34A" /> : <div style={{ width: 18, height: 18, borderRadius: '50%', border: '2px solid var(--border)' }} />}
-                             <span style={{ fontSize: 14, fontWeight: 600 }}>{d.title}</span>
-                          </div>
-                          {d.outcomeStatus === 'verified' && (
-                             <div title="Click to view site proof" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, background: `${ac}10`, color: ac, padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 800 }}>
-                                <Camera size={12} /> PROOF ATTACHED
-                             </div>
-                          )}
-                       </div>
-                    </div>
-                  ))}
-               </div>
-            </div>
+            <div className="hub-grid">
+               {/* MAIN COLUMN */}
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  {/* LOGISTICS SNAPSHOT */}
+                  <div className="p-card" style={{ padding: 24 }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={18} color={ac} /> Logistics Snapshot</h3>
+                        <button onClick={() => setTab('shipments')} className="lxf" style={{ fontSize: 12, background: 'none', border: 'none', color: ac, cursor: 'pointer' }}>View All →</button>
+                     </div>
+                     {activeShip.length > 0 ? (
+                        <div style={{ background: 'var(--bg)', padding: 20, borderRadius: 16 }}>
+                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ fontWeight: 700 }}>{activeShip[0].itemName || activeShip[0].item}</div>
+                              <div style={{ fontSize: 13, color: ac, fontWeight: 700 }}>{activeShip[0].status}</div>
+                           </div>
+                           <div style={{ fontSize: 12, color: 'var(--dim)' }}>ETA: {activeShip[0].eta || 'Calculating...'}</div>
+                        </div>
+                     ) : <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', background: 'var(--bg)', borderRadius: 16 }}>No active shipments in transit.</div>}
+                  </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
-               <div className="p-card" style={{ padding: 24 }}>
-                  <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 16 }}>Upcoming Actions</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                     {myMaterials.filter(m => m.status === 'pending').map(m => (
-                       <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'var(--bg)', borderRadius: 12 }}>
-                          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                             <Sparkles size={18} color={ac} />
-                             <span style={{ fontSize: 14, fontWeight: 600 }}>Approval needed: {m.name}</span>
-                          </div>
-                          <button onClick={() => setTab('materials')} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>Review Now →</button>
-                       </div>
-                     ))}
-                     {myMaterials.filter(m => m.status === 'pending').length === 0 && <div style={{ fontSize: 14, color: 'var(--dim)' }}>All materials are sorted. You're good to go!</div>}
+                  {/* PROCUREMENT ACTIONS */}
+                  <div className="p-card" style={{ padding: 24 }}>
+                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><Sparkles size={18} color={ac} /> Design & Material Approvals</h3>
+                        <button onClick={() => setTab('materials')} className="lxf" style={{ fontSize: 12, background: 'none', border: 'none', color: ac, cursor: 'pointer' }}>View All →</button>
+                     </div>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {pendingMat.length > 0 ? pendingMat.map(m => (
+                           <div key={m.id} className="action-card" style={{ padding: 16, background: 'var(--bg)', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div style={{ fontSize: 14, fontWeight: 600 }}>{m.name}</div>
+                              <button onClick={() => setTab('materials')} className="p-btn-gold lxf" style={{ padding: '6px 12px', fontSize: 10 }}>Review & Approve</button>
+                           </div>
+                        )) : <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', background: 'var(--bg)', borderRadius: 16 }}>All procurement items are approved.</div>}
+                     </div>
                   </div>
                </div>
-               <div className="p-card pulse-inner" style={{ padding: 24, background: ac, color: '#1A1410', textAlign: 'center' }}>
-                  <MessageSquare size={32} style={{ marginBottom: 12 }} />
-                  <h4 className="lxfh" style={{ fontSize: 18 }}>Direct Link</h4>
-                  <p style={{ fontSize: 13, marginBottom: 16, opacity: 0.8 }}>Talk to your Project Manager instantly.</p>
-                  <button className="p-btn-dark" style={{ width: '100%', padding: 12, background: '#1A1410' }}>WhatsApp Support</button>
+
+               {/* SIDE COLUMN */}
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                  {/* FINANCIAL HUB */}
+                  <div className="p-card" style={{ padding: 24 }}>
+                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Financial Pulse</h3>
+                     {nextInv ? (
+                        <div style={{ textAlign: 'center' }}>
+                           <div style={{ fontSize: 32, fontWeight: 300, marginBottom: 8 }}>{nextInv.amount}</div>
+                           <div style={{ fontSize: 11, color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 16 }}>Next Payment Due</div>
+                           <button onClick={() => setPayModal(nextInv)} className="p-btn-dark lxf" style={{ width: '100%', padding: '12px', borderRadius: 10 }}>Pay Now</button>
+                        </div>
+                     ) : (
+                        <div style={{ textAlign: 'center', color: '#16A34A' }}>
+                           <CheckCircle size={32} style={{ marginBottom: 12 }} />
+                           <div style={{ fontSize: 14, fontWeight: 700 }}>Account is Clear</div>
+                        </div>
+                     )}
+                  </div>
+
+                  {/* PROJECT MANAGER */}
+                  <div className="p-card" style={{ padding: 24, background: ac, color: '#1A1410' }}>
+                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
+                        <Av i={TEAM_MEMBERS[0].av} s={40} />
+                        <div>
+                           <div style={{ fontWeight: 800, fontSize: 14 }}>{TEAM_MEMBERS[0].name}</div>
+                           <div style={{ fontSize: 11, opacity: 0.8 }}>Project Architect</div>
+                        </div>
+                     </div>
+                     <button className="p-btn-dark lxf" style={{ width: '100%', padding: 12, background: '#1A1410', borderRadius: 10 }}>WhatsApp Architect</button>
+                  </div>
                </div>
             </div>
           </div>

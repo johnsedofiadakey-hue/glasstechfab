@@ -229,6 +229,22 @@ body {
   .dt-flex { display: flex !important; }
 }
 
+/* ── UNIFIED HUB LAYOUT ── */
+.hub-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .hub-grid { grid-template-columns: 1fr; }
+}
+
+.action-card {
+  border-left: 4px solid var(--ac) !important;
+  background: linear-gradient(90deg, var(--ac-light), transparent) !important;
+}
+
 @media print {
   body{font-family: var(--font-p); color:#111; background:white;}
 }
