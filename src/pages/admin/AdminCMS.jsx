@@ -33,14 +33,28 @@ function CMSBranding({ brand, onSave, ac }) {
           <PFormField label="Accent Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.color || '#C8A96E'} onChange={e => setF({...f, color: e.target.value})} /></PFormField>
           <PFormField label="Global Text Color"><input type="color" className="p-inp" style={{ height: 44, padding: 4 }} value={f.textColor || '#121212'} onChange={e => setF({...f, textColor: e.target.value})} /></PFormField>
         </div>
-        <PFormField label="Typography Style">
-          <select className="p-inp" value={f.fontFamily || 'Inter, sans-serif'} onChange={e => setF({...f, fontFamily: e.target.value})}>
-             <option value="'Inter', sans-serif">Modern Sans (Inter)</option>
-             <option value="'Playfair Display', serif">Elegant Serif (Playfair)</option>
-             <option value="'Space Mono', monospace">Technical Mono (Space Mono)</option>
-          </select>
+        <PFormField label="Site Aesthetic / Theme">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+            {[
+              { id: 'classic', n: 'Classic', desc: 'Premium serif & gold' },
+              { id: 'minimal', n: 'Minimal', desc: 'Sharp edges & mono' },
+              { id: 'avant-garde', n: 'Modern', desc: 'Rounded & vibrant' }
+            ].map(t => (
+              <button 
+                key={t.id}
+                onClick={() => setF({...f, theme: t.id})}
+                style={{
+                  padding: '12px 8px', borderRadius: 8, border: f.theme === t.id ? `2px solid ${ac}` : '1px solid rgba(0,0,0,0.1)',
+                  background: f.theme === t.id ? `${ac}10` : '#fff', cursor: 'pointer', transition: 'all .2s', textAlign: 'center'
+                }}
+              >
+                <div className="lxfh" style={{ fontSize: 13, fontWeight: 700, color: f.theme === t.id ? ac : '#1A1410' }}>{t.n}</div>
+                <div className="lxf" style={{ fontSize: 9, color: '#B5AFA9', marginTop: 2 }}>{t.desc}</div>
+              </button>
+            ))}
+          </div>
         </PFormField>
-        <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Changes</button>
+        <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '12px 32px', marginTop: 12 }}>Save Branding Identity</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <h3 className="lxfh" style={{ fontSize: 20 }}>Logo & Contact</h3>

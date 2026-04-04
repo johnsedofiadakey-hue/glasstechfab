@@ -1,41 +1,58 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@300;400;500;700&family=Space+Mono&family=Sora:wght@300;400;600;800&family=Space+Grotesk:wght@300;400;500;700&display=swap');
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
+
 :root {
-  --ac: #C8A96E; /* Deep Gold */
-  --ac-light: rgba(200, 169, 110, 0.15);
-  --bg: #F9F7F4; /* Cream White */
-  --fg: #1A1410; /* Estate Black */
+  --ac: #C8A96E; 
+  --ac-rgb: 200, 169, 110;
+  --bg: #F9F7F4; 
+  --fg: #1A1410; 
   --dim: #7A6E62;
   --muted: #B5AFA9;
-  --border: rgba(26, 20, 16, 0.06);
+  --border: rgba(26, 20, 16, 0.08);
   --sh: 0 12px 40px rgba(26, 20, 16, 0.04);
   
-  /* Glassmorphism V2 */
+  --font-h: 'Cormorant Garamond', serif;
+  --font-p: 'DM Sans', sans-serif;
+  --radius: 20px;
+  --glass-blur: 24px;
+  
   --glass-bg: rgba(255, 255, 255, 0.65);
   --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-sh: 0 10px 40px 0 rgba(26, 20, 16, 0.05);
-  
-  --font-serif: 'Cormorant Garamond', serif;
-  --font-sans: 'DM Sans', sans-serif;
-  
-  --card-bg: #ffffff;
+}
+
+[data-theme='minimal'] {
+  --font-h: 'Inter', sans-serif;
+  --font-p: 'Space Mono', monospace;
+  --radius: 0px;
+  --ac: #1A1410;
+  --ac-rgb: 26, 20, 16;
+  --bg: #ffffff;
+  --border: rgba(0,0,0,0.15);
+  --glass-blur: 0px;
+  --glass-bg: #fff;
+}
+
+[data-theme='avant-garde'] {
+  --font-h: 'Sora', sans-serif;
+  --font-p: 'Space Grotesk', sans-serif;
+  --radius: 40px;
+  --ac: #6366f1; /* Electric Indigo */
+  --ac-rgb: 99, 102, 241;
+  --bg: #f8fafc;
+  --glass-blur: 40px;
+  --glass-bg: rgba(255, 255, 255, 0.4);
 }
 
 .dark-theme {
-  --bg: #0D0B09; /* Deep Obsidian */
+  --bg: #0D0B09; 
   --fg: #F9F7F4;
   --dim: #A8A095;
   --muted: #625C54;
-  --border: rgba(255, 255, 255, 0.08);
-  --sh: 0 20px 50px rgba(0, 0, 0, 0.3);
-  
-  --glass-bg: rgba(26, 20, 16, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-sh: 0 15px 45px rgba(0, 0, 0, 0.4);
-  
-  --card-bg: #1A1410;
+  --border: rgba(255, 255, 255, 0.12);
+  --glass-bg: rgba(26, 20, 16, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.15);
 }
 
 body { 
@@ -48,9 +65,9 @@ body {
 /* ── PREMIUM UI ENHANCEMENTS ── */
 
 .p-card { 
-  background: var(--card-bg); 
+  background: var(--bg); 
   border: 1px solid var(--border); 
-  border-radius: 20px; 
+  border-radius: var(--radius); 
   box-shadow: var(--sh); 
   transition: all .5s cubic-bezier(0.19, 1, 0.22, 1);
   position: relative;
@@ -90,6 +107,10 @@ body {
   transform: translateY(-4px) scale(0.98);
 }
 
+.logo-hover-upload:hover {
+  opacity: 1 !important;
+}
+
 /* MOBILE DRAWER ENHANCEMENT */
 @keyframes slideFromRight {
   from { transform: translateX(100%); opacity: 0; }
@@ -102,11 +123,11 @@ body {
 
 .glass-panel {
   background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-sh);
-  border-radius: 24px;
+  border-radius: var(--radius);
   position: relative;
 }
 
@@ -129,6 +150,9 @@ body {
 .luxe-pulse {
   animation: luxePulse 2s infinite;
 }
+
+.lxfh { font-family: var(--font-h); }
+.lxf { font-family: var(--font-p); }
 
 /* NAVIGATION MICRO-INTERACTIONS */
 .p-nav-item {
@@ -206,5 +230,9 @@ body {
 }
 
 @media print {
-  body{font-family: var(--font-sans); color:#111; background:white;}
+  body{font-family: var(--font-p); color:#111; background:white;}
 }
+
+/* THEME SPECIFIC OVERRIDES */
+[data-theme='minimal'] .eyebrow { letter-spacing: 0.3em; font-weight: 700; }
+[data-theme='avant-garde'] .p-card { border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }

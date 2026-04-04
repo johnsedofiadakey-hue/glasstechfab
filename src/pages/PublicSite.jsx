@@ -47,7 +47,7 @@ const BA = ({ before, after, h = 300 }) => {
   );
 };
 
-export function PubNav({ brand, setPage, activePage, onPortal }) {
+export function PubNav({ brand, setPage, activePage, onPortal, onLogoUpload, user }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const ac = brand.color || '#B08D57';
@@ -78,15 +78,27 @@ export function PubNav({ brand, setPage, activePage, onPortal }) {
       padding: '0 24px'
     }}>
       <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div onClick={() => setPage('home')} style={{ cursor: 'pointer', zIndex: 1001, display: 'flex', alignItems: 'center', gap: 12 }}>
-          {brand.logo ? (
-            <img src={brand.logo} alt={brand.name} style={{ height: 32, objectFit: 'contain' }} />
-          ) : (
-            <div>
-              <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', color: scrolled || menuOpen ? '#121212' : '#ffffff' }}>
-                {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
+        <div style={{ position: 'relative', zIndex: 1001, cursor: 'pointer' }}>
+          <div onClick={() => setPage('home')} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {brand.logo ? (
+              <img src={brand.logo} alt={brand.name} style={{ height: 32, objectFit: 'contain' }} />
+            ) : (
+              <div>
+                <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', color: scrolled || menuOpen ? '#121212' : '#ffffff' }}>
+                  {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
+                </div>
+                <div className="lxf" style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: scrolled || menuOpen ? '#666' : 'rgba(255,255,255,0.7)', transform: 'translateY(-2px)' }}>{brand.tagline || 'Interior Finishing'}</div>
               </div>
-              <div className="lxf" style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase', color: scrolled || menuOpen ? '#666' : 'rgba(255,255,255,0.7)', transform: 'translateY(-2px)' }}>{brand.tagline || 'Interior Finishing'}</div>
+            )}
+          </div>
+          {user?.role === 'admin' && (
+            <div style={{ position: 'absolute', inset: '-10px', opacity: 0, transition: 'opacity 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(200, 169, 110, 0.1)', backdropFilter: 'blur(4px)', borderRadius: 8, border: '1px dashed var(--ac)' }} className="logo-hover-upload">
+               <input 
+                 type="file" 
+                 onChange={e => e.target.files[0] && onLogoUpload(e.target.files[0])} 
+                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', zIndex: 10 }} 
+               />
+               <div style={{ background: 'var(--ac)', color: '#fff', fontSize: 10, padding: '4px 10px', borderRadius: 4, whiteSpace: 'nowrap', fontWeight: 600, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>Update Logo</div>
             </div>
           )}
         </div>
@@ -594,7 +606,7 @@ export function ContactPage({ brand }) {
   );
 }
 
-export default function PublicSite({ page, setPage, brand, content, onPortal }) {
+export default function PublicSite({ page, setPage, brand, content, onPortal, onLogoUpload, user }) {
   const p = page || 'home';
 
   useEffect(() => {
@@ -614,7 +626,7 @@ export default function PublicSite({ page, setPage, brand, content, onPortal }) 
 
   return (
     <div style={{ background: '#FDFCFB' }}>
-      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} />
+      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} onLogoUpload={onLogoUpload} user={user} />
       {render()}
       <Footer brand={brand} setPage={setPage} onPortal={onPortal} />
     </div>

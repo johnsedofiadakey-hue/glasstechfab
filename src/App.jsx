@@ -22,7 +22,8 @@ import { uploadFile } from './lib/firebase';
 const BRAND0 = {
   name: 'Glasstech Fabrications',
   logo: null,
-  color: '#1A1410',
+  color: '#C8A96E',
+  theme: 'classic',
   tagline: 'Complete Interior & Finishing Solutions',
   phone: '+233 24 111 2222',
   email: 'contact@glasstech.com.gh',
@@ -113,6 +114,7 @@ export default function App() {
   };
 
   const migrateToFirebase = async () => {
+    if (!db) return;
     try {
       notify('pending', 'Initializing Glasstech CMS...');
       setLoading(true);
@@ -251,6 +253,7 @@ export default function App() {
   };
 
   const fetchData = async () => {
+    if (!db) return;
     try {
       setLoading(true);
       const [uSnap, cmsSnap] = await Promise.all([
@@ -408,6 +411,20 @@ export default function App() {
       approvalSub && approvalSub(); crSub && crSub(); procSub && procSub(); noteSub && noteSub(); mediaSub && mediaSub(); shipSub && shipSub();
     };
   }, [user?.id]);
+  
+  // Sync Brand Theme & Favicon
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', brand.theme || 'classic');
+    if (brand.logo) {
+      let link = document.querySelector("link[rel~='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = brand.logo;
+    }
+  }, [brand.theme, brand.logo]);
 
   const updateStage = async (projectId, stageId) => {
     try {
@@ -654,6 +671,24 @@ export default function App() {
           onBootstrap={migrateToFirebase} 
           onBack={() => setView('public')}
           onLogin={async (e, p) => {
+            if (!auth) {
+              // Mock Login for Demo Mode
+              const DEMO_ACCOUNTS = [
+                { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', pw: 'admin123' },
+                { email: 'admin@luxespace.com', role: 'admin', name: 'Studio Admin', pw: 'admin123' },
+                { email: 'client@luxespace.com', role: 'client', name: 'Elite Client', pw: 'client123' }
+              ];
+              const match = DEMO_ACCOUNTS.find(acc => acc.email === e && acc.pw === p);
+              if (match) {
+                const profile = { ...match, id: match.email.replace(/[.@]/g, '_'), status: 'Active', joined: new Date().toISOString() };
+                setUser(profile);
+                if (match.role === 'admin') setView('admin');
+                else if (match.role === 'client') { setLoginType('client'); setView('portal'); }
+                return;
+              } else {
+                throw new Error("Invalid credentials for Demo Mode.");
+              }
+            }
             try { await signInWithEmailAndPassword(auth, e, p); }
             catch (err) {
               if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
@@ -664,11 +699,54 @@ export default function App() {
           }} 
         />
       );
-      return <PublicSite {...commonProps} onPortal={(type) => { setLoginType(type); setView('login'); }} />;
+      return <PublicSite 
+        {...commonProps} 
+        onPortal={(type) => { setLoginType(type); setView('login'); }} 
+        onLogoUpload={async (file) => {
+          const localUrl = URL.createObjectURL(file);
+          setBrand(prev => ({ ...prev, logo: localUrl }));
+          if (!storage || !db) {
+            setNotification({ msg: 'Demo Mode: Logo updated locally', type: 'info' });
+            setTimeout(() => setNotification(null), 3000);
+            return;
+          }
+          const url = await uploadFile('branding', 'logo', file);
+          setBrand(prev => ({ ...prev, logo: url }));
+          await updateDoc(doc(db, 'settings', 'branding'), { logo: url });
+        }}
+      />;
     }
 
     // Role-based rendering
-    if (user.role === 'admin') return <AdminPortal user={user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
+    if (user.role === 'admin') return (
+      <AdminPortal 
+        user={user} 
+        onLogout={() => signOut(auth)} 
+        onPreview={() => { setUser(null); if (auth) signOut(auth); setView('public'); }} 
+        onLogoUpload={async (file) => {
+          const localUrl = URL.createObjectURL(file);
+          setBrand(prev => ({ ...prev, logo: localUrl }));
+          if (!storage || !db) {
+            setNotification({ msg: 'Demo Mode: Logo updated locally', type: 'info' });
+            setTimeout(() => setNotification(null), 3000);
+            return;
+          }
+          const url = await uploadFile('branding', 'logo', file);
+          setBrand(prev => ({ ...prev, logo: url }));
+          await updateDoc(doc(db, 'settings', 'branding'), { logo: url });
+        }}
+        onThemeChange={async (t) => {
+          setBrand(prev => ({ ...prev, theme: t }));
+          if (!db) {
+             setNotification({ msg: `Theme: ${t} applied (Demo Mode)`, type: 'info' });
+             setTimeout(() => setNotification(null), 3000);
+             return;
+          }
+          await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
+        }}
+        {...commonProps} 
+      />
+    );
     if (user.role === 'manager') return <AccountManagerPortal user={user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
     if (user.role === 'client') return <ClientPortal client={clients.find(c => c.email === user.email) || user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
 
