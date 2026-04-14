@@ -10,6 +10,7 @@ import AdminBookings from './admin/AdminBookings';
 import AdminAnalytics from './admin/AdminAnalytics';
 import AdminEmailCenter from './admin/AdminEmailCenter';
 import AdminStaff from './admin/AdminStaff';
+import AdminSystem from './admin/AdminSystem';
 import AIProposalGenerator from '../components/AIProposalGenerator';
 import ClientHub from './admin/ClientHub';
 import FabricationKanban from './admin/FabricationKanban';
@@ -48,6 +49,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'analytics': return <AdminAnalytics {...common} />;
       case 'email': return <AdminEmailCenter {...common} />;
       case 'staff': return <AdminStaff team={props.teamMembers} setTeam={props.setTeamMembers} {...common} />;
+      case 'system': return <AdminSystem onReset={props.migrateToFirebase} {...common} />;
       default: return <AdminDashboard {...common} />;
     }
   };

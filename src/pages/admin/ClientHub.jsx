@@ -28,11 +28,7 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
   const [newNote, setNewNote] = useState('');
   const [updating, setUpdating] = useState(false);
 
-  // Mock materials for the project
-  const [myMaterials, setMyMaterials] = useState([
-    { id: 'mat1', name: 'Bronze Tinted Glass', specs: '12mm Tempered', imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80', desc: 'Sleek bronze finish for privacy and heat reduction.', status: 'pending' },
-    { id: 'mat2', name: 'Black Matte Hinge', specs: 'Heavy-Duty Stainless', imageUrl: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80', desc: 'Durable architectural finish matching the facade frame.', status: 'Approved' }
-  ]);
+  const myMaterials = (props.materials || []).filter(m => m.parentId === activeProjectId);
 
   useEffect(() => {
     if (myProjects.length > 0 && !activeProjectId) {
@@ -254,8 +250,8 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
         {tab === 'materials' && (
           <MaterialSelector 
             materials={myMaterials} 
-            onApprove={(id) => setMyMaterials(myMaterials.map(m => m.id === id ? { ...m, status: 'Approved' } : m))}
-            onReject={(id) => setMyMaterials(myMaterials.map(m => m.id === id ? { ...m, status: 'Rejected' } : m))}
+            onApprove={(id) => props.updateMaterial(activeProjectId, id, { status: 'Approved' })}
+            onReject={(id) => props.updateMaterial(activeProjectId, id, { status: 'Rejected' })}
             ac={ac}
           />
         )}

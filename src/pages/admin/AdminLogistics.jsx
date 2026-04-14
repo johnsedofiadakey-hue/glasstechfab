@@ -5,18 +5,14 @@ import {
 } from 'lucide-react';
 import { FF as PFormField, PSBadge } from '../../components/Shared';
 
-export default function AdminLogistics({ shipments = [], clients = [], procurements = [], createShipment, updateShipment, updateProcurement, brand }) {
+export default function AdminLogistics({ shipments = [], clients = [], procurements = [], assets = [], createShipment, updateShipment, updateProcurement, brand }) {
   const ac = brand.color || '#C8A96E';
   const [showAdd, setShowAdd] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [newS, setNewS] = useState({ projectId: '', item: '', supplier: '', status: 'Order Placed', eta: '', container: '' });
 
-  // Simulation Assets (High-value site tools)
-  const [assets, setAssets] = useState([
-    { id: 'AST-101', name: 'Industrial Suction Rig (G-3)', siteId: 'p1', user: 'KO', status: 'In Use' },
-    { id: 'AST-102', name: 'Precision Laser Level (Bosch)', siteId: 'p2', user: 'NB', status: 'In Use' },
-    { id: 'AST-103', name: 'Scaffolding System (Batch A)', siteId: 'p1', user: 'KO', status: 'In Use' }
-  ]);
+  // Simulation Assets (High-value site tools) pulled from props
+  // props.assets contains the live list from Firestore
 
   const syncManifest = (shipment) => {
     const items = (procurements || []).filter(p => p.containerId === shipment.container);

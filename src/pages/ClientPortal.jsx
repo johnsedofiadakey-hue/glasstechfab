@@ -134,17 +134,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
   const myProcurements = (props.procurements || []).filter(p => p.parentId === selectedProjectId);
   const myMedia = (props.media || []).filter(m => m.parentId === selectedProjectId);
 
-  // Verification Mock (Synced with AdminGovernance.jsx logic)
-  const myDeliverables = [
-    { id: 'dev1', title: 'Curved Facade Glass', status: 'signed', outcomeStatus: 'pending' },
-    { id: 'dev2', title: 'Smart Entry System', status: 'signed', outcomeStatus: 'verified', photoId: 'P101' }
-  ];
-
-  // Mock materials synced with Admin state
-  const [myMaterials, setMyMaterials] = useState([
-    { id: 'mat1', name: 'Bronze Tinted Glass', specs: '12mm Tempered', imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80', desc: 'Sleek bronze finish for privacy and heat reduction.', status: 'pending' },
-    { id: 'mat2', name: 'Black Matte Hinge', specs: 'Heavy-Duty Stainless', imageUrl: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80', desc: 'Durable architectural finish matching the facade frame.', status: 'Approved' }
-  ]);
+  const myMaterials = (props.materials || []).filter(m => m.parentId === selectedProjectId);
 
   const [payModal, setPayModal] = useState(null);
   const [paidIds, setPaidIds] = useState([]);
@@ -359,8 +349,8 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         return (
           <MaterialSelector 
             materials={myMaterials} 
-            onApprove={(id) => setMyMaterials(myMaterials.map(m => m.id === id ? { ...m, status: 'Approved' } : m))}
-            onReject={(id) => setMyMaterials(myMaterials.map(m => m.id === id ? { ...m, status: 'Rejected' } : m))}
+            onApprove={(id) => props.updateMaterial(selectedProjectId, id, { status: 'Approved' })}
+            onReject={(id) => props.updateMaterial(selectedProjectId, id, { status: 'Rejected' })}
             ac={ac}
           />
         );

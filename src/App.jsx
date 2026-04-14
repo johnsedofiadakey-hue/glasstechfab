@@ -19,6 +19,7 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { uploadFile } from './lib/firebase';
 import { TwilioService } from './lib/TwilioService';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 const BRAND0 = {
   name: 'Glasstech Fabrications',
@@ -58,12 +59,12 @@ const ProtectedRoute = ({ user, role, children, setView }) => {
 };
 
 export default function App() {
-  const [view, setView] = useState('public'); 
   const [page, setPage] = useState('home');
   const [user, setUser] = useState(null);
   const [loginType, setLoginType] = useState('client'); 
   const [authLoading, setAuthLoading] = useState(true); 
-  const [brand, setBrand] = useState(BRAND0);
+  const navigate = useNavigate();
+  const location = useLocation();  const [brand, setBrand] = useState(BRAND0);
   const [content, setContent] = useState({
     brand: BRAND0,
     hero: { slides: HERO_SLIDES },
@@ -105,6 +106,8 @@ export default function App() {
   const [notes, setNotes] = useState([]);
   const [media, setMedia] = useState([]);
   const [approvals, setApprovals] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [assets, setAssets] = useState([]);
   const [magicCode, setMagicCode] = useState(null);
 
   const notify = (type, msg) => {
@@ -263,6 +266,24 @@ export default function App() {
             method: 'Paystack',
             status: 'verified'
           });
+
+          // 9. Seed Materials
+          const demoMaterials = [
+            { id: 'mat1', name: 'Bronze Tinted Glass', specs: '12mm Tempered', imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80', desc: 'Sleek bronze finish for privacy and heat reduction.', status: 'pending' },
+            { id: 'mat2', name: 'Black Matte Hinge', specs: 'Heavy-Duty Stainless', imageUrl: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80', desc: 'Durable architectural finish matching the facade frame.', status: 'Approved' }
+          ];
+          for (const m of demoMaterials) {
+            await setDoc(doc(db, 'projects', pid, 'materials', m.id), { ...m, createdAt: new Date().toISOString() });
+          }
+
+          // 10. Seed Assets
+          const demoAssets = [
+            { id: 'AST-101', name: 'Industrial Suction Rig (G-3)', siteId: pid, user: 'KO', status: 'In Use' },
+            { id: 'AST-102', name: 'Precision Laser Level (Bosch)', siteId: pid, user: 'NB', status: 'In Use' }
+          ];
+          for (const a of demoAssets) {
+            await setDoc(doc(db, 'assets', a.id), { ...a, createdAt: new Date().toISOString() });
+          }
         }
       }
 
@@ -353,31 +374,27 @@ export default function App() {
             setUser({ ...sessionUser, ...profile, id: profileId });
             const targetedRole = profile.role || 'client';
             
-            // Explicit view switching based on role
-            if (targetedRole === 'admin') setView('admin');
-            else if (targetedRole === 'manager') setView('manager');
-            else if (targetedRole === 'client') {
-              setLoginType('client');
-              setView('portal');
+            // Navigate based on role if on a shared or login page
+            if (location.pathname === '/login' || location.pathname === '/') {
+              if (targetedRole === 'admin') navigate('/admin');
+              else if (targetedRole === 'client') navigate('/portal');
             }
           } else {
             console.error("No profile found for email:", sessionUser.email);
-            // AUTO-INIT FOR KNOWN DEMO ACCOUNTS
             if (['admin@stormglide.com', 'admin@glasstechfab.com', 'client@glasstechfab.com'].includes(sessionUser.email)) {
-              notify('pending', 'Auto-initializing demo profile...');
               await migrateToFirebase();
-              return; // The auth listener will re-fire or migrateToFirebase will handle it
-            }
-            // If we are on the login page, show an error instead of a direct redirect
-            if (view === 'login') {
-              notify('error', 'Authentication successful, but no account record found.');
+              return;
             }
             setUser(null); 
-            setView('public');
+            if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
+              navigate('/');
+            }
           }
         } else {
           setUser(null);
-          setView('public');
+          if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
+            navigate('/');
+          }
         }
       } catch (e) {
         console.error("Auth listener error:", e);
@@ -446,11 +463,18 @@ export default function App() {
     }, (err) => {
       console.warn("Transactions listener failed (likely missing index):", err);
     });
+    const matSub = onSnapshot(query(collectionGroup(db, 'materials')), (snap) => {
+      setMaterials(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    });
+    const assetSub = onSnapshot(collection(db, 'assets'), (snap) => {
+      setAssets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
 
     return () => { 
       projectSub && projectSub(); userSub && userSub(); paymentSub && paymentSub(); logSub && logSub(); taskSub && taskSub(); notifSub && notifSub();
       approvalSub && approvalSub(); crSub && crSub(); procSub && procSub(); noteSub && noteSub(); mediaSub && mediaSub(); shipSub && shipSub();
       proposalSub && proposalSub(); bookingSub && bookingSub(); emailSub && emailSub(); transSub && transSub();
+      matSub && matSub(); assetSub && assetSub();
     };
   }, [user?.id]);
   
@@ -617,6 +641,18 @@ export default function App() {
     catch(e) { notify('error', 'Failed to delete tracking item'); }
   };
 
+  const updateMaterial = async (projectId, id, data) => {
+    if (!db) return;
+    try { await updateDoc(doc(db, 'projects', projectId, 'materials', id), data); }
+    catch(e) { console.error(e); }
+  };
+
+  const updateAsset = async (id, data) => {
+    if (!db) return;
+    try { await updateDoc(doc(db, 'assets', id), data); }
+    catch(e) { console.error(e); }
+  };
+
   const createShipment = async (data) => {
     if (!db) return;
     try { 
@@ -702,8 +738,13 @@ export default function App() {
   };
 
   const findUserByPhone = (phone) => {
-    const clean = phone.replace(/\s/g, '');
-    return dbClients.find(u => u.phone?.replace(/\s/g, '') === clean);
+    const clean = phone.replace(/\D/g, ''); // Keep only digits
+    return dbClients.find(u => {
+      const dbPhone = u.phone?.replace(/\D/g, '');
+      if (!dbPhone) return false;
+      // Match if equal or if one is a suffix of the other (last 9 digits are usually unique enough)
+      return dbPhone === clean || dbPhone.endsWith(clean) || clean.endsWith(dbPhone);
+    });
   };
 
   const sendOTP = async (phone) => {
@@ -750,7 +791,19 @@ export default function App() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      if (auth) await signOut(auth);
+      setUser(null);
+      // Let the routing handle the redirect
+    } catch (e) {
+      console.error("Logout failed:", e);
+      notify('error', 'Logout failed');
+    }
+  };
+
   const commonProps = {
+    handleLogout,
     page, setPage,
     brand, setBrand, content, setContent,
     clients, updateProject: syncProjects,
@@ -772,6 +825,8 @@ export default function App() {
     changeRequests, createChangeRequest, updateChangeRequest,
     payInvoice,
     transactions, recordOfflinePayment,
+    materials, updateMaterial,
+    assets, updateAsset,
     updateStage, calculateProjectPulse,
     sendOTP, verifyOTP, findUserByPhone,
     userNotifications, markNotificationRead,
@@ -785,107 +840,128 @@ export default function App() {
     </div>
   );
 
-  const renderCurrentView = () => {
-    // If no user is logged in, show Public Site or Login Page
-    if (!user) {
-      if (view === 'login') return (
-        <LoginPage 
-          brand={brand} 
-          type={loginType} 
-          onBootstrap={migrateToFirebase} 
-          onBack={() => setView('public')}
-          onLogin={async (e, p) => {
-            if (!auth) {
-              // Mock Login for Demo Mode
-              const DEMO_ACCOUNTS = [
-                { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', pw: 'admin123' },
-                { email: 'admin@glasstechfab.com', role: 'admin', name: 'Factory Admin', pw: 'admin123' },
-                { email: 'client@glasstechfab.com', role: 'client', name: 'Elite Client', pw: 'client123' }
-              ];
-              const match = DEMO_ACCOUNTS.find(acc => acc.email === e && acc.pw === p);
-              if (match) {
-                const profile = { ...match, id: match.email.replace(/[.@]/g, '_'), status: 'Active', joined: new Date().toISOString() };
-                setUser(profile);
-                if (match.role === 'admin') setView('admin');
-                else if (match.role === 'client') { setLoginType('client'); setView('portal'); }
-                return;
-              } else {
-                throw new Error("Invalid credentials for Demo Mode.");
-              }
-            }
-            try { await signInWithEmailAndPassword(auth, e, p); }
-            catch (err) {
-              if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-                const { createUserWithEmailAndPassword } = await import('firebase/auth');
-                await createUserWithEmailAndPassword(auth, e, p);
-              } else throw err;
-            }
-          }} 
-        />
-      );
-      return <PublicSite 
-        {...commonProps} 
-        onPortal={(type) => { setLoginType(type); setView('login'); }} 
-        onLogoUpload={async (file) => {
-          const localUrl = URL.createObjectURL(file);
-          setBrand(prev => ({ ...prev, logo: localUrl }));
-          if (!storage || !db) {
-            setNotification({ msg: 'Demo Mode: Logo updated locally', type: 'info' });
-            setTimeout(() => setNotification(null), 3000);
-            return;
-          }
-          const url = await uploadFile('branding', 'logo', file);
-          setBrand(prev => ({ ...prev, logo: url }));
-          await updateDoc(doc(db, 'settings', 'branding'), { logo: url });
-        }}
-      />;
+  const logoUpload = async (file) => {
+    const localUrl = URL.createObjectURL(file);
+    setBrand(prev => ({ ...prev, logo: localUrl }));
+    if (!storage || !db) {
+      setNotification({ msg: 'Demo Mode: Logo updated locally', type: 'info' });
+      return;
+    }
+    const url = await uploadFile('branding', 'logo', file);
+    setBrand(prev => ({ ...prev, logo: url }));
+    await updateDoc(doc(db, 'settings', 'branding'), { logo: url });
+  };
+
+  const loginHandler = async (e, p) => {
+    const DEMO_ACCOUNTS = [
+      { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', pw: 'admin123' },
+      { email: 'admin@glasstechfab.com', role: 'admin', name: 'Factory Admin', pw: 'admin123' },
+      { email: 'client@glasstechfab.com', role: 'client', name: 'Elite Client', pw: 'client123' }
+    ];
+    const match = DEMO_ACCOUNTS.find(acc => acc.email === e && acc.pw === p);
+    if (match) {
+      const profile = { ...match, id: match.email.replace(/[.@]/g, '_'), status: 'Active', joined: new Date().toISOString() };
+      setUser(profile);
+      if (match.role === 'admin') navigate('/admin');
+      else if (match.role === 'client') navigate('/portal');
+      return;
     }
 
-    // Role-based rendering
-    if (user.role === 'admin') return (
-      <AdminPortal 
-        user={user} 
-        onLogout={() => signOut(auth)} 
-        onPreview={() => { setUser(null); if (auth) signOut(auth); setView('public'); }} 
-        onLogoUpload={async (file) => {
-          const localUrl = URL.createObjectURL(file);
-          setBrand(prev => ({ ...prev, logo: localUrl }));
-          if (!storage || !db) {
-            setNotification({ msg: 'Demo Mode: Logo updated locally', type: 'info' });
-            setTimeout(() => setNotification(null), 3000);
-            return;
-          }
-          const url = await uploadFile('branding', 'logo', file);
-          setBrand(prev => ({ ...prev, logo: url }));
-          await updateDoc(doc(db, 'settings', 'branding'), { logo: url });
-        }}
-        onThemeChange={async (t) => {
-          setBrand(prev => ({ ...prev, theme: t }));
-          if (!db) {
-             setNotification({ msg: `Theme: ${t} applied (Demo Mode)`, type: 'info' });
-             setTimeout(() => setNotification(null), 3000);
-             return;
-          }
-          await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
-        }}
-        {...commonProps} 
-      />
-    );
-    if (user.role === 'manager') return <AccountManagerPortal user={user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
-    if (user.role === 'client') return <ClientPortal client={clients.find(c => c.email === user.email) || user} onLogout={() => signOut(auth)} onPreview={() => { setUser(null); signOut(auth); setView('public'); }} {...commonProps} />;
-
-    // Fallback
-    return <PublicSite {...commonProps} onPortal={(type) => { setLoginType(type); setView('login'); }} />;
+    if (!auth) throw new Error("Database offline. Use demo credentials.");
+    try { 
+      const res = await signInWithEmailAndPassword(auth, e, p);
+      // Ensure profile exists
+      const userDoc = await getDoc(doc(db, 'users', res.user.uid));
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, 'users', res.user.uid), {
+          id: res.user.uid,
+          email: e,
+          name: e.split('@')[0],
+          role: 'client',
+          joined: new Date().toISOString(),
+          status: 'Active'
+        });
+      }
+    }
+    catch (err) {
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+        const { createUserWithEmailAndPassword } = await import('firebase/auth');
+        const res = await createUserWithEmailAndPassword(auth, e, p);
+        await setDoc(doc(db, 'users', res.user.uid), {
+          id: res.user.uid,
+          email: e,
+          name: e.split('@')[0],
+          role: 'client',
+          joined: new Date().toISOString(),
+          status: 'Active'
+        });
+      } else throw err;
+    }
   };
+
+  if (authLoading) return (
+    <div style={{ background: '#1A1410', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#C8A96E', fontFamily: 'Inter' }}>
+      <div className="pulse" style={{ fontSize: '1.2rem', letterSpacing: '4px', textTransform: 'uppercase' }}>Authenticating</div>
+      <div style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>Securing Glasstech Gateway...</div>
+    </div>
+  );
 
   return (
     <div className="lxf-platform">
-      {renderCurrentView()}
+      <Routes>
+        <Route path="/" element={
+          <PublicSite 
+            {...commonProps} 
+            onPortal={(type) => { setLoginType(type); navigate('/login'); }} 
+            onLogoUpload={logoUpload}
+          />
+        } />
+
+        <Route path="/login" element={
+          <LoginPage 
+            brand={brand} 
+            type={loginType} 
+            onBootstrap={migrateToFirebase} 
+            onBack={() => navigate('/')}
+            onLogin={loginHandler}
+            {...commonProps}
+          />
+        } />
+
+        <Route path="/admin/*" element={
+          user?.role === 'admin' ? (
+            <AdminPortal 
+              user={user} 
+              onLogout={handleLogout} 
+              onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+              onLogoUpload={logoUpload}
+              onThemeChange={async (t) => {
+                setBrand(prev => ({ ...prev, theme: t }));
+                if (db) await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
+              }}
+              {...commonProps} 
+            />
+          ) : <Navigate to="/login" />
+        } />
+
+        <Route path="/portal/*" element={
+          user?.role === 'client' ? (
+            <ClientPortal 
+              client={clients.find(c => c.email === user.email) || user} 
+              onLogout={handleLogout} 
+              onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+              {...commonProps} 
+            />
+          ) : <Navigate to="/login" />
+        } />
+      </Routes>
+
       {notification && (
-        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, padding: '12px 24px', borderRadius: 100, background: notification.type === 'error' ? '#EF4444' : '#1A1410', color: '#fff', fontSize: 13, boxShadow: '0 8px 32px rgba(0,0,0,.15)' }}>
+        <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 10000, padding: '12px 24px', borderRadius: 100, background: notification.type === 'error' ? '#EF4444' : '#1A1410', color: '#fff', fontSize: 13, boxShadow: '0 8px 32px rgba(0,0,0,.15)' }}>
            {notification.msg}
         </div>
       )}
     </div>
   );
 }
+

@@ -17,6 +17,7 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
     { id: 'bookings', label: 'Bookings', icon: <Calendar size={18} /> },
     { id: 'email', label: 'Email Center', icon: <Mail size={18} /> },
     { id: 'staff', label: 'Staff Management', icon: <Users size={18} /> },
+    { id: 'system', label: 'System Hub', icon: <Settings size={18} /> },
   ];
 
   return (
@@ -62,8 +63,15 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
                       <div className="lxf" style={{ fontSize: 13, fontWeight: 700 }}>4 In-Transit</div>
                    </div>
                 </div>
+                <button 
+                  onClick={() => setView('system')} 
+                  className="p-btn-gold lxf" 
+                  style={{ padding: '8px 16px', fontSize: 11, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6, background: '#1A1410', color: ac }}
+                >
+                  <Settings size={14} /> Reset Platform Data
+                </button>
                 <NotificationBell notifications={userNotifications} onMarkRead={markNotificationRead} />
-                <button onClick={onPreview} className="p-btn-light lxf" style={{ padding: '8px 16px', fontSize: 11, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} /> Preview</button>
+                <button onClick={onPreview} className="p-btn-light lxf" style={{ padding: '8px 16px', fontSize: 11, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6 }}><Eye size={14} /> Preview Site</button>
                 <div style={{ width: 36, height: 36, borderRadius: '50%', background: `${ac}22`, border: `1.5px solid ${ac}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: ac, fontSize: 12 }}>{user?.name?.slice(0, 2).toUpperCase() || 'AD'}</div>
               </div>
             </div>
