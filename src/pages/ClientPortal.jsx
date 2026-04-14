@@ -4,7 +4,7 @@ import {
   Calendar, FolderOpen, Check, Lock, X, Printer, Camera,
   Eye, MessageSquare, Image, ThumbsUp, ThumbsDown, Plus, 
   AlertTriangle, FileText, Target, Moon, Sun, ShoppingCart, 
-  Truck, Sparkles, Globe, CheckSquare
+  Truck, Sparkles, Globe, CheckSquare, ShieldCheck
 } from 'lucide-react';
 import { 
   Av, SBadge, Modal, FF as PFormField, PAv, PSBadge,
@@ -60,7 +60,7 @@ function PaystackPayModal({ invoice, brand, onClose, onSuccess }) {
 
         <div style={{ marginBottom: 24 }}>
            <PFormField label="Email Address"><input className="p-inp" placeholder="client@example.com" value={email} onChange={e => setEmail(e.target.value)} /></PFormField>
-           <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>Secure processing for Luxespace partners via Paystack.</p>
+           <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>Secure processing for Glasstech partners via Paystack.</p>
         </div>
 
         <button onClick={pay} disabled={step === 'processing'} className="p-btn-dark lxf" style={{ width: '100%', padding: '16px', background: '#000', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
@@ -150,13 +150,15 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
   const [paidIds, setPaidIds] = useState([]);
 
   const tabs = [
-    { id: 'hub', label: 'Project Hub', icon: <Target size={16} /> }, 
-    { id: 'timeline', label: 'Timeline', icon: <Calendar size={16} /> }, 
-    { id: 'materials', label: 'Materials Approval', icon: <Sparkles size={16} /> },
-    { id: 'shipments', label: 'Logistics Tracker', icon: <Truck size={16} /> },
-    { id: 'gallery', label: 'Gallery', icon: <Image size={16} /> },
-    { id: 'financials', label: 'Invoices', icon: <FileText size={16} /> }, 
-    { id: 'book', label: 'Book a Session', icon: <Calendar size={16} /> }
+    { id: 'hub', label: 'Dashboard', icon: <Target size={18} /> }, 
+    { id: 'timeline', label: 'Milestones', icon: <Calendar size={18} /> }, 
+    { id: 'documents', label: 'Document Safe', icon: <FileText size={18} /> },
+    { id: 'materials', label: 'Material Center', icon: <Sparkles size={18} /> },
+    { id: 'shipments', label: 'Global Tracker', icon: <Truck size={18} /> },
+    { id: 'gallery', label: 'Site Media', icon: <Image size={18} /> },
+    { id: 'financials', label: 'Finance Hub', icon: <CreditCard size={18} /> }, 
+    { id: 'book', label: 'Support', icon: <MessageSquare size={18} /> },
+    { id: 'security', label: 'Security', icon: <ShieldCheck size={18} /> }
   ];
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -168,100 +170,191 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         const pendingMat = myMaterials.filter(m => m.status === 'pending');
         const activeShip = myProcurements.filter(p => p.isShipment || p.status === 'Shipped').slice(0, 1);
         const nextInv = myInvs.filter(i => i.status !== 'Paid' && !paidIds.includes(i.id))[0];
+        const pulse = calculateProjectPulse(selectedProjectId || myProj?.id);
 
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {/* HERO PULSE */}
-            <div className="p-card pulse-shadow" style={{ padding: '40px 32px', background: 'var(--card-bg)', color: 'var(--fg)', position: 'relative', overflow: 'hidden' }}>
-               <div style={{ position: 'absolute', top: 0, right: 0, width: '40%', height: '100%', background: `linear-gradient(90deg, transparent, ${ac}05)` }} />
-               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 2 }}>
-                  <div>
-                    <div className="eyebrow" style={{ color: ac, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Target size={14} /> Global Pulse</div>
-                    <div className="lxfh" style={{ fontSize: 72, margin: 0, lineHeight: 1 }}>{calculateProjectPulse(selectedProjectId || myProj.id)}%</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                     <div style={{ fontSize: 11, color: ac, fontWeight: 800 }}>CURRENT STAGE</div>
-                     <div className="lxfh" style={{ fontSize: 24, margin: 0 }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
-                     <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 4 }}>Exp. Handover: {props.getSLA(myProj).date}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            {/* KPI GRID */}
+            <div className="kpi-grid">
+               <div className="kpi-card pulse-card">
+                  <div className="kpi-label">Project Completion</div>
+                  <div className="kpi-value">{pulse}%</div>
+                  <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 12 }}>
+                     <div style={{ width: `${pulse}%`, height: '100%', background: ac, borderRadius: 2 }} />
                   </div>
                </div>
-               <div className="prog" style={{ height: 12, background: 'var(--bg)', borderRadius: 10, margin: '32px 0 12px', position: 'relative', zIndex: 2 }}>
-                  <div className="prog-f pulse" style={{ width: `${calculateProjectPulse(selectedProjectId || myProj.id)}%`, background: ac, borderRadius: 10 }} />
+               <div className="kpi-card">
+                  <div className="kpi-label">Current Stage</div>
+                  <div className="kpi-value" style={{ fontSize: 20 }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
+                  <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 8 }}>Handover: {props.getSLA(myProj).date}</div>
+               </div>
+               <div className="kpi-card">
+                  <div className="kpi-label">Financial Status</div>
+                  <div className="kpi-value" style={{ fontSize: 20, color: nextInv ? '#EF4444' : '#16A34A' }}>{nextInv ? 'Payment Due' : 'All Clear'}</div>
+                  <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 8 }}>{nextInv ? nextInv.amount : 'No outstanding balances'}</div>
                </div>
             </div>
 
             <div className="hub-grid">
                {/* MAIN COLUMN */}
                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  {/* LOGISTICS SNAPSHOT */}
+                  {/* LIVE OPERATIONS STATUS */}
                   <div className="p-card" style={{ padding: 24 }}>
                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={18} color={ac} /> Logistics Snapshot</h3>
-                        <button onClick={() => setTab('shipments')} className="lxf" style={{ fontSize: 12, background: 'none', border: 'none', color: ac, cursor: 'pointer' }}>View All →</button>
+                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={18} color={ac} /> Operations & Logistics</h3>
+                        <button onClick={() => setTab('shipments')} className="lxf" style={{ fontSize: 12, background: 'none', border: 'none', color: ac, cursor: 'pointer', fontWeight: 700 }}>Tracker Hub →</button>
                      </div>
                      {activeShip.length > 0 ? (
-                        <div style={{ background: 'var(--bg)', padding: 20, borderRadius: 16 }}>
+                        <div style={{ background: 'var(--bg)', padding: 20, borderRadius: 16, border: '1px solid var(--border)' }}>
                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
                               <div style={{ fontWeight: 700 }}>{activeShip[0].itemName || activeShip[0].item}</div>
-                              <div style={{ fontSize: 13, color: ac, fontWeight: 700 }}>{activeShip[0].status}</div>
+                              <div style={{ fontSize: 11, background: ac+'20', color: ac, padding: '4px 8px', borderRadius: 4, fontWeight: 700 }}>{activeShip[0].status.toUpperCase()}</div>
                            </div>
-                           <div style={{ fontSize: 12, color: 'var(--dim)' }}>ETA: {activeShip[0].eta || 'Calculating...'}</div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--dim)' }}>
+                              <Globe size={14} /> Origin: {activeShip[0].source}
+                              <span style={{ opacity: 0.3 }}>|</span>
+                              <Calendar size={14} /> Est: {activeShip[0].eta || 'Pending'}
+                           </div>
                         </div>
-                     ) : <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', background: 'var(--bg)', borderRadius: 16 }}>No active shipments in transit.</div>}
+                     ) : (
+                        <div style={{ background: 'var(--bg)', padding: 32, borderRadius: 16, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>
+                           No active shipments currently in transit.
+                        </div>
+                     )}
                   </div>
 
-                  {/* PROCUREMENT ACTIONS */}
+                  {/* ACTION PENDING */}
                   <div className="p-card" style={{ padding: 24 }}>
                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><Sparkles size={18} color={ac} /> Design & Material Approvals</h3>
-                        <button onClick={() => setTab('materials')} className="lxf" style={{ fontSize: 12, background: 'none', border: 'none', color: ac, cursor: 'pointer' }}>View All →</button>
+                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><CheckSquare size={18} color={ac} /> Action Required</h3>
                      </div>
                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {pendingMat.length > 0 ? pendingMat.map(m => (
-                           <div key={m.id} className="action-card" style={{ padding: 16, background: 'var(--bg)', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ fontSize: 14, fontWeight: 600 }}>{m.name}</div>
-                              <button onClick={() => setTab('materials')} className="p-btn-gold lxf" style={{ padding: '6px 12px', fontSize: 10 }}>Review & Approve</button>
+                           <div key={m.id} className="glass-matrix" style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                                 <div style={{ width: 48, height: 48, borderRadius: 8, background: 'var(--bg)', overflow: 'hidden' }}>
+                                    <img src={m.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                 </div>
+                                 <div>
+                                    <div style={{ fontSize: 14, fontWeight: 700 }}>{m.name} Approval</div>
+                                    <div style={{ fontSize: 11, color: 'var(--dim)' }}>Technical specification review required</div>
+                                 </div>
+                              </div>
+                              <button onClick={() => setTab('materials')} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 8 }}>Review Specs</button>
                            </div>
-                        )) : <div style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)', background: 'var(--bg)', borderRadius: 16 }}>All procurement items are approved.</div>}
+                        )) : (
+                           <div style={{ background: 'var(--bg)', padding: 32, borderRadius: 16, textAlign: 'center', color: '#16A34A', fontSize: 14 }}>
+                              <CheckCircle size={24} style={{ marginBottom: 8 }} />
+                              <div>All item specifications are currently approved.</div>
+                           </div>
+                        )}
                      </div>
                   </div>
                </div>
 
                {/* SIDE COLUMN */}
                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  {/* FINANCIAL HUB */}
-                  <div className="p-card" style={{ padding: 24 }}>
-                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Financial Pulse</h3>
-                     {nextInv ? (
-                        <div style={{ textAlign: 'center' }}>
-                           <div style={{ fontSize: 32, fontWeight: 300, marginBottom: 8 }}>{nextInv.amount}</div>
-                           <div style={{ fontSize: 11, color: 'var(--dim)', textTransform: 'uppercase', marginBottom: 16 }}>Next Payment Due</div>
-                           <button onClick={() => setPayModal(nextInv)} className="p-btn-dark lxf" style={{ width: '100%', padding: '12px', borderRadius: 10 }}>Pay Now</button>
-                        </div>
-                     ) : (
-                        <div style={{ textAlign: 'center', color: '#16A34A' }}>
-                           <CheckCircle size={32} style={{ marginBottom: 12 }} />
-                           <div style={{ fontSize: 14, fontWeight: 700 }}>Account is Clear</div>
-                        </div>
-                     )}
+                  {/* RECENT ACTIVITY FEED */}
+                  <div className="p-card" style={{ padding: 24, background: 'var(--bg-alt)' }}>
+                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <MessageSquare size={18} color={ac} /> Recent Site Activity
+                     </h3>
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {(props.notes || []).filter(n => n.parentId === (selectedProjectId || myProj?.id)).slice(0, 5).map(note => (
+                           <div key={note.id} style={{ display: 'flex', gap: 12 }}>
+                              <div style={{ flexShrink: 0 }}><PAv i={note.author?.[0] || 'A'} s={32} c={ac} /></div>
+                              <div>
+                                 <div style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--fg)' }}>{note.text}</div>
+                                 <div style={{ fontSize: 10, color: 'var(--dim)', marginTop: 4 }}>{new Date(note.createdAt).toLocaleDateString()} • {note.author || 'Project Lead'}</div>
+                              </div>
+                           </div>
+                        ))}
+                        {(props.notes || []).filter(n => n.parentId === (selectedProjectId || myProj?.id)).length === 0 && (
+                           <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>
+                              No recent updates posted.
+                           </div>
+                        )}
+                     </div>
                   </div>
 
-                  {/* PROJECT MANAGER */}
-                  <div className="p-card" style={{ padding: 24, background: ac, color: '#1A1410' }}>
-                     <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 }}>
-                        <Av i={TEAM_MEMBERS[0].av} s={40} />
+                  {/* FINANCIAL PULSE */}
+                  <div className="p-card" style={{ padding: 24 }}>
+                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Account Summary</h3>
+                     {nextInv ? (
+                        <div style={{ background: 'rgba(239, 68, 68, 0.05)', padding: 24, borderRadius: 16, textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
+                           <div style={{ fontSize: 32, fontWeight: 300, marginBottom: 4, fontFamily: 'var(--font-h)' }}>{nextInv.amount}</div>
+                           <div style={{ fontSize: 11, color: '#EF4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: 20 }}>Payment Outstanding</div>
+                           <button onClick={() => setPayModal(nextInv)} className="p-btn-dark lxf" style={{ width: '100%', padding: '14px', borderRadius: 10 }}>Complete Checkout</button>
+                        </div>
+                     ) : (
+                        <div style={{ background: 'rgba(22, 163, 74, 0.05)', padding: 24, borderRadius: 16, textAlign: 'center', border: '1px solid rgba(22, 163, 74, 0.1)' }}>
+                           <CheckCircle size={32} color="#16A34A" style={{ marginBottom: 12 }} />
+                           <div style={{ fontSize: 15, fontWeight: 700, color: '#16A34A' }}>Account Up to Date</div>
+                        </div>
+                     )}
+                     <button onClick={() => setTab('financials')} className="lxf" style={{ width: '100%', marginTop: 16, background: 'none', border: 'none', fontSize: 12, color: ac, fontWeight: 700, cursor: 'pointer' }}>View Transaction History →</button>
+                  </div>
+
+                  {/* PROJECT TEAM */}
+                  <div className="p-card" style={{ padding: 24, background: '#1A1410', color: '#fff' }}>
+                     <h3 className="lxfh" style={{ fontSize: 16, marginBottom: 20, color: ac }}>Assigned Expert</h3>
+                     <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
+                        <PAv i={TEAM_MEMBERS[0].av} s={52} c={ac} />
                         <div>
-                           <div style={{ fontWeight: 800, fontSize: 14 }}>{TEAM_MEMBERS[0].name}</div>
-                           <div style={{ fontSize: 11, opacity: 0.8 }}>Project Architect</div>
+                           <div style={{ fontWeight: 800, fontSize: 15 }}>{TEAM_MEMBERS[0].name}</div>
+                           <div style={{ fontSize: 12, opacity: 0.6 }}>Project Architect</div>
                         </div>
                      </div>
-                     <button className="p-btn-dark lxf" style={{ width: '100%', padding: 12, background: '#1A1410', borderRadius: 10 }}>WhatsApp Architect</button>
+                     <button className="p-btn-dark" style={{ width: '100%', padding: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 13 }}>Send Message</button>
                   </div>
                </div>
             </div>
           </div>
         );
       }
+      case 'documents': {
+        const myProjProposals = proposals.filter(p => p.projectId === selectedProjectId || p.id === activeProject?.id);
+        const myProjInvoices = myInvs;
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <div className="p-card" style={{ padding: 32 }}>
+               <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Document Safe</h2>
+               <p style={{ color: 'var(--dim)', marginBottom: 32 }}>Secure access to all project proposals, contracts, and financial receipts.</p>
+
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div className="eyebrow" style={{ color: ac, fontSize: 11, fontWeight: 800 }}>PROPOSALS & CONTRACTS</div>
+                  {myProjProposals.length > 0 ? myProjProposals.map(p => (
+                    <div key={p.id} className="doc-card">
+                       <div className="doc-icon"><FileText size={20} /></div>
+                       <div>
+                          <div style={{ fontWeight: 700, fontSize: 15 }}>{p.title || 'Project Proposal'}</div>
+                          <div style={{ fontSize: 12, color: 'var(--dim)' }}>Issued: {p.date || 'TBD'} • Status: <SBadge s={p.status} /></div>
+                       </div>
+                       <button className="glass-btn" style={{ padding: '8px 16px', fontSize: 12 }}>View Document</button>
+                    </div>
+                  )) : <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>No proposals found for this project.</div>}
+
+                  <div className="eyebrow" style={{ color: ac, fontSize: 11, fontWeight: 800, marginTop: 24 }}>FINANCIAL INVOICES</div>
+                  {myProjInvoices.length > 0 ? myProjInvoices.map(i => (
+                    <div key={i.id} className="doc-card">
+                       <div className="doc-icon"><CreditCard size={20} /></div>
+                       <div>
+                          <div style={{ fontWeight: 700, fontSize: 15 }}>{i.title}</div>
+                          <div style={{ fontSize: 12, color: 'var(--dim)' }}>Due: {i.due} • Amount: {i.amount}</div>
+                       </div>
+                       <div style={{ display: 'flex', gap: 8 }}>
+                          <PAv i={<Download size={14} />} s={32} />
+                          {i.status !== 'Paid' && <button onClick={() => setPayModal(i)} className="p-btn-gold" style={{ padding: '4px 12px', fontSize: 11 }}>Pay Now</button>}
+                       </div>
+                    </div>
+                  )) : <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>No invoices issued yet.</div>}
+               </div>
+            </div>
+          </div>
+        );
+      }
+
       case 'materials':
         return (
           <MaterialSelector 
@@ -273,51 +366,79 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         );
       case 'shipments':
         return (
-          <div className="p-card" style={{ padding: 32 }}>
-            <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 32 }}>Logistics Tracker</h3>
+          <div className="p-card" style={{ padding: 40 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
+               <div>
+                  <h3 className="lxfh" style={{ fontSize: 28, margin: 0 }}>Global Logistics Tracker</h3>
+                  <p style={{ color: 'var(--dim)', margin: '8px 0 0' }}>Real-time oversight of your architectural imports and local procurement.</p>
+               </div>
+               <div style={{ background: ac+'10', color: ac, padding: '12px 20px', borderRadius: 12, border: '1px solid '+ac+'20', textAlign: 'right' }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>Active Shipments</div>
+                  <div style={{ fontSize: 24, fontWeight: 700 }}>{myProcurements.filter(p => (p.isShipment || p.status === 'Shipped') && p.status !== 'Received').length}</div>
+               </div>
+            </div>
+
             {myProcurements.filter(p => p.isShipment || p.status === 'Shipped' || p.status === 'Received').map(p => (
-              <div key={p.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: 32, marginBottom: 32 }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <div style={{ fontSize: 18, fontWeight: 700 }}>{p.item || p.itemName}</div>
-                    <div style={{ textAlign: 'right' }}><div style={{ fontSize: 11, color: 'var(--muted)' }}>ETA</div><div style={{ fontWeight: 700, color: ac }}>{p.eta || 'TBD'}</div></div>
+              <div key={p.id} className="glass-matrix" style={{ padding: 32, marginBottom: 24, border: '1px solid var(--border)' }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
+                    <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+                       <div style={{ width: 56, height: 56, background: '#1A1410', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Truck size={24} color={ac} />
+                       </div>
+                       <div>
+                          <div style={{ fontSize: 20, fontWeight: 800 }}>{p.item || p.itemName}</div>
+                          <div style={{ fontSize: 12, color: 'var(--dim)' }}>Ref: {p.id} • Container: {p.container || 'Internal'}</div>
+                       </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                       <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 800 }}>ESTIMATED HANDOVER</div>
+                       <div style={{ fontSize: 18, fontWeight: 700, color: ac }}>{p.eta || 'Calculating...'}</div>
+                    </div>
                  </div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', marginBottom: p.signature ? 32 : 0 }}>
-                    <div style={{ position: 'absolute', top: 12, left: 0, right: 0, height: 2, background: 'var(--border)' }} />
-                    {['Ordered', 'Shipped', 'Customs', 'Transit', 'Ready'].map((st, i) => (
-                      <div key={st} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, position: 'relative' }}>
-                         <div style={{ width: 24, height: 24, borderRadius: '50%', background: p.status === st || (st === 'Ready' && p.status === 'Received') ? ac : 'var(--bg)', border: `2px solid ${p.status === st || (st === 'Ready' && p.status === 'Received') ? ac : 'var(--border)'}` }} />
-                         <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 600 }}>{st}</span>
-                      </div>
-                    ))}
+
+                 {/* VISUAL TRACKER */}
+                 <div style={{ position: 'relative', height: 40, marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ position: 'absolute', top: '50%', left: 24, right: 24, height: 2, background: 'var(--border)', zIndex: 1 }} />
+                    <div style={{ position: 'absolute', top: '50%', left: 24, right: 24, height: 2, background: ac, width: p.status === 'Received' ? '100%' : (p.status === 'Transit' ? '75%' : (p.status === 'Shipped' ? '50%' : '25%')), zIndex: 2, transition: 'width 1s ease' }} />
+                    
+                    {['Ordered', 'Shipped', 'Customs', 'Transit', 'Ready'].map((st) => {
+                       const isDone = (p.status === 'Received' || st === p.status || (p.status === 'Transit' && (st === 'Ordered' || st === 'Shipped' || st === 'Customs')) || (p.status === 'Shipped' && (st === 'Ordered')));
+                       return (
+                        <div key={st} style={{ position: 'relative', zIndex: 3, background: 'var(--bg)', padding: '0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                           <div style={{ width: 14, height: 14, borderRadius: '50%', background: isDone ? ac : 'var(--bg)', border: `3px solid ${isDone ? ac : 'var(--border)'}`, boxShdow: isDone ? `0 0 10px ${ac}60` : 'none' }} />
+                           <span style={{ fontSize: 10, fontWeight: isDone ? 700 : 500, color: isDone ? 'var(--fg)' : 'var(--muted)', textTransform: 'uppercase' }}>{st}</span>
+                        </div>
+                       );
+                    })}
                  </div>
+
                  {p.signature && (
-                    <div className="fade-in" style={{ background: 'var(--bg)', padding: 16, borderRadius: 12, border: `1px solid ${ac}30`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                       <div>
-                          <div style={{ fontSize: 11, color: ac, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4 }}>Proof of Site Delivery</div>
-                          <div style={{ fontSize: 13, fontWeight: 600 }}>Handover Confirmed</div>
-                          <div style={{ fontSize: 10, color: 'var(--dim)' }}>Signed on: {new Date(p.handoverAt).toLocaleString()}</div>
+                    <div style={{ background: 'rgba(22,163,74,0.05)', padding: 20, borderRadius: 12, border: '1px solid rgba(22,163,74,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                          <CheckCircle size={20} color="#16A34A" />
+                          <div>
+                             <div style={{ fontSize: 13, fontWeight: 700 }}>Confirmed Site Delivery</div>
+                             <div style={{ fontSize: 11, color: 'var(--dim)' }}>Handed over to client agent at site coordinates.</div>
+                          </div>
                        </div>
-                       <div style={{ textAlign: 'right' }}>
-                          <img src={p.signature} style={{ height: 64, opacity: 0.9, filter: theme === 'dark' ? 'invert(1) brightness(2)' : 'none' }} alt="signature" />
-                          <div style={{ fontSize: 9, color: 'var(--muted)', marginTop: 4, textTransform: 'uppercase', letterSpacing: '.1em' }}>Digital Receipt</div>
+                       <img src={p.signature} style={{ height: 48, filter: theme === 'dark' ? 'invert(1)' : 'none' }} alt="sig" />
+                    </div>
+                 )}
+
+                 {p.factoryPhoto && p.status === 'production' && (
+                    <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: 200, marginTop: 12 }}>
+                       <img src={p.factoryPhoto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', display: 'flex', alignItems: 'flex-end', padding: 20 }}>
+                          <div>
+                             <div style={{ fontSize: 10, fontWeight: 800, color: ac, textTransform: 'uppercase' }}>Factory Insight</div>
+                             <div style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>Manufacturing verification photo logged</div>
+                          </div>
                        </div>
                     </div>
-                  )}
-                  {p.factoryPhoto && p.status === 'production' && (
-                    <div className="fade-in" style={{ marginTop: 16, background: '#1A1410', padding: 20, borderRadius: 16, display: 'flex', gap: 20, alignItems: 'center' }}>
-                       <div style={{ width: 80, height: 80, borderRadius: 12, overflow: 'hidden' }}>
-                          <img src={p.factoryPhoto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="factory" />
-                       </div>
-                       <div>
-                          <div style={{ fontSize: 10, color: ac, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Factory Production Evidence</div>
-                          <div style={{ fontSize: 14, color: '#fff', fontWeight: 600 }}>Manufacturing Process Logged</div>
-                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.5)', marginTop: 4 }}>Your item is currently being fabricated at our facility.</div>
-                       </div>
-                    </div>
-                  )}
+                 )}
               </div>
             ))}
-            {myProcurements.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: 40 }}>No global shipments currently tracked.</div>}
+            {myProcurements.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: 80 }}>Secure procurement systems are active. No shipments currently tracked.</div>}
           </div>
         );
       case 'timeline':
@@ -393,54 +514,95 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         );
       case 'book':
         return <ClientBookingView brand={brand} clientEmail={client.email} />;
+      case 'security':
+        return (
+          <div className="p-card fade-in" style={{ padding: 48, maxWidth: 600, margin: '0 auto' }}>
+             <div style={{ textAlign: 'center', marginBottom: 40 }}>
+                <div style={{ width: 64, height: 64, borderRadius: 20, background: `${ac}15`, color: ac, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                   <ShieldCheck size={32} />
+                </div>
+                <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: '#1A1410' }}>Account Security</h2>
+                <p className="lxf" style={{ fontSize: 14, color: '#B5AFA9', marginTop: 8 }}>Manage your access credentials and primary contact</p>
+             </div>
+             
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                <div style={{ padding: 24, background: 'var(--bg-alt)', borderRadius: 16, border: `1px solid var(--border)` }}>
+                   <div className="lxf" style={{ fontSize: 11, fontWeight: 700, color: ac, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>Verified WhatsApp Key</div>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="lxfh" style={{ fontSize: 18 }}>{client.phone || 'Not Verified'}</div>
+                      <div className="lxf" style={{ fontSize: 11, background: '#16A34A15', color: '#16A34A', padding: '4px 10px', borderRadius: 4, fontWeight: 700 }}>VERIFIED</div>
+                   </div>
+                   <p className="lxf" style={{ fontSize: 12, color: 'var(--dim)', marginTop: 12 }}>This number is used for all one-time password (OTP) authorizations.</p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                   <PFormField label="Login Email (Alias)"><input className="p-inp" value={client.email} disabled /></PFormField>
+                   <PFormField label="Change Backup Password"><input className="p-inp" type="password" placeholder="Enter new password" /></PFormField>
+                   <button className="p-btn-gold" style={{ padding: '14px', marginTop: 12 }}>Update Security Profile</button>
+                </div>
+             </div>
+          </div>
+        );
       default: return null;
     }
   };
 
   return (
-    <div className={`lxf lx-scroll ${theme === 'dark' ? 'dark-theme' : ''}`} style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--fg)', transition: 'all 0.5s cubic-bezier(0.19, 1, 0.22, 1)' }}>
-      <div style={{ background: 'var(--card-bg)', borderBottom: '1px solid var(--border)', padding: '0 32px', height: 72, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 24 }}>{brand.name}</div>}
+    <div className={`portal-layout lxf ${theme === 'dark' ? 'dark-theme' : ''}`} style={{ transition: 'all 0.5s cubic-bezier(0.19, 1, 0.22, 1)' }}>
+      {/* SIDEBAR */}
+      <div className="portal-sidebar">
+        <div style={{ padding: '32px 24px', marginBottom: 20 }}>
+           {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700 }}>{brand.name}</div>}
         </div>
-        
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <button onClick={toggleTheme} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--dim)', padding: 8 }}>
-            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-          </button>
-          <NotificationBell notifications={props.notifications} onMarkRead={props.markNotificationRead} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <PAv i={client?.av} s={36} c={ac} />
-            <div style={{ display: 'none', md: 'block' }}>
-               <div style={{ fontSize: 13, fontWeight: 700 }}>{client?.name}</div>
-               <div style={{ fontSize: 11, color: 'var(--dim)' }}>{client?.email}</div>
-            </div>
-          </div>
-          <button onClick={onLogout} style={{ background: 'none', border: 'none', color: 'var(--dim)', cursor: 'pointer' }}><LogOut size={20} /></button>
-        </div>
-      </div>
 
-      <div style={{ height: 60, background: 'var(--card-bg)', borderBottom: '1px solid var(--border)', display: 'flex', padding: '0 32px', overflowX: 'auto', gap: 0 }}>
-         {tabs.map(t => (
-           <button key={t.id} onClick={() => setTab(t.id)} className={`p-tab lxf ${tab === t.id ? 'active' : ''}`} style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}>
-              {t.icon} {t.label}
+        <nav style={{ flex: 1 }}>
+          {tabs.map(t => (
+            <button 
+              key={t.id} 
+              onClick={() => setTab(t.id)} 
+              className={`portal-sidebar-item ${tab === t.id ? 'active' : ''}`}
+            >
+              {t.icon} <span className="n-label">{t.label}</span>
+            </button>
+          ))}
+        </nav>
+
+        <div style={{ padding: 24, borderTop: '1px solid var(--border)' }}>
+           <button onClick={toggleTheme} className="portal-sidebar-item" style={{ padding: '12px 0' }}>
+             {theme === 'light' ? <><Moon size={18} /> Dark Mode</> : <><Sun size={18} /> Light Mode</>}
            </button>
-         ))}
+           <button onClick={onLogout} className="portal-sidebar-item" style={{ padding: '12px 0', color: '#EF4444' }}>
+             <LogOut size={18} /> Logout
+           </button>
+        </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px' }}>
-        {myProjects.length > 1 && (
-           <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--dim)' }}>Switch Project:</span>
-              <select className="p-inp" style={{ width: 240, border: 'none', background: 'var(--card-bg)', fontSize: 14, fontWeight: 600, color: ac }} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}>
-                 {myProjects.map(p => <option key={p.id} value={p.id}>{p.title || p.project}</option>)}
+      {/* MAIN CONTENT AREA */}
+      <div className="portal-content lx-scroll">
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+          <div>
+            <h1 className="lxfh" style={{ fontSize: 32, margin: 0 }}>Portal Hub</h1>
+            <p style={{ color: 'var(--dim)', margin: 0 }}>Welcome back, {client?.name}</p>
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {myProjects.length > 1 && (
+              <select className="p-inp" style={{ width: 220, background: 'var(--card-bg)' }} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}>
+                {myProjects.map(p => <option key={p.id} value={p.id}>{p.title || p.project}</option>)}
               </select>
-           </div>
-        )}
-        {renderContent()}
+            )}
+            <NotificationBell notifications={props.notifications} onMarkRead={props.markNotificationRead} />
+            <PAv i={client?.av} s={40} c={ac} />
+          </div>
+        </header>
+
+        <div className="fade-in">
+          {renderContent()}
+        </div>
       </div>
 
       {payModal && <PaystackPayModal invoice={payModal} brand={brand} onClose={() => setPayModal(null)} onSuccess={(id) => { setPaidIds([...paidIds, id]); props.payInvoice(id, selectedProjectId); }} />}
     </div>
   );
 }
+

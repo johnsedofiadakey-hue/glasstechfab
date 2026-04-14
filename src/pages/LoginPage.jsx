@@ -1,79 +1,155 @@
 import React, { useState } from 'react';
-import { TEAM_MEMBERS, CLIENTS_DATA } from '../data';
+import { PAv, Spinner } from '../components/Shared';
+import { Smartphone, Send, ArrowRight, MessageSquare, ShieldCheck, Lock } from 'lucide-react';
 
-export default function LoginPage({ onLogin, onBack, brand, onBootstrap, type = 'client' }) {
+export default function LoginPage({ onLogin, onBack, brand, onBootstrap, type = 'client', ...props }) {
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
+  const [step, setStep] = useState(1); // 1: Phone, 2: OTP
+  const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
+  const [isAdminLogin, setIsAdminLogin] = useState(type === 'admin');
+
   const ac = brand.color || '#C8A96E';
 
-  const [loading, setLoading] = useState(false);
+  const handleRequestOTP = async () => {
+    if (!phone) return setErr('Please enter your WhatsApp number');
+    setLoading(true);
+    setErr('');
+    try {
+      await props.sendOTP(phone);
+      setStep(2);
+    } catch (e) {
+      setErr(e.message || 'Verification failed. Contact support.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const tryLogin = async () => {
+  const handleVerifyOTP = async () => {
+    if (!otp) return setErr('Please enter the 6-digit code');
+    setLoading(true);
+    setErr('');
+    try {
+      await props.verifyOTP(phone, otp);
+    } catch (e) {
+      setErr(e.message || 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdminLogin = async () => {
     setLoading(true);
     setErr('');
     try {
       await onLogin(email, pw);
     } catch (e) {
-      setErr(e.message || 'Invalid credentials.');
+      setErr('Invalid admin credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="lxf" style={{ minHeight: '100vh', background: '#F9F7F4', display: 'grid', gridTemplateColumns: '1fr 1fr', '--ac': ac }}>
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 72px', background: '#fff', borderRight: '1px solid rgba(0,0,0,.07)' }}>
-        <button onClick={onBack} className="lxf" style={{ background: 'none', border: 'none', color: '#B5AFA9', cursor: 'pointer', fontSize: 12, marginBottom: 56, display: 'flex', alignItems: 'center', gap: 6, padding: 0, letterSpacing: '.1em', textTransform: 'uppercase' }}>
-          ← Back to Site
-        </button>
-        {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 36, objectFit: 'contain', marginBottom: 36, objectPosition: 'left' }} />
-          : <div className="lxfh" style={{ fontSize: 28, fontWeight: 400, color: '#1A1410', marginBottom: 36 }}>{brand.name}</div>}
-        <div className="eyebrow lxf" style={{ marginBottom: 10 }}>{type === 'admin' ? 'Internal Management' : 'Project Registry'}</div>
-        <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300, color: '#1A1410', lineHeight: 1.1, marginBottom: 8 }}>{type === 'admin' ? <>Console<br />Access</> : <>Client<br />Portal</>}</h1>
-        <p className="lxf" style={{ fontSize: 14, color: '#B5AFA9', marginBottom: 36 }}>{type === 'admin' ? 'Sign in to the Glasstech operations hub' : 'Manage your installation, payments & feedback'}</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 10, color: '#484848', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 5 }}>Email Address</label>
-            <input className="p-inp lxf" placeholder="hello@company.com" value={email} onChange={e => setEmail(e.target.value)} style={{ fontSize: 14, padding: '12px 16px', width: '100%', border: '1px solid rgba(0,0,0,.1)', borderRadius: 8 }} />
-          </div>
-          <div style={{ marginBottom: 14 }}>
-            <label style={{ display: 'block', fontSize: 10, color: '#484848', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 5 }}>Password</label>
-            <input className="p-inp lxf" placeholder="••••••••" type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === 'Enter' && tryLogin()} style={{ fontSize: 14, padding: '12px 16px', width: '100%', border: '1px solid rgba(0,0,0,.1)', borderRadius: 8 }} />
-          </div>
-          {err && <div className="lxf" style={{ fontSize: 13, color: '#DC2626', padding: '10px 14px', background: 'rgba(220,38,38,.05)', borderRadius: 7, border: '1px solid rgba(220,38,38,.15)' }}>{err}</div>}
-          <button onClick={tryLogin} className="p-btn-gold lxf" style={{ padding: '14px', fontSize: 14, marginTop: 4, width: '100%', borderRadius: 8 }}>Sign In</button>
+    <div className="lxf" style={{ minHeight: '100vh', background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, '--ac': ac }}>
+      <div className="p-card" style={{ width: '100%', maxWidth: 440, padding: 48, borderRadius: 24, boxShadow: '0 24px 48px -12px rgba(26,20,16,0.08)' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+           {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 32, marginBottom: 24 }} />
+             : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: '#1A1410', marginBottom: 24 }}>{brand.name}</div>}
+           
+           {!isAdminLogin ? (
+             <>
+               <h1 className="lxfh" style={{ fontSize: 32, fontWeight: 300, color: '#1A1410', marginBottom: 8 }}>{step === 1 ? 'Client Access' : 'Verify Identity'}</h1>
+               <p className="lxf" style={{ fontSize: 14, color: '#B5AFA9' }}>
+                 {step === 1 ? 'Enter your registered WhatsApp number to receive a magic link.' : `We've sent a 6-digit code to ${phone}`}
+               </p>
+             </>
+           ) : (
+             <>
+               <h1 className="lxfh" style={{ fontSize: 32, fontWeight: 300, color: '#1A1410', marginBottom: 8 }}>Console Entry</h1>
+               <p className="lxf" style={{ fontSize: 14, color: '#B5AFA9' }}>Administrator terminal authentication</p>
+             </>
+           )}
         </div>
-        <div style={{ marginTop: 32, padding: '18px', background: '#F9F7F4', borderRadius: 10, border: '1px solid rgba(0,0,0,.07)' }}>
-          <div className="eyebrow lxf" style={{ marginBottom: 10, fontSize: 9 }}>Available Credentials</div>
-          {[
-            ['Management Access', 'admin@stormglide.com', 'admin123', 'admin'],
-            ['Studio Admin', 'admin@luxespace.com', 'admin123', 'admin'],
-            ['Client Portal', 'client@luxespace.com', 'client123', 'client']
-          ].filter(row => row[3] === type).map(([r, e, p]) => (
-            <div key={r} style={{ marginBottom: 7, cursor: 'pointer' }} onClick={() => { setEmail(e); setPw(p); }}>
-              <span className="lxf" style={{ fontSize: 10, color: '#B5AFA9', marginRight: 8, letterSpacing: '.08em' }}>{r}:</span>
-              <span className="lxf" style={{ fontSize: 11, color: '#7A6E62', fontFamily: 'monospace' }}>{e} / {p}</span>
+
+        {/* ERROR BOX */}
+        {err && (
+          <div className="fade-in" style={{ padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: 12, color: '#DC2626', fontSize: 13, marginBottom: 24, display: 'flex', gap: 10 }}>
+            <ShieldCheck size={16} /> {err}
+          </div>
+        )}
+
+        {/* LOGIN FORMS */}
+        {!isAdminLogin ? (
+          <div className="fade-in">
+             {step === 1 ? (
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }}><Smartphone size={18} /></div>
+                    <input 
+                      className="p-inp" 
+                      placeholder="+233 20 000 0000" 
+                      style={{ paddingLeft: 48, fontSize: 16, height: 56 }} 
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                    />
+                  </div>
+                  <button onClick={handleRequestOTP} disabled={loading} className="p-btn-gold" style={{ height: 56, fontSize: 15, fontWeight: 600, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                    {loading ? <Spinner /> : <><Send size={18} /> Send WhatsApp OTP</>}
+                  </button>
+               </div>
+             ) : (
+               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+                    <input 
+                      className="p-inp" 
+                      placeholder="Enter 6-digit code" 
+                      style={{ textAlign: 'center', fontSize: 24, letterSpacing: '8px', height: 64, fontWeight: 700 }} 
+                      maxLength="6"
+                      value={otp}
+                      onChange={e => setOtp(e.target.value)}
+                    />
+                  </div>
+                  <button onClick={handleVerifyOTP} disabled={loading} className="p-btn-dark" style={{ height: 56, fontSize: 15, fontWeight: 600, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, background: '#1A1410' }}>
+                    {loading ? <Spinner /> : <><ArrowRight size={18} /> Verify & Enter Portal</>}
+                  </button>
+                  <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: ac, fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>Try another number</button>
+               </div>
+             )}
+          </div>
+        ) : (
+          <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Admin ID</label>
+              <input className="p-inp" placeholder="admin@glasstechfab.com" value={email} onChange={e => setEmail(e.target.value)} />
             </div>
-          ))}
-          <div className="lxf" style={{ fontSize: 10, color: '#C0B9B0', marginTop: 6, fontStyle: 'italic' }}>Click any row to auto-fill credentials</div>
-          {onBootstrap && (
-            <button onClick={onBootstrap} className="lxf" style={{ background: 'none', border: '1px solid currentColor', color: ac, fontSize: 10, padding: '6px 12px', borderRadius: 4, marginTop: 12, cursor: 'pointer', opacity: .6 }}>Initialize Glasstech System</button>
-          )}
-        </div>
-      </div>
-      <div style={{ position: 'relative', overflow: 'hidden' }}>
-        <img src="https://images.unsplash.com/photo-1616137466211-f939a420be84?w=1200&q=80" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(160deg,rgba(26,20,16,.65) 0%,rgba(26,20,16,.3) 100%)' }} />
-        <div style={{ position: 'absolute', bottom: 52, left: 52, right: 52 }}>
-          <div className="eyebrow lxf" style={{ color: `${ac}`, marginBottom: 14 }}>Trusted by industrial developers</div>
-          <p className="lxfh" style={{ fontSize: 36, fontWeight: 300, color: '#F9F7F4', lineHeight: 1.3, marginBottom: 24 }}>"The platform that finally brings together every fabrication phase — with precision."</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 42, height: 42, borderRadius: '50%', background: `${ac}22`, border: `1.5px solid ${ac}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, color: ac, fontFamily: "'DM Sans',sans-serif" }}>KA</div>
-            <div><div className="lxf" style={{ fontSize: 13, fontWeight: 500, color: '#F9F7F4' }}>Kofi Asante</div><div className="lxf" style={{ fontSize: 12, color: 'rgba(249,247,244,.5)' }}>Operations Lead, Glasstech Fabrications</div></div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 8 }}>Password</label>
+              <input className="p-inp" type="password" placeholder="••••••••" value={pw} onChange={e => setPw(e.target.value)} />
+            </div>
+            <button onClick={handleAdminLogin} disabled={loading} className="p-btn-gold" style={{ height: 56, marginTop: 12 }}>
+              {loading ? <Spinner /> : 'Secure Entry'}
+            </button>
           </div>
+        )}
+
+        <div style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid #F0EBE5', textAlign: 'center' }}>
+          <button 
+            onClick={() => { setIsAdminLogin(!isAdminLogin); setStep(1); setErr(''); }} 
+            className="lxf" 
+            style={{ background: 'none', border: 'none', color: '#B5AFA9', fontSize: 13, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}
+          >
+            {isAdminLogin ? <><MessageSquare size={16} /> Switch to Client OTP</> : <><Lock size={16} /> Management Terminal</>}
+          </button>
         </div>
       </div>
+
+      {onBootstrap && !isAdminLogin && (
+        <button onClick={onBootstrap} style={{ position: 'fixed', bottom: 24, right: 24, background: 'none', border: `1px solid ${ac}40`, color: ac, borderRadius: 8, padding: '8px 16px', fontSize: 11, cursor: 'pointer', opacity: .5 }}>Initialize Data Ecosystem</button>
+      )}
     </div>
   );
 }

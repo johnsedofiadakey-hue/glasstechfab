@@ -25,6 +25,8 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
   const [activeProjectId, setActiveProjectId] = useState(null);
   const [tab, setTab] = useState('buying');
   const [showPrint, setShowPrint] = useState(null); // 'quote' or 'invoice'
+  const [newNote, setNewNote] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   // Mock materials for the project
   const [myMaterials, setMyMaterials] = useState([
@@ -170,10 +172,24 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' }}>
              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div className="p-card" style={{ padding: 24 }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                      <h3 className="lxfh" style={{ fontSize: 20 }}>Project Timeline</h3>
-                      <button className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 11 }}>Update Stage</button>
-                   </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                       <h3 className="lxfh" style={{ fontSize: 20 }}>Project Timeline</h3>
+                       <div style={{ display: 'flex', gap: 12 }}>
+                          {updating && <span className="lxf" style={{ fontSize: 11, color: ac, alignSelf: 'center' }}>Syncing Stage...</span>}
+                          <button 
+                            disabled={updating}
+                            onClick={async () => {
+                              setUpdating(true);
+                              const nextStage = Math.min((activeProject?.stage || 1) + 1, 12);
+                              await props.updateProject(activeProjectId, { stage: nextStage });
+                              setUpdating(false);
+                            }} 
+                            className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 11 }}
+                          >
+                            Advance to Stage {Math.min((activeProject?.stage || 1) + 1, 12)}
+                          </button>
+                       </div>
+                    </div>
                    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: 30 }}>
                       <div style={{ position: 'absolute', left: 9, top: 0, bottom: 0, width: 2, background: '#F0EBE5' }} />
                       {PROJECT_STAGES.map(s => {
@@ -342,9 +358,16 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                     <button onClick={() => setShowPrint('invoice')} className="p-btn-light" style={{ width: 36, height: 36, padding: 0 }}><Download size={16} /></button>
                   </div>
                 ))}
-                <div onClick={() => setShowPrint('quote')} className="p-card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, border: `1.5px dashed ${ac}40`, cursor: 'pointer' }}>
+                <div 
+                  onClick={() => props.setAI({ 
+                    clientName: client.name, 
+                    projectTitle: activeProject?.project, 
+                    projectId: activeProjectId 
+                  })} 
+                  className="p-card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, border: `1.5px dashed ${ac}40`, cursor: 'pointer' }}
+                >
                    <div style={{ width: 44, height: 44, borderRadius: 12, background: `${ac}10`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: ac }}><Plus size={20} /></div>
-                   <div className="lxf" style={{ fontSize: 14, color: ac }}>Generate New Proposal</div>
+                   <div className="lxf" style={{ fontSize: 14, color: ac }}>Generate AI Proposal Genesis</div>
                 </div>
              </div>
            </div>
@@ -352,11 +375,33 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
 
         {tab === 'chat' && (
           <div className="p-card" style={{ padding: 32 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-               <h3 className="lxfh" style={{ fontSize: 24 }}>Activity & Comms</h3>
-               <button className="p-btn-gold" style={{ padding: '8px 20px' }}>Post New Update</button>
-            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+               <div className="glass-panel" style={{ padding: 24 }}>
+                  <textarea 
+                    className="p-inp" 
+                    placeholder={`Post a new project update for ${client.name}...`} 
+                    style={{ background: 'none', border: 'none', width: '100%', height: 80, fontSize: 15, outline: 'none', resize: 'none' }}
+                    value={newNote}
+                    onChange={e => setNewNote(e.target.value)}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 16 }}>
+                     <button 
+                      disabled={!newNote.trim() || updating}
+                      onClick={async () => {
+                        setUpdating(true);
+                        await props.createNote(activeProjectId, {
+                          text: newNote,
+                          author: props.user?.name || 'Admin',
+                          type: 'update'
+                        });
+                        setNewNote('');
+                        setUpdating(false);
+                      }}
+                      className="p-btn-gold" style={{ padding: '10px 24px' }}
+                     >Post to Client Feed</button>
+                  </div>
+               </div>
+               
                {(props.notes || []).filter(n => n.parentId === activeProjectId).map(n => (
                  <div key={n.id} style={{ display: 'flex', gap: 16 }}>
                     <PAv i={n.author?.[0] || 'A'} s={40} c={ac} />

@@ -3,7 +3,8 @@ import {
   Sparkles, ArrowRight, ArrowLeft, Check, 
   Layers, Ruler, Palette, FileText, Send 
 } from 'lucide-react';
-import { PModal, FF as PFormField } from './Shared';
+import { PModal, FF as PFormField, Spinner } from './Shared';
+import { AIEngine } from '../lib/AIEngine';
 
 const PROJECT_TYPES = [
   { id: 'glass-partition', name: 'Glass Partitioning', base: 450, desc: 'Office or residential spatial separation' },
@@ -19,16 +20,31 @@ const FINISHES = [
   { id: 'low-iron', name: 'Ultra-Clear (Low Iron)', multi: 1.4 },
 ];
 
-export default function AIProposalGenerator({ open, onClose, onSubmit, brand }) {
+export default function AIProposalGenerator({ open, onClose, onSubmit, brand, initialData = {} }) {
   const [step, setStep] = useState(1);
   const [data, setData] = useState({
     type: 'glass-partition',
     dims: { width: 5, height: 2.5 },
     finish: 'std',
     hardware: 'premium-black',
-    clientName: '',
-    projectTitle: '',
+    clientName: initialData.clientName || '',
+    projectTitle: initialData.projectTitle || '',
+    projectId: initialData.projectId || null
   });
+  
+  // Update data when initialData changes (if modal is reused)
+  React.useEffect(() => {
+    if (open && initialData) {
+      setData(prev => ({
+        ...prev,
+        clientName: initialData.clientName || prev.clientName,
+        projectTitle: initialData.projectTitle || prev.projectTitle,
+        projectId: initialData.projectId || prev.projectId
+      }));
+    }
+  }, [open, initialData]);
+
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const selectedType = PROJECT_TYPES.find(t => t.id === data.type);
   const selectedFinish = FINISHES.find(f => f.id === data.finish);
@@ -39,11 +55,20 @@ export default function AIProposalGenerator({ open, onClose, onSubmit, brand }) 
   const handleNext = () => setStep(step + 1);
   const handleBack = () => setStep(step - 1);
 
-  const generateProposal = () => {
-    const aiText = `This proposal outlines the implementation of a bespoke ${selectedType.name} for ${data.clientName}. 
-    Utilizing the ${selectedFinish.name} finish across a total area of ${(data.dims.width * data.dims.height).toFixed(2)}m², 
-    this installation will provide a seamless, contemporary aesthetic tailored to the project's unique architectural requirements. 
-    Our technical team has calculated the load-bearing specifications for the selected hardware configurations to ensure both safety and visual purity.`;
+  const generateProposal = async () => {
+    setIsGenerating(true);
+    
+    // Construct a project profile for the AI
+    const projectProfile = {
+      title: data.projectTitle,
+      type: data.type.includes('commercial') ? 'Commercial' : 'Residential',
+      specs: {
+        glassType: selectedFinish.name,
+        dimensions: `${data.dims.width}m x ${data.dims.height}m`
+      }
+    };
+
+    const aiText = await AIEngine.generateProposal(projectProfile);
     
     onSubmit({
       title: data.projectTitle || `${selectedType.name} Project`,
@@ -57,7 +82,10 @@ export default function AIProposalGenerator({ open, onClose, onSubmit, brand }) 
       status: 'pending',
       date: new Date().toLocaleDateString()
     });
+    
+    setIsGenerating(false);
     onClose();
+    setStep(1); // Reset for next time
   };
 
   return (
@@ -158,8 +186,10 @@ export default function AIProposalGenerator({ open, onClose, onSubmit, brand }) 
             <PFormField label="Project / Lead Title"><input className="p-inp" value={data.projectTitle} onChange={e => setData({...data, projectTitle: e.target.value})} placeholder="e.g. Ridge Penthouse Partitioning" /></PFormField>
             
             <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-               <button onClick={handleBack} className="p-btn-light" style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowLeft size={18} /></button>
-               <button onClick={generateProposal} className="p-btn-gold lxf" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: ac, border: 'none', color: '#fff' }}><Send size={16} /> Generate & Review Proposal</button>
+               <button onClick={handleBack} disabled={isGenerating} className="p-btn-light" style={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ArrowLeft size={18} /></button>
+               <button onClick={generateProposal} disabled={isGenerating} className="p-btn-gold lxf" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: ac, border: 'none', color: '#fff' }}>
+                 {isGenerating ? <><Spinner /> AI Drafting Output...</> : <><Send size={16} /> Generate & Review Proposal</>}
+               </button>
             </div>
           </div>
         )}

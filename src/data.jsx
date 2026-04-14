@@ -37,15 +37,15 @@ export const ABOUT_DATA = {
 export const BOOKING_SLOTS = ['9:00 AM','10:00 AM','11:00 AM','2:00 PM','3:00 PM','4:00 PM'];
 
 export const BOOKINGS_DATA = [
-  {id:'BK-001',client:'Abena Mensah',clientEmail:'client@luxespace.com',type:'On-Site Measurement',date:'2026-03-15',time:'10:00 AM',duration:60,status:'Confirmed',notes:'Facade measurement for East Legon project',av:'AM'},
+  {id:'BK-001',client:'Abena Mensah',clientEmail:'client@glasstechfab.com',type:'On-Site Measurement',date:'2026-03-15',time:'10:00 AM',duration:60,status:'Confirmed',notes:'Facade measurement for East Legon project',av:'AM'},
   {id:'BK-002',client:'Kofi Asante',clientEmail:'kofi@asante.com',type:'Technical Review',date:'2026-03-18',time:'2:00 PM',duration:45,status:'Confirmed',notes:'Office glazing technical specifications',av:'KA'},
   {id:'BK-003',client:'Akua Boateng',clientEmail:'akua@boutique.com',type:'Component Selection',date:'2026-03-22',time:'11:00 AM',duration:90,status:'Pending',notes:'Aluminum frame profile selection',av:'AB'},
 ];
 
 export const EMAIL_QUEUE = [
-  {id:'EM-001',type:'proposal_sent',to:'client@luxespace.com',toName:'Abena Mensah',subject:'Your Installation Quote is Ready — Glasstech',status:'Sent',sentAt:'Mar 14, 10:32 AM',proposalId:'PRO-001'},
+  {id:'EM-001',type:'proposal_sent',to:'client@glasstechfab.com',toName:'Abena Mensah',subject:'Your Installation Quote is Ready — Glasstech',status:'Sent',sentAt:'Mar 14, 10:32 AM',proposalId:'PRO-001'},
   {id:'EM-002',type:'invoice_due',to:'akua@boutique.com',toName:'Akua Boateng',subject:'Invoice INV-003 Due in 3 Days',status:'Sent',sentAt:'Mar 15, 9:00 AM',invoiceId:'INV-003'},
-  {id:'EM-003',type:'booking_confirmed',to:'client@luxespace.com',toName:'Abena Mensah',subject:'Measurement Confirmed — March 15 at 10:00 AM',status:'Sent',sentAt:'Mar 10, 2:15 PM',bookingId:'BK-001'},
+  {id:'EM-003',type:'booking_confirmed',to:'client@glasstechfab.com',toName:'Abena Mensah',subject:'Measurement Confirmed — March 15 at 10:00 AM',status:'Sent',sentAt:'Mar 10, 2:15 PM',bookingId:'BK-001'},
 ];
 
 export const ANALYTICS_MONTHLY = [
@@ -128,7 +128,7 @@ export const INVOICES_DATA = [
 ];
 
 export const WORKSPACES_DATA = [
-  {id:'ws1',name:'LuxeSpace Interiors',owner:'admin@glasstechfab.com',plan:'Pro',status:'Active',since:'Jan 2024',clients:28,revenue:'$245,000',color:'#C8A96E'},
+  {id:'ws1',name:'Glasstech Fabrications',owner:'admin@glasstechfab.com',plan:'Pro',status:'Active',since:'Jan 2024',clients:28,revenue:'$245,000',color:'#C8A96E'},
   {id:'ws2',name:'Volta Interiors',owner:'hello@volta.gh',plan:'Starter',status:'Active',since:'Jun 2024',clients:11,revenue:'$89,000',color:'#7B9E87'},
   {id:'ws3',name:'Accra Design Co.',owner:'info@accradesign.com',plan:'Pro',status:'Active',since:'Jan 2025',clients:6,revenue:'$41,000',color:'#C85A5A'},
 ];

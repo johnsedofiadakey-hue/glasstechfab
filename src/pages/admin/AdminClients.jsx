@@ -22,7 +22,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, br
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(props.autoOpen || false);
   const [editing, setEditing] = useState(null);
-  const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '', notes: '', status: 'Active' });
+  const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '', password: '', notes: '', status: 'Active' });
 
   const handleClose = () => {
     setShowAdd(false);
@@ -43,7 +43,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, br
     }
     
     handleClose();
-    setNewC({ name: '', email: '', phone: '', company: '', notes: '', status: 'Active' });
+    setNewC({ name: '', email: '', phone: '', company: '', password: '', notes: '', status: 'Active' });
   };
 
   // If this is a standalone modal view (autoOpen), we can wrap the modal
@@ -54,8 +54,9 @@ export default function AdminClients({ dbClients, createClient, updateClient, br
         <PFormField label="Email Address"><input className="p-inp" value={newC.email} onChange={e => setNewC({...newC, email: e.target.value})} /></PFormField>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <PFormField label="Phone Number"><input className="p-inp" value={newC.phone} onChange={e => setNewC({...newC, phone: e.target.value})} /></PFormField>
-          <PFormField label="Company Name"><input className="p-inp" value={newC.company} onChange={e => setNewC({...newC, company: e.target.value})} /></PFormField>
+          <PFormField label="Initial Password"><input className="p-inp" type="password" placeholder="e.g. client123" value={newC.password} onChange={e => setNewC({...newC, password: e.target.value})} /></PFormField>
         </div>
+        <PFormField label="Company Name"><input className="p-inp" value={newC.company} onChange={e => setNewC({...newC, company: e.target.value})} /></PFormField>
         <PFormField label="Internal Notes"><textarea className="p-inp" value={newC.notes} onChange={e => setNewC({...newC, notes: e.target.value})} rows={3} /></PFormField>
         <button onClick={handleSave} className="p-btn-dark lxf" style={{ marginTop: 8, padding: '12px' }}>{editing ? 'Update Profile' : 'Register Client'}</button>
       </div>
@@ -99,6 +100,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, br
                      <PAv i={c.name.split(' ').map(n=>n[0]).join('')} s={44} c={ac} />
                      <div>
                         <div className="lxfh" style={{ fontSize: 16 }}>{c.name}</div>
+                        <div className="lxf" style={{ fontSize: 11, color: ac, fontWeight: 700 }}>{c.phone}</div>
                         <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{c.company || 'Private Client'}</div>
                      </div>
                   </div>
@@ -144,11 +146,12 @@ export default function AdminClients({ dbClients, createClient, updateClient, br
       <PModal open={showAdd} onClose={() => { setShowAdd(false); setEditing(null); }} title={editing ? 'Edit Client' : 'Add New Client'}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <PFormField label="Full Name"><input className="p-inp" value={newC.name} onChange={e => setNewC({...newC, name: e.target.value})} /></PFormField>
-          <PFormField label="Email Address"><input className="p-inp" value={newC.email} onChange={e => setNewC({...newC, email: e.target.value})} /></PFormField>
+          <PFormField label="Email Address (Notifications)"><input className="p-inp" value={newC.email} onChange={e => setNewC({...newC, email: e.target.value})} /></PFormField>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <PFormField label="Phone Number"><input className="p-inp" value={newC.phone} onChange={e => setNewC({...newC, phone: e.target.value})} /></PFormField>
-            <PFormField label="Company Name"><input className="p-inp" value={newC.company} onChange={e => setNewC({...newC, company: e.target.value})} /></PFormField>
+            <PFormField label="WhatsApp Number (Login Key)"><input className="p-inp" placeholder="+233..." value={newC.phone} onChange={e => setNewC({...newC, phone: e.target.value})} /></PFormField>
+            <PFormField label="Master Password (Backup)"><input className="p-inp" type="password" placeholder="e.g. client123" value={newC.password} onChange={e => setNewC({...newC, password: e.target.value})} /></PFormField>
           </div>
+          <PFormField label="Company Name"><input className="p-inp" value={newC.company} onChange={e => setNewC({...newC, company: e.target.value})} /></PFormField>
           <PFormField label="Internal Notes"><textarea className="p-inp" value={newC.notes} onChange={e => setNewC({...newC, notes: e.target.value})} rows={3} /></PFormField>
           <button onClick={handleSave} className="p-btn-dark lxf" style={{ marginTop: 8, padding: '12px' }}>{editing ? 'Update Profile' : 'Register Client'}</button>
         </div>

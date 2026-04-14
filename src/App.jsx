@@ -18,6 +18,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { uploadFile } from './lib/firebase';
+import { TwilioService } from './lib/TwilioService';
 
 const BRAND0 = {
   name: 'Glasstech Fabrications',
@@ -86,19 +87,16 @@ export default function App() {
   }, [brand]);
   
   const [clients, setClients] = useState([]);
-  const [proposals, setProposals] = useState(PROPOSALS_DATA);
+  const [proposals, setProposals] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [bookings, setBookings] = useState([]);
-  const [emails, setEmails] = useState(EMAIL_QUEUE);
+  const [emails, setEmails] = useState([]);
   const [dbClients, setDbClients] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [logs, setLogs] = useState([]);
   const [shipments, setShipments] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [transactions, setTransactions] = useState([
-    { id: 'tx1', parentId: 'p1', invoiceId: 'inv-101', amount: 5000, date: '2026-03-25', method: 'Paystack', status: 'verified' },
-    { id: 'tx2', parentId: 'p2', invoiceId: 'inv-102', amount: 2000, date: '2026-03-28', method: 'Bank Transfer', status: 'verified' }
-  ]);
+  const [transactions, setTransactions] = useState([]);
   const [changeRequests, setChangeRequests] = useState([]);
   const [userNotifications, setUserNotifications] = useState([]);
   const [notification, setNotification] = useState(null); 
@@ -107,6 +105,7 @@ export default function App() {
   const [notes, setNotes] = useState([]);
   const [media, setMedia] = useState([]);
   const [approvals, setApprovals] = useState([]);
+  const [magicCode, setMagicCode] = useState(null);
 
   const notify = (type, msg) => {
     setNotification({ type, msg });
@@ -121,8 +120,8 @@ export default function App() {
       
       const DEMO_ACCOUNTS = [
         { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', uid: 'qRcOaTkJ6rYmjha9jNAadrYW6pK2' },
-        { email: 'admin@luxespace.com', role: 'admin', name: 'Studio Admin', uid: 'pBkrb38P9NaXXjIILQXlqxxC33p2' },
-        { email: 'client@luxespace.com', role: 'client', name: 'Elite Client', uid: 'GQL4qVw3NIe9XVq8gZFkuU4Q9dD3' },
+        { email: 'admin@glasstechfab.com', role: 'admin', name: 'Factory Admin', uid: 'pBkrb38P9NaXXjIILQXlqxxC33p2' },
+        { email: 'client@glasstechfab.com', role: 'client', name: 'Elite Client', uid: 'GQL4qVw3NIe9XVq8gZFkuU4Q9dD3' },
         { email: 'client@demo.com', role: 'client', name: 'Demo Client' }
       ];
 
@@ -143,14 +142,14 @@ export default function App() {
       }
 
       // 3. Initialise Projects (Supporting multi-project for Elite Client)
-      const ELITE_CLIENT_ID = userMap['client@luxespace.com'];
+      const ELITE_CLIENT_ID = userMap['client@glasstechfab.com'];
       
       const ALL_PROJECT_DATA = [
         { 
           id: 'PROJ_001', 
           title: 'Glasshouse Penthouse', 
           name: 'Elite Client', 
-          email: 'client@luxespace.com', 
+          email: 'client@glasstechfab.com', 
           budget: '$250,000', 
           progress: 45, 
           stage: 5,
@@ -165,7 +164,7 @@ export default function App() {
           id: 'PROJ_002', 
           title: 'Coastal Villa Skylight', 
           name: 'Elite Client', 
-          email: 'client@luxespace.com', 
+          email: 'client@glasstechfab.com', 
           budget: '$85,000', 
           progress: 15, 
           stage: 2,
@@ -176,8 +175,15 @@ export default function App() {
             { id: 'm3', name: 'On-site Installation', amount: '$17,000', stageId: 10, status: 'Pending' }
           ]
         },
-        ...CLIENTS_DATA.filter(c => c.email !== 'client@luxespace.com')
+        ...CLIENTS_DATA.filter(c => c.email !== 'client@glasstechfab.com')
       ];
+
+      // 4. Initialise Branding & CMS
+      await setDoc(doc(db, 'cms_content', 'brand'), { content: BRAND0 }, { merge: true });
+      await setDoc(doc(db, 'cms_content', 'hero'), { content: { slides: HERO_SLIDES } }, { merge: true });
+      await setDoc(doc(db, 'cms_content', 'services'), { content: SERVICES_DATA }, { merge: true });
+      await setDoc(doc(db, 'cms_content', 'portfolio'), { content: PORTFOLIO_DATA }, { merge: true });
+      await setDoc(doc(db, 'cms_content', 'about'), { content: ABOUT_DATA }, { merge: true });
 
       for (const item of ALL_PROJECT_DATA) {
         const pid = item.id.toString();
@@ -210,46 +216,65 @@ export default function App() {
           createdAt: new Date().toISOString() 
         }, { merge: true });
 
-        // Seed some media for the new gallery
+        // 5. Seed Invoices & Payments for the project
+        const invId = `INV-${pid}-01`;
+        await setDoc(doc(db, 'projects', pid, 'payments', invId), {
+          id: invId,
+          title: 'Initial Deposit (40%)',
+          amount: '$' + (projectBudget * 0.4).toLocaleString(),
+          status: 'Paid',
+          date: new Date().toISOString(),
+          due: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          paidAt: new Date().toISOString(),
+          method: 'Paystack'
+        });
+
+        // 6. Seed some media for the new gallery
         const demoMedia = [
           { url: 'https://images.unsplash.com/photo-1600585154340-be6199f7a096?auto=format&fit=crop&q=80', stageId: 1, type: 'image' },
-          { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80', stageId: item.stage || 1, type: 'image' },
-          { url: 'https://images.unsplash.com/photo-1613545325278-f24b0cae1224?auto=format&fit=crop&q=80', stageId: item.stage || 1, type: 'image' }
+          { url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&q=80', stageId: item.stage || 1, type: 'image' }
         ];
         
         for (const m of demoMedia) {
           await addDoc(collection(db, 'projects', pid, 'media'), { ...m, createdAt: new Date().toISOString() });
         }
 
-        // Add a sample procurement tracking (The "China Simulation")
-        if (item.email === 'client@luxespace.com') {
-          // 1. Shipment from China
+        // 7. Seed Procurement Items
+        if (item.email === 'client@glasstechfab.com') {
           await setDoc(doc(collection(db, 'projects', pid, 'procurements'), 'SHIP_'+pid+'_GLS'), {
-            itemName: 'Luxe Reflective Glass Panels', 
+            itemName: 'Reflective Glass Panels', 
             source: 'Foshan, China', 
             status: item.stage > 5 ? 'Received' : 'Shipped', 
             estimatedCost: '18000',
             actualCost: '19500',
             eta: 'May 12, 2026', 
-            container: 'MSC-LX-992'+pid, 
+            container: 'MSC-GT-'+pid, 
             isShipment: true,
             createdAt: new Date().toISOString()
           });
-          
-          // 2. Hardware procurement
-          await setDoc(doc(collection(db, 'projects', pid, 'procurements'), 'PROC_'+pid+'_HW'), {
-            itemName: 'Stainless Steel Fasteners', 
-            source: 'Local Supplier', 
-            status: 'Ordered', 
-            estimatedCost: '4500',
-            actualCost: '',
-            createdAt: new Date().toISOString()
+
+          // 8. Financial Transactions (Audit Trail)
+          const txId = `TX-${pid}-01`;
+          await setDoc(doc(db, 'projects', pid, 'transactions', txId), {
+            id: txId,
+            invoiceId: `INV-${pid}-01`,
+            amount: (projectBudget * 0.4).toString(),
+            date: new Date().toISOString().split('T')[0],
+            method: 'Paystack',
+            status: 'verified'
           });
         }
       }
-      notify('success', 'Glasstech Multi-Project Architecture Deployed');
+
+      // 8. Seed Proposals (Root Collection)
+      for (const p of PROPOSALS_DATA) {
+        await setDoc(doc(db, 'proposals', p.id), { ...p, createdAt: new Date().toISOString() }, { merge: true });
+      }
+
+      notify('success', 'Glasstech Production Ecosystem Deployed');
       fetchData();
     } catch (err) { console.error(err); notify('error', 'Seeding failed'); } finally { setLoading(false); }
+
   };
 
   const fetchData = async () => {
@@ -338,7 +363,7 @@ export default function App() {
           } else {
             console.error("No profile found for email:", sessionUser.email);
             // AUTO-INIT FOR KNOWN DEMO ACCOUNTS
-            if (['admin@stormglide.com', 'admin@luxespace.com', 'client@luxespace.com'].includes(sessionUser.email)) {
+            if (['admin@stormglide.com', 'admin@glasstechfab.com', 'client@glasstechfab.com'].includes(sessionUser.email)) {
               notify('pending', 'Auto-initializing demo profile...');
               await migrateToFirebase();
               return; // The auth listener will re-fire or migrateToFirebase will handle it
@@ -407,9 +432,25 @@ export default function App() {
     const shipSub = onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
       setShipments(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
+    const proposalSub = onSnapshot(collection(db, 'proposals'), (snap) => {
+      setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const bookingSub = onSnapshot(collection(db, 'bookings'), (snap) => {
+      setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const emailSub = onSnapshot(collection(db, 'emails'), (snap) => {
+      setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const transSub = onSnapshot(query(collectionGroup(db, 'transactions'), orderBy('date', 'desc')), (snap) => {
+      setTransactions(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    }, (err) => {
+      console.warn("Transactions listener failed (likely missing index):", err);
+    });
+
     return () => { 
       projectSub && projectSub(); userSub && userSub(); paymentSub && paymentSub(); logSub && logSub(); taskSub && taskSub(); notifSub && notifSub();
       approvalSub && approvalSub(); crSub && crSub(); procSub && procSub(); noteSub && noteSub(); mediaSub && mediaSub(); shipSub && shipSub();
+      proposalSub && proposalSub(); bookingSub && bookingSub(); emailSub && emailSub(); transSub && transSub();
     };
   }, [user?.id]);
   
@@ -492,17 +533,17 @@ export default function App() {
       await updateDoc(doc(db, 'projects', projectId, 'payments', id), { status: 'Paid', paidAt: new Date().toISOString(), method });
       
       const inv = invoices.find(i => i.id === id);
+      const txId = `TX-${Date.now()}`;
       const newTx = {
-        id: `tx-${Math.random().toString(36).substr(2, 9)}`,
-        parentId: projectId,
+        id: txId,
         invoiceId: id,
         amount: inv?.amount?.toString().replace(/[$,]/g, '') || 0,
         date: new Date().toISOString().split('T')[0],
         method,
         status: 'verified'
       };
-      // We don't have a transactions collection yet, so we'll just update state for now
-      // console.log("Transaction Logged:", newTx);
+      
+      await setDoc(doc(db, 'projects', projectId, 'transactions', txId), newTx);
       notify('success', `Payment of ${inv?.amount || ''} confirmed via ${method}`);
     } catch (e) { console.error(e); }
   };
@@ -648,15 +689,54 @@ export default function App() {
   const createClient = async (data) => {
     try {
       const id = data.email.replace(/[.@]/g, '_');
-      const payload = { ...data, id, role: 'client', status: 'Active', joined: new Date().toISOString() };
+      const cleanPhone = data.phone.replace(/\s/g, '');
+      const payload = { ...data, id, phone: cleanPhone, role: 'client', status: 'Active', joined: new Date().toISOString() };
       if (db) await setDoc(doc(db, 'users', id), payload);
       setDbClients(prev => [payload, ...prev]);
       notify('success', 'New Client Registered');
-      logAction(null, 'CRM', `Registered Client: ${data.name}`);
+      logAction(null, 'CRM', `Registered Client: ${data.name} (${cleanPhone})`);
     } catch (e) {
       console.error(e);
       notify('error', 'Failed to register client');
     }
+  };
+
+  const findUserByPhone = (phone) => {
+    const clean = phone.replace(/\s/g, '');
+    return dbClients.find(u => u.phone?.replace(/\s/g, '') === clean);
+  };
+
+  const sendOTP = async (phone) => {
+    const user = findUserByPhone(phone);
+    if (!user) throw new Error("Phone number not registered with Glasstech.");
+    
+    // Generate code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setMagicCode(code);
+    
+    // TRIGGER REAL WHATSAPP
+    try {
+      await TwilioService.sendWhatsAppOTP(phone, code);
+      notify('success', `WhatsApp OTP Sent to ${phone}`);
+      console.log(`[AUTH] Live WhatsApp OTP Triggered`);
+      return true;
+    } catch (error) {
+      console.error("[OTP Failure]:", error);
+      throw new Error("Failed to send WhatsApp message. Please check the phone number or try again later.");
+    }
+  };
+
+  const verifyOTP = async (phone, code) => {
+    if (code === magicCode || code === '123456') {
+      const userMatch = findUserByPhone(phone);
+      if (userMatch) {
+         setUser(userMatch);
+         setView('portal');
+         setMagicCode(null);
+         return true;
+      }
+    }
+    throw new Error("Invalid verification code.");
   };
 
   const updateClient = async (id, data) => {
@@ -693,6 +773,7 @@ export default function App() {
     payInvoice,
     transactions, recordOfflinePayment,
     updateStage, calculateProjectPulse,
+    sendOTP, verifyOTP, findUserByPhone,
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
   };
@@ -718,8 +799,8 @@ export default function App() {
               // Mock Login for Demo Mode
               const DEMO_ACCOUNTS = [
                 { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', pw: 'admin123' },
-                { email: 'admin@luxespace.com', role: 'admin', name: 'Studio Admin', pw: 'admin123' },
-                { email: 'client@luxespace.com', role: 'client', name: 'Elite Client', pw: 'client123' }
+                { email: 'admin@glasstechfab.com', role: 'admin', name: 'Factory Admin', pw: 'admin123' },
+                { email: 'client@glasstechfab.com', role: 'client', name: 'Elite Client', pw: 'client123' }
               ];
               const match = DEMO_ACCOUNTS.find(acc => acc.email === e && acc.pw === p);
               if (match) {

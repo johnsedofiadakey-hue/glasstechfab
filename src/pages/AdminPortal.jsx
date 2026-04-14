@@ -21,6 +21,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
   const [showAI, setShowAI] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [mod, setMod] = useState(null); // 'AddClient', 'AddProject', etc.
+  const [aiContext, setAiContext] = useState({});
   const { brand } = props;
 
   const handleSelectClient = (id) => {
@@ -31,7 +32,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
   const renderView = () => {
     const common = { 
       user, brand, content, setContent, 
-      setAI: () => setShowAI(true), 
+      setAI: (ctx = {}) => { setAiContext(ctx); setShowAI(true); }, 
       setMod,
       onSelectClient: handleSelectClient,
       PROJECT_STAGES,
@@ -63,7 +64,17 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       markNotificationRead={props.markNotificationRead}
     >
       {renderView()}
-      <AIProposalGenerator open={showAI} onClose={() => setShowAI(false)} onSubmit={props.createProposal} brand={brand} />
+      <AIProposalGenerator 
+        open={showAI} 
+        onClose={() => setShowAI(false)} 
+        onSubmit={(data) => {
+          // If we have a project context, we can automatically link it
+          const submission = aiContext.projectId ? { ...data, projectId: aiContext.projectId } : data;
+          props.createProposal(submission);
+        }} 
+        brand={brand} 
+        initialData={aiContext}
+      />
       
       {/* GLOBAL MODALS */}
       {mod === 'AddClient' && view !== 'operations' && (
