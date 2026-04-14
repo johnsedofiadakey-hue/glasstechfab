@@ -548,3 +548,108 @@ body {
   color: var(--fg);
 }
 
+/* ── MOBILE ACCESSIBILITY & LAYOUT HARDENING ── */
+@media (max-width: 640px) {
+  .hero-title { font-size: 38px !important; }
+  .p-card { border-radius: 4px !important; }
+  .p-modal-card { width: 100% !important; height: 100% !important; max-width: none !important; border-radius: 0 !important; }
+  .mob-nav-hide { display: none !important; }
+  .section-pad { padding: 60px 16px !important; }
+}
+
+.pub-btn-gold {
+  background: var(--ac);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pub-btn-gold:hover {
+  background: #121212;
+  transform: translateY(-2px);
+}
+
+.pub-btn-dark {
+  background: #121212;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pub-btn-dark:hover {
+  background: var(--ac);
+  transform: translateY(-2px);
+}
+
+.pub-btn-outline {
+  background: transparent;
+  border: 1px solid #121212;
+  color: #121212;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pub-btn-outline:hover {
+  background: #121212;
+  color: #fff;
+}
+
+/* Glassmorphism Details */
+.glass-overlay {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hover-img { overflow: hidden; }
+.hover-scale { transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+.hover-img:hover .hover-scale { transform: scale(1.1); }
+
+/* Unified Heading Sizes */
+.h-xl { font-size: clamp(48px, 10vw, 120px); line-height: 0.95; letter-spacing: -0.04em; }
+.h-lg { font-size: clamp(32px, 6vw, 64px); line-height: 1.1; letter-spacing: -0.02em; }
+.h-md { font-size: clamp(24px, 4vw, 40px); line-height: 1.2; }
+
+/* Custom Form Styles */
+.pub-inp {
+  background: #fff;
+  border: 1px solid #F0EBE5;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.pub-inp:focus {
+  border-color: var(--ac);
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--ac);
+}
+
+/* Slider Pagination */
+.slider-dot {
+  width: 40px;
+  height: 2px;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.slider-dot.active {
+  background: var(--ac);
+}

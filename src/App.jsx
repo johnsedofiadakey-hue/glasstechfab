@@ -752,28 +752,69 @@ export default function App() {
     try {
       if (!db) {
          notify('error', 'Backend Disconnected: No Persistence');
-         console.warn("[CRM] Attempted to create client without Firestore connection. Mode: Mock.");
          return;
       }
       const id = data.email.replace(/[.@]/g, '_');
       const cleanPhone = data.phone.replace(/\s/g, '');
-      const payload = { ...data, id, phone: cleanPhone, role: 'client', status: 'Active', joined: new Date().toISOString() };
+      const stakeholders = data.stakeholders || [];
+      const payload = { 
+        ...data, 
+        id, 
+        phone: cleanPhone, 
+        stakeholders: [cleanPhone, ...stakeholders],
+        role: 'client', 
+        status: 'Active', 
+        joined: new Date().toISOString() 
+      };
       await setDoc(doc(db, 'users', id), payload);
       notify('success', 'New Client Registered');
-      logAction(null, 'CRM', `Registered Client: ${data.name} (${cleanPhone})`);
+      logAction(null, 'CRM', `Registered Client: ${data.name} with ${payload.stakeholders.length} active stakeholders`);
     } catch (e) {
       console.error("[CRM] Registration Error:", e);
       notify('error', 'Failed to register client');
     }
   };
 
+  const updateClient = async (id, data) => {
+    if (!db) return;
+    try {
+      await updateDoc(doc(db, 'users', id), data);
+      notify('success', 'Client profile updated');
+      logAction(null, 'CRM', `Updated Client: ${id}`);
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Update failed');
+    }
+  };
+
+  const deleteClient = async (id) => {
+    if (!db) return;
+    if (!window.confirm("Are you sure you want to completely remove this client account? This cannot be undone.")) return;
+    try {
+      await deleteDoc(doc(db, 'users', id));
+      notify('success', 'Client removed from registry');
+      logAction(null, 'CRM', `Deleted Client: ${id}`);
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Deletion failed');
+    }
+  };
+
   const findUserByPhone = (phone) => {
     const clean = phone.replace(/\D/g, ''); // Keep only digits
     return dbClients.find(u => {
-      const dbPhone = u.phone?.replace(/\D/g, '');
-      if (!dbPhone) return false;
-      // Match if equal or if one is a suffix of the other (last 9 digits are usually unique enough)
-      return dbPhone === clean || dbPhone.endsWith(clean) || clean.endsWith(dbPhone);
+      // Check primary phone
+      const dbPhone = (u.phone || '').replace(/\D/g, '');
+      if (dbPhone && (dbPhone === clean || dbPhone.endsWith(clean) || clean.endsWith(dbPhone))) return true;
+      
+      // Check stakeholders (multi-number support)
+      if (u.stakeholders && Array.isArray(u.stakeholders)) {
+        return u.stakeholders.some(s => {
+          const sPhone = s.replace(/\D/g, '');
+          return sPhone && (sPhone === clean || sPhone.endsWith(clean) || clean.endsWith(sPhone));
+        });
+      }
+      return false;
     });
   };
 
@@ -815,16 +856,6 @@ export default function App() {
     throw new Error("Invalid verification code.");
   };
 
-  const updateClient = async (id, data) => {
-    try {
-      if (db) await updateDoc(doc(db, 'users', id), data);
-      setDbClients(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
-      notify('success', 'Profile Updated');
-    } catch (e) {
-      console.error(e);
-      notify('error', 'Update failed');
-    }
-  };
 
   const handleLogout = async () => {
     try {

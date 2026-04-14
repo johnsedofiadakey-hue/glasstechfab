@@ -157,31 +157,31 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
     switch (tab) {
       case 'hub': {
         const myProj = activeProject;
-        const pendingMat = myMaterials.filter(m => m.status === 'pending');
-        const activeShip = myProcurements.filter(p => p.isShipment || p.status === 'Shipped').slice(0, 1);
-        const nextInv = myInvs.filter(i => i.status !== 'Paid' && !paidIds.includes(i.id))[0];
+        const pendingMat = (myMaterials || []).filter(m => m.status === 'pending');
+        const activeShip = (myProcurements || []).filter(p => p.isShipment || p.status === 'Shipped').slice(0, 1);
+        const nextInv = (myInvs || []).filter(i => i.status !== 'Paid' && !paidIds.includes(i.id))[0];
         const pulse = calculateProjectPulse(selectedProjectId || myProj?.id);
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             {/* KPI GRID */}
-            <div className="kpi-grid">
-               <div className="kpi-card pulse-card">
-                  <div className="kpi-label">Project Completion</div>
-                  <div className="kpi-value">{pulse}%</div>
-                  <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 12 }}>
-                     <div style={{ width: `${pulse}%`, height: '100%', background: ac, borderRadius: 2 }} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+               <div className="p-card pulse-card" style={{ padding: 32, background: '#fff', border: '1px solid #F0EBE5' }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', marginBottom: 12 }}>Production Velocity</div>
+                  <div className="lxfh" style={{ fontSize: 44, fontWeight: 300, color: '#121212' }}>{pulse}% <span style={{ fontSize: 14, color: '#B5AFA9', fontWeight: 500 }}>COMPLETE</span></div>
+                  <div style={{ height: 4, background: '#F9F7F4', borderRadius: 10, marginTop: 24, overflow: 'hidden' }}>
+                     <div style={{ width: `${pulse}%`, height: '100%', background: ac, borderRadius: 10 }} />
                   </div>
                </div>
-               <div className="kpi-card">
-                  <div className="kpi-label">Current Stage</div>
-                  <div className="kpi-value" style={{ fontSize: 20 }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 8 }}>Handover: {props.getSLA(myProj).date}</div>
+               <div className="p-card" style={{ padding: 32, background: '#fff', border: '1px solid #F0EBE5' }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', marginBottom: 12 }}>Current Phase</div>
+                  <div className="lxfh" style={{ fontSize: 24, fontWeight: 400, color: '#121212' }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
+                  <p className="lxf" style={{ fontSize: 13, color: '#B5AFA9', marginTop: 12 }}>Handover: <span style={{ color: ac, fontWeight: 700 }}>{props.getSLA?.(myProj).date || 'TBD'}</span></p>
                </div>
-               <div className="kpi-card">
-                  <div className="kpi-label">Financial Status</div>
-                  <div className="kpi-value" style={{ fontSize: 20, color: nextInv ? '#EF4444' : '#16A34A' }}>{nextInv ? 'Payment Due' : 'All Clear'}</div>
-                  <div style={{ fontSize: 12, color: 'var(--dim)', marginTop: 8 }}>{nextInv ? nextInv.amount : 'No outstanding balances'}</div>
+               <div className="p-card" style={{ padding: 32, background: '#121212', border: 'none' }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', marginBottom: 12, color: ac }}>Account Summary</div>
+                  <div className="lxfh" style={{ fontSize: 24, color: '#fff', fontWeight: 300 }}>{nextInv ? 'Payment Due' : 'All Settled'}</div>
+                  <div className="lxf" style={{ fontSize: 13, color: nextInv ? ac : '#16A34A', fontWeight: 700, marginTop: 12 }}>{nextInv ? nextInv.amount : 'No balance due'}</div>
                </div>
             </div>
 

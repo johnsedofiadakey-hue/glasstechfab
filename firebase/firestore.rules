@@ -36,7 +36,7 @@ service cloud.firestore {
       }
     }
 
-    // Collection Group Access
+     // Collection Group Access
     match /{path=**}/tasks/{taskId} { allow read, write: if true; }
     match /{path=**}/payments/{paymentId} { allow read, write: if true; }
     match /{path=**}/procurements/{shipmentId} { allow read, write: if true; }
@@ -45,6 +45,14 @@ service cloud.firestore {
     match /{path=**}/activity_logs/{logId} { allow read, write: if true; }
     match /{path=**}/media/{id} { allow read, write: if true; }
     match /{path=**}/notes/{id} { allow read, write: if true; }
+    match /{path=**}/transactions/{id} { allow read, write: if true; }
+    match /{path=**}/materials/{id} { allow read, write: if true; }
+    match /{path=**}/emails/{id} { allow read, write: if true; }
+
+    // Root Level Shared
+    match /assets/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /proposals/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /bookings/{id} { allow read, write: if true; }
 
     // CMS & Brand
     match /cms_content/{docId} {
