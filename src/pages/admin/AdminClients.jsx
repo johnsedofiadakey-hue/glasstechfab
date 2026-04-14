@@ -100,7 +100,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
         <div style={{ padding: 32 }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24 }}>
             {filtered.map(client => (
-              <div key={client.id} className="p-card magnetic-card rev" style={{ padding: 0, border: '1px solid rgba(0,0,0,0.05)', background: '#fff', borderRadius: 4, overflow: 'hidden', transition: 'all 0.4s' }}>
+              <div key={client.id} className="p-card" style={{ padding: 0, border: '1px solid #F0EBE5', background: '#fff', borderRadius: 8, overflow: 'hidden', transition: 'all 0.3s' }}>
                 <div style={{ padding: 24, paddingBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                    <div style={{ width: 56, height: 56, borderRadius: 4, background: '#F9F7F4', border: '1px solid #F0EBE5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 300, color: ac }} className="lxfh">
                       {client.name?.[0]}
@@ -160,68 +160,90 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
       </div>
 
       {showAdd && (
-        <div className="overlay-modal" style={{ background: 'rgba(26,20,16,0.6)', backdropFilter: 'blur(10px)', zIndex: 3000 }}>
-          <div className="modal-box lxf" style={{ maxWidth: 540, borderRadius: 4, border: 'none', background: '#fff', overflow: 'hidden' }}>
-            <div style={{ padding: 40 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 32 }}>
-                <div>
-                  <h2 className="lxfh" style={{ fontSize: 28, fontWeight: 300 }}>{editingClient ? 'Update Profile' : 'New Registration'}</h2>
-                  <p className="lxf" style={{ color: '#666', fontSize: 14 }}>System-wide client profile & access control.</p>
-                </div>
-                <button onClick={resetForm} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9' }}><X size={24} /></button>
+        <div className="overlay-modal" style={{ background: 'rgba(18,18,18,0.8)', backdropFilter: 'blur(20px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="modal-box" style={{ 
+            maxWidth: 640, width: '90%', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', 
+            background: '#ffffff', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.3)' 
+          }}>
+            {/* Form Header */}
+            <div style={{ padding: '32px 40px', background: '#121212', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div className="lxf eyebrow" style={{ color: ac, marginBottom: 8, fontSize: 10 }}>Secure Registration</div>
+                <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{editingClient ? 'Edit Profile' : 'Initialize Stakeholder'}</h2>
               </div>
+              <button onClick={resetForm} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)' }}><X size={24} /></button>
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <div className="p-form-group">
-                  <label className="lxf eyebrow" style={{ fontSize: 10, color: '#121212', marginBottom: 10 }}>Legal Name / Identifier</label>
-                  <input type="text" className="p-inp" style={{ padding: 16, fontSize: 15 }} value={newC.name} onChange={e => setNewC({ ...newC, name: e.target.value })} placeholder="Full Name or Entity" />
-                </div>
+            <div style={{ padding: 40, maxHeight: '80vh', overflowY: 'auto' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 32 }}>
+                
+                {/* Section 1: Core Identity */}
+                <section>
+                  <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>1. Primary Identity</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
+                    <div className="p-form-group">
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Full Legal Name / Entity</label>
+                      <input type="text" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.name} onChange={e => setNewC({ ...newC, name: e.target.value })} placeholder="e.g. John Doe / Global Tech Ltd" />
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                      <div className="p-form-group">
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Email Address</label>
+                        <input type="email" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.email} onChange={e => setNewC({ ...newC, email: e.target.value })} placeholder="email@domain.com" />
+                      </div>
+                      <div className="p-form-group">
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Phone (Primary WhatsApp)</label>
+                        <input type="tel" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.phone} onChange={e => setNewC({ ...newC, phone: e.target.value })} placeholder="+233..." />
+                      </div>
+                    </div>
+                  </div>
+                </section>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                {/* Section 2: Organizational Context */}
+                <section>
+                  <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>2. Business Affiliation</div>
                   <div className="p-form-group">
-                    <label className="lxf eyebrow" style={{ fontSize: 10, color: '#121212', marginBottom: 10 }}>Primary Email</label>
-                    <input type="email" className="p-inp" style={{ padding: 16, fontSize: 15 }} value={newC.email} onChange={e => setNewC({ ...newC, email: e.target.value })} placeholder="email@example.com" />
+                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Organization / Company</label>
+                    <div style={{ position: 'relative' }}>
+                      <Building size={16} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} />
+                      <input type="text" className="p-inp" style={{ padding: '14px 16px 14px 44px', borderRadius: 8 }} value={newC.company} onChange={e => setNewC({ ...newC, company: e.target.value })} placeholder="Company Name (Optional)" />
+                    </div>
                   </div>
-                  <div className="p-form-group">
-                    <label className="lxf eyebrow" style={{ fontSize: 10, color: '#121212', marginBottom: 10 }}>Primary Phone</label>
-                    <input type="tel" className="p-inp" style={{ padding: 16, fontSize: 15 }} value={newC.phone} onChange={e => setNewC({ ...newC, phone: e.target.value })} placeholder="+233..." />
-                  </div>
-                </div>
+                </section>
 
-                <div className="p-form-group">
-                  <label className="lxf eyebrow" style={{ fontSize: 10, color: '#121212', marginBottom: 10 }}>Organization (Business Unit)</label>
-                  <div style={{ position: 'relative' }}>
-                    <Building size={16} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} />
-                    <input type="text" className="p-inp" style={{ padding: '16px 16px 16px 44px', fontSize: 15 }} value={newC.company} onChange={e => setNewC({ ...newC, company: e.target.value })} placeholder="Company Name (Leave blank for private)" />
-                  </div>
-                </div>
-
-                <div className="p-form-group" style={{ padding: 24, background: '#FDFCFB', border: '1px solid #F0EBE5', borderRadius: 4 }}>
-                  <label className="lxf eyebrow" style={{ fontSize: 10, color: ac, marginBottom: 12 }}>Authorized Stakeholder Registry</label>
-                  <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+                {/* Section 3: Access Control */}
+                <section style={{ padding: 24, background: '#F9F7F4', borderRadius: 12, border: '1px solid #F0EBE5' }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 10, color: ac, marginBottom: 16 }}>3. Stakeholder Access Registry</div>
+                  <p style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>Configure which phone numbers can authenticate for this client profile. First number is usually the primary.</p>
+                  
+                  <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
                      <input 
                        type="tel" 
                        className="p-inp" 
-                       style={{ background: '#fff', border: '1px solid #F0EBE5' }}
-                       placeholder="Add another stakeholder phone..." 
+                       style={{ background: '#fff', borderRadius: 8 }}
+                       placeholder="Add contact number..." 
                        value={newStakeholder} 
                        onChange={e => setNewStakeholder(e.target.value)} 
                        onKeyPress={e => e.key === 'Enter' && handleAddStakeholder()}
                      />
-                     <button onClick={handleAddStakeholder} className="p-btn-dark lxf" style={{ padding: '0 20px', borderRadius: 4, height: 48, fontSize: 12 }}>Grant Access</button>
+                     <button onClick={handleAddStakeholder} className="minimal-btn" style={{ borderRadius: 8, padding: '0 24px', flexShrink: 0 }}>Authorize</button>
                   </div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                      {newC.stakeholders.length > 0 ? newC.stakeholders.map(s => (
-                       <div key={s} style={{ background: '#fff', border: '1px solid #F0EBE5', padding: '8px 14px', borderRadius: 2, fontSize: 13, display: 'flex', alignItems: 'center', gap: 10, color: '#121212', fontWeight: 500 }}>
+                       <div key={s} style={{ background: '#fff', border: '1px solid #F0EBE5', padding: '10px 16px', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 12, color: '#121212', fontWeight: 600 }}>
                           {s} <X size={14} style={{ cursor: 'pointer', color: '#EF4444' }} onClick={() => removeStakeholder(s)} />
                        </div>
-                     )) : <div style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic' }}>No additional stakeholders registered.</div>}
+                     )) : <div style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic' }}>No additional stakeholders specified.</div>}
                   </div>
-                </div>
+                </section>
 
-                <button onClick={handleSubmit} className="p-btn-gold lxf" style={{ width: '100%', padding: '20px', borderRadius: 4, marginTop: 10, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                   <ShieldCheck size={20} /> {editingClient ? 'Finalize Profile Update' : 'Initialize Client Identity'}
-                </button>
+                <div style={{ paddingTop: 8, borderTop: '1px solid #eee', display: 'flex', gap: 16 }}>
+                  <button onClick={resetForm} style={{ flex: 1, padding: '18px', borderRadius: 8, border: '1px solid #eee', background: '#fff', color: '#666', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                  <button onClick={handleSubmit} className="minimal-btn" style={{ flex: 2, padding: '18px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 14 }}>
+                     <ShieldCheck size={20} /> {editingClient ? 'Finalize Updates' : 'Commit Registration'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>

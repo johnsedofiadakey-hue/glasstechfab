@@ -436,10 +436,13 @@ export default function App() {
       setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title })));
     });
     const userSub = onSnapshot(collection(db, 'users'), (snap) => {
-      console.log(`[SYNC] Users updated: ${snap.size} docs`);
+      console.log(`[REAL-TIME SYNC] Received ${snap.size} user profiles from Firestore.`);
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setTeamMembers(all.filter(u => u.role !== 'client'));
-      setDbClients(all.filter(u => u.role === 'client'));
+      const clients = all.filter(u => u.role === 'client');
+      const team = all.filter(u => u.role !== 'client');
+      console.log(`[SYNC REPORT] Clients: ${clients.length}, Team: ${team.length}`);
+      setTeamMembers(team);
+      setDbClients(clients);
     });
     const paymentSub = onSnapshot(query(collectionGroup(db, 'payments')), (snap) => {
       setInvoices(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
