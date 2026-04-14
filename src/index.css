@@ -218,16 +218,86 @@ body {
 .d3 { transition-delay: 0.3s; }
 .d4 { transition-delay: 0.4s; }
 
-/* RESPONSIVE UTILITIES */
-@media (max-width: 968px) {
-  .dt-flex { display: none !important; }
-  .mob-only { display: flex !important; }
+/* ── RESPONSIVE UTILITIES ── */
+@media (max-width: 768px) {
+  .dt-only { display: none !important; }
+  .mb-only { display: flex !important; }
+  .lx-admin { flex-direction: column; }
+  .lx-main-admin { margin-left: 0 !important; padding: 20px 20px 100px !important; }
+  .p-nav-float { margin-bottom: 20px; padding: 12px 0; }
+  .header-inner { flex-direction: column; gap: 16px; align-items: flex-start !important; }
+  .header-actions { width: 100%; justify-content: space-between; }
+  .admin-matrix { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr; }
 }
 
-@media (min-width: 969px) {
-  .mob-only { display: none !important; }
-  .dt-flex { display: flex !important; }
+@media (min-width: 769px) {
+  .mb-only { display: none !important; }
+  .dt-only { display: flex !important; }
+  .lx-main-admin { margin-left: 80px; padding: 0 40px 40px; }
 }
+
+/* ── MOBILE BOTTOM NAV ── */
+.p-mobile-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 2000;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.05);
+}
+
+.p-mobile-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.p-mobile-nav .nav-item.active .icon-wrap {
+  transform: translateY(-4px) scale(1.1);
+  color: var(--ac);
+}
+
+.p-mobile-nav .icon-wrap {
+  transition: transform 0.3s;
+}
+
+/* HEADER REFINEMENTS */
+.header-stats {
+  border-right: 1px solid rgba(0,0,0,0.06);
+}
+
+@keyframes scan {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.mobile-header {
+  padding: 12px 16px !important;
+  background: white !important;
+  border-bottom: 1px solid var(--border) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;
+  position: sticky !important;
+  top: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .header-stats { border: none; padding-right: 0; margin-right: 0; display: flex; gap: 16px; margin-bottom: 8px; }
+  .header-title h1 { font-size: 18px !important; }
+  .lx-main-admin { padding: 0 0 100px 0 !important; } /* No padding on sides for full-width cards on mobile edge cases */
+  .admin-content-wrap { padding: 16px; }
+}
+
 
 /* ── UNIFIED HUB LAYOUT ── */
 .hub-grid {

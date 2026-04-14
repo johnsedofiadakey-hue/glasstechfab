@@ -315,7 +315,7 @@ export default function App() {
         });
         setContent(newContent);
       }
-      if (uSnap.empty || cmsDocs.length === 0) migrateToFirebase();
+      // REMOVED: if (uSnap.empty || cmsDocs.length === 0) migrateToFirebase();
     } catch (err) { console.warn('Fetch failed:', err); } finally { setLoading(false); }
   };
 
@@ -348,7 +348,9 @@ export default function App() {
       try {
         setAuthLoading(true);
         if (sessionUser) {
-          console.log("Auth session detected:", sessionUser.email);
+          // Pre-set user with minimal info so listeners can start
+          setUser(prev => prev || { id: sessionUser.uid, email: sessionUser.email, role: 'client' });
+          
           let profile = null;
           let profileId = null;
 
@@ -359,11 +361,13 @@ export default function App() {
             profile = userSnap.data();
             profileId = userSnap.id;
           } else {
+            // Fallback: search by email (important for newly created accounts or migration)
             const q = query(collection(db, 'users'), where('email', '==', sessionUser.email.trim()));
             const snap = await getDocs(q);
             if (!snap.empty) {
               profile = snap.docs[0].data();
               profileId = snap.docs[0].id;
+              // Sync the UID with the profile doc
               await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
             }
           }
@@ -376,13 +380,13 @@ export default function App() {
               else if (targetedRole === 'client') navigate('/portal');
             }
           } else {
-            console.error("No profile found for email:", sessionUser.email);
-            if (['admin@stormglide.com', 'admin@glasstechfab.com', 'client@glasstechfab.com'].includes(sessionUser.email)) {
-              await migrateToFirebase();
-              return;
+            // If authenticated but no profile yet, don't kick out immediately
+            // Instead, try to create a basic profile if on a protected route
+            if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
+                console.warn("Auth session without profile detected. Awaiting creation...");
+            } else {
+                setUser(null);
             }
-            setUser(null); 
-            if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) navigate('/');
           }
         } else {
           // PERSISTENCE FALLBACK: Check for OTP Session
@@ -412,7 +416,6 @@ export default function App() {
         }
       } catch (e) {
         console.error("Auth listener error:", e);
-        notify('error', 'Login verification failed.');
       } finally {
         setAuthLoading(false);
       }

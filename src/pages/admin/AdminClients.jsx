@@ -94,49 +94,46 @@ export default function AdminClients({ dbClients, createClient, updateClient, br
           const totalPaid = myInvs.filter(i => i.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
 
           return (
-            <div key={c.id} className="glass-matrix" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div key={c.id} className="glass-matrix pulse-card p-card" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20, background: '#fff' }}>
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                     <PAv i={c.name.split(' ').map(n=>n[0]).join('')} s={44} c={ac} />
+                  <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                     <PAv i={c.name.split(' ').map(n=>n[0]).join('')} s={48} c={ac} />
                      <div>
-                        <div className="lxfh" style={{ fontSize: 16 }}>{c.name}</div>
-                        <div className="lxf" style={{ fontSize: 11, color: ac, fontWeight: 700 }}>{c.phone}</div>
-                        <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{c.company || 'Private Client'}</div>
+                        <div className="lxfh" style={{ fontSize: 18 }}>{c.name}</div>
+                        <div className="lxf" style={{ fontSize: 11, color: ac, fontWeight: 700, letterSpacing: '0.05em' }}>{c.phone}</div>
                      </div>
                   </div>
-                  <button onClick={() => { setEditing(c); setNewC(c); setShowAdd(true); }} style={{ background: 'none', border: 'none', color: '#B5AFA9', cursor: 'pointer' }}><Plus size={16} style={{ transform: 'rotate(45deg)' }} /></button>
+                  <button onClick={() => { setEditing(c); setNewC(c); setShowAdd(true); }} style={{ background: '#F9F7F4', border: 'none', color: '#B5AFA9', cursor: 'pointer', padding: 8, borderRadius: 10 }}><Plus size={16} style={{ transform: 'rotate(45deg)' }} /></button>
                </div>
 
-               <div style={{ background: '#F9F7F4', borderRadius: 16, padding: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                     <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Current Phase</div>
+               <div style={{ background: '#F9F7F4', border: '1px solid rgba(0,0,0,0.02)', borderRadius: 16, padding: 20 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, alignItems: 'center' }}>
+                     <div className="lxf eyebrow" style={{ fontSize: 9, color: '#B5AFA9' }}>Pipeline Pulse</div>
                      <PSBadge s={stage} />
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>Completion</div>
-                     <div className="lxf" style={{ fontSize: 13, fontWeight: 800 }}>{pulse}%</div>
+                     <div className="lxf" style={{ fontSize: 10, color: '#1A1410', fontWeight: 600 }}>{pulse}% Production</div>
                   </div>
-                  <div className="prog" style={{ height: 6, background: '#eee', borderRadius: 10, marginTop: 8 }}>
+                  <div className="prog" style={{ height: 6, background: 'rgba(0,0,0,0.05)', borderRadius: 10, marginTop: 10 }}>
                      <div className="prog-f" style={{ width: `${pulse}%`, background: ac, borderRadius: 10 }} />
                   </div>
                </div>
 
                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div className="p-card" style={{ padding: 12, border: '1px solid rgba(0,0,0,0.03)', boxShadow: 'none' }}>
-                     <div className="lxf" style={{ fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>Logistics</div>
-                     <div className="lxf" style={{ fontSize: 12, fontWeight: 700, color: logStatus === 'In-Transit' ? '#16A34A' : 'inherit' }}>{logStatus}</div>
+                  <div style={{ padding: 14, background: '#fff', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 14 }}>
+                     <div className="lxf eyebrow" style={{ fontSize: 8, color: '#B5AFA9', marginBottom: 4 }}>Logistics</div>
+                     <div className="lxf" style={{ fontSize: 12, fontWeight: 800, color: logStatus === 'In-Transit' ? '#16A34A' : '#1A1410' }}>{logStatus}</div>
                   </div>
-                  <div className="p-card" style={{ padding: 12, border: '1px solid rgba(0,0,0,0.03)', boxShadow: 'none' }}>
-                     <div className="lxf" style={{ fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>Finances</div>
-                     <div className="lxf" style={{ fontSize: 12, fontWeight: 700 }}>
-                        {totalDue > 0 ? `${Math.round((totalPaid/totalDue)*100)}% Paid` : 'No Dues'}
+                  <div style={{ padding: 14, background: '#fff', border: '1px solid rgba(0,0,0,0.04)', borderRadius: 14 }}>
+                     <div className="lxf eyebrow" style={{ fontSize: 8, color: '#B5AFA9', marginBottom: 4 }}>Engagement</div>
+                     <div className="lxf" style={{ fontSize: 12, fontWeight: 800, color: '#1A1410' }}>
+                        {totalDue > 0 ? `${Math.round((totalPaid/totalDue)*100)}% Settled` : 'Zero Dues'}
                      </div>
                   </div>
                </div>
 
                <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
-                  <button onClick={() => props.onSelectClient(c.id)} className="p-btn-dark lxf" style={{ flex: 1, padding: '12px', fontSize: 12, borderRadius: 12 }}>Open Hub</button>
-                  <button onClick={() => props.onSelectClient(c.id)} className="p-btn-light lxf" style={{ padding: '12px', borderRadius: 12 }} title="View Timeline"><Search size={16} /></button>
+                  <button onClick={() => props.onSelectClient(c.id)} className="p-btn-dark lxf" style={{ flex: 1, padding: '14px', fontSize: 12, borderRadius: 14 }}>Enter Command Center</button>
                </div>
             </div>
           );
