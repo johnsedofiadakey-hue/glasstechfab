@@ -60,7 +60,10 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
               gap: isMobile ? 12 : 0
             }}>
               <div className="header-title">
-                <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', color: ac, fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>Operations Control</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', color: ac, fontWeight: 800, textTransform: 'uppercase' }}>Operations Control</div>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: !!brand.id ? '#16A34A' : '#EF4444', boxShadow: !!brand.id ? '0 0 10px #16A34A' : 'none' }} title={!!brand.id ? 'Connected to Firestore' : 'Mock Mode (No Persistence)'} />
+                </div>
                 <h1 className="lxfh" style={{ fontSize: isMobile ? 20 : 22, letterSpacing: '-0.02em' }}>Management Console</h1>
               </div>
               

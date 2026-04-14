@@ -750,15 +750,19 @@ export default function App() {
   
   const createClient = async (data) => {
     try {
+      if (!db) {
+         notify('error', 'Backend Disconnected: No Persistence');
+         console.warn("[CRM] Attempted to create client without Firestore connection. Mode: Mock.");
+         return;
+      }
       const id = data.email.replace(/[.@]/g, '_');
       const cleanPhone = data.phone.replace(/\s/g, '');
       const payload = { ...data, id, phone: cleanPhone, role: 'client', status: 'Active', joined: new Date().toISOString() };
-      if (db) await setDoc(doc(db, 'users', id), payload);
-      setDbClients(prev => [payload, ...prev]);
+      await setDoc(doc(db, 'users', id), payload);
       notify('success', 'New Client Registered');
       logAction(null, 'CRM', `Registered Client: ${data.name} (${cleanPhone})`);
     } catch (e) {
-      console.error(e);
+      console.error("[CRM] Registration Error:", e);
       notify('error', 'Failed to register client');
     }
   };
