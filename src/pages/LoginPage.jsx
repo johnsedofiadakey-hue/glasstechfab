@@ -13,7 +13,7 @@ const COUNTRIES = [
   { name: 'Cote d\'Ivoire', code: '+225', flag: '🇨🇮' },
 ];
 
-export default function LoginPage({ onLogin, onBack, brand, onBootstrap, type = 'client', ...props }) {
+export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...props }) {
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [email, setEmail] = useState('');
@@ -218,9 +218,6 @@ export default function LoginPage({ onLogin, onBack, brand, onBootstrap, type = 
          </p>
       </div>
 
-      {onBootstrap && !isAdminLogin && (
-        <button onClick={onBootstrap} style={{ position: 'fixed', bottom: 24, right: 24, background: 'none', border: `1px solid ${ac}40`, color: ac, borderRadius: 8, padding: '8px 16px', fontSize: 11, cursor: 'pointer', opacity: .5 }}>Initialize Ecosystem</button>
-      )}
     </div>
   );
 }

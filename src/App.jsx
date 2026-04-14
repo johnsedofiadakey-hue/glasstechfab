@@ -988,7 +988,6 @@ export default function App() {
           <LoginPage 
             brand={brand} 
             type={loginType} 
-            onBootstrap={migrateToFirebase} 
             onBack={() => navigate('/')}
             onLogin={loginHandler}
             {...commonProps}

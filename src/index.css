@@ -653,3 +653,48 @@ body {
 .slider-dot.active {
   background: var(--ac);
 }
+/* ── MINIMALIST MOBILE OVERRIDES ── */
+@media (max-width: 768px) {
+  .hero-title { font-size: 32px !important; line-height: 1.1 !important; }
+  .section-pad { padding: 40px 20px !important; }
+  .drawer-link { font-size: 22px !important; letter-spacing: -0.01em; }
+}
+
+.minimal-btn {
+  background: #121212;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.minimal-btn:hover {
+  background: #333;
+  transform: translateY(-1px);
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1500;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── SOFTWARE ENGINEERED SPACING ── */
+.p-gap-md { gap: 24px; }
+.p-gap-lg { gap: 40px; }
+.p-radius-sm { border-radius: 4px; }
+.p-border-light { border: 1px solid #F0EBE5; }

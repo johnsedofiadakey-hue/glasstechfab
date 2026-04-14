@@ -70,76 +70,85 @@ export function PubNav({ brand, setPage, activePage, onPortal, onLogoUpload, use
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: scrolled || menuOpen ? '#ffffff' : 'rgba(0, 0, 0, 0.4)',
-      backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: scrolled || menuOpen ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.1)',
-      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-      height: scrolled ? 64 : 80, display: 'flex', alignItems: 'center',
-      padding: '0 24px'
+      background: scrolled || menuOpen ? '#ffffff' : 'transparent',
+      backdropFilter: (scrolled || menuOpen) ? 'blur(20px)' : 'none',
+      WebkitBackdropFilter: (scrolled || menuOpen) ? 'blur(20px)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
+      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+      height: scrolled ? 70 : 100, display: 'flex', alignItems: 'center',
+      padding: '0 40px'
     }}>
-      <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ position: 'relative', zIndex: 1001, cursor: 'pointer' }}>
-          <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div className="lxfh" style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: scrolled || menuOpen ? '#121212' : '#ffffff' }}>
-              {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
-            </div>
+      <div style={{ maxWidth: 1600, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001 }}>
+          <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', color: (scrolled || menuOpen) ? '#121212' : '#ffffff' }}>
+            {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
           </div>
         </div>
 
-        {/* Desktop Nav */}
-        <div style={{ gap: 32, alignItems: 'center' }} className="dt-flex">
-          {links.map(l => (
-            <button key={l.id} onClick={() => setPage(l.id)} className="lxf" style={{
-              background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-              color: activePage === l.id ? ac : (scrolled ? '#121212' : '#ffffff'),
-              textTransform: 'uppercase', letterSpacing: '0.15em', transition: 'color 0.3s'
-            }}>{l.n}</button>
-          ))}
+        {/* Minimalist Deskstop Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 48 }} className="dt-flex">
+          <div style={{ display: 'flex', gap: 32 }}>
+            {links.map(l => (
+              <button key={l.id} onClick={() => setPage(l.id)} className="lxf" style={{
+                background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
+                color: activePage === l.id ? ac : (scrolled ? '#121212' : '#ffffff'),
+                textTransform: 'uppercase', letterSpacing: '0.2em', transition: 'all 0.3s'
+              }}>{l.n}</button>
+            ))}
+          </div>
           {onPortal && (
-            <button onClick={() => onPortal('client')} className="pub-btn-gold lxf" style={{ padding: '8px 20px', fontSize: 11, borderRadius: 2 }}>Portal Access</button>
+            <button onClick={() => onPortal('client')} className="lxf" style={{ 
+              padding: '12px 24px', fontSize: 10, fontWeight: 800, background: (scrolled ? '#121212' : '#ffffff'), 
+              color: (scrolled ? '#ffffff' : '#121212'), border: 'none', borderRadius: 2, 
+              textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}>Partner Portal</button>
           )}
         </div>
 
-        {/* Mobile menu toggle */}
-        <button className="mob-only" onClick={() => setMenuOpen(!menuOpen)} style={{
-          background: 'none', border: 'none', cursor: 'pointer', position: 'relative', width: 24, height: 24, zIndex: 1001
-        }}>
-          <div style={{ width: 24, height: 1.5, background: menuOpen || scrolled ? '#121212' : '#ffffff', position: 'absolute', top: menuOpen ? 12 : 6, left: 0, transform: menuOpen ? 'rotate(45deg)' : 'none', transition: 'all 0.3s' }} />
-          <div style={{ width: 24, height: 1.5, background: menuOpen || scrolled ? '#121212' : '#ffffff', position: 'absolute', top: 12, left: 0, opacity: menuOpen ? 0 : 1, transition: 'all 0.3s' }} />
-          <div style={{ width: 24, height: 1.5, background: menuOpen || scrolled ? '#121212' : '#ffffff', position: 'absolute', top: menuOpen ? 12 : 18, left: 0, transform: menuOpen ? 'rotate(-45deg)' : 'none', transition: 'all 0.3s' }} />
-        </button>
+        {/* Mobile Logic Area */}
+        <div className="mob-only" style={{ display: 'flex', alignItems: 'center', gap: 20, zIndex: 1001 }}>
+          {onPortal && (
+            <button onClick={() => onPortal('client')} className="lxf" style={{ 
+              padding: '8px 16px', fontSize: 9, fontWeight: 800, background: (scrolled || menuOpen ? '#121212' : '#ffffff'), 
+              color: (scrolled || menuOpen ? '#ffffff' : '#121212'), border: 'none', borderRadius: 2, 
+              textTransform: 'uppercase', letterSpacing: '0.1em'
+            }}>Login</button>
+          )}
+          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', width: 24, height: 16 }}>
+            <div style={{ position: 'absolute', top: menuOpen ? 8 : 0, left: 0, width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', transform: menuOpen ? 'rotate(45deg)' : 'none', transition: '0.3s' }} />
+            <div style={{ position: 'absolute', top: 8, left: 0, width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', opacity: menuOpen ? 0 : 1, transition: '0.3s' }} />
+            <div style={{ position: 'absolute', top: menuOpen ? 8 : 16, left: 0, width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', transform: menuOpen ? 'rotate(-45deg)' : 'none', transition: '0.3s' }} />
+          </button>
+        </div>
 
-        {/* Mobile menu overlay */}
+        {/* Lateral Slide-in Drawer */}
         <div style={{
-          position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%',
-          background: '#ffffff', zIndex: 2000, padding: '100px 32px 40px',
+          position: 'fixed', top: 0, right: 0, bottom: 0, width: 320,
+          background: '#ffffff', zIndex: 2000, padding: '120px 40px 40px',
           transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+          boxShadow: '-20px 0 60px rgba(0,0,0,0.05)',
           display: 'flex', flexDirection: 'column'
         }}>
-          <div style={{ marginBottom: 60 }}>
-            <div className="lxf eyebrow" style={{ color: ac, marginBottom: 16, fontSize: 10, letterSpacing: '0.2em' }}>ENGINEERING EXCELLENCE</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {links.map(l => (
-                <button key={l.id} onClick={() => { setPage(l.id); setMenuOpen(false); }} className="lxfh" style={{
-                  background: 'none', border: 'none', cursor: 'pointer', fontSize: 40,
-                  color: activePage === l.id ? ac : '#121212', fontWeight: 300, textAlign: 'left', padding: 0, letterSpacing: '-0.02em'
-                }}>{l.n}</button>
-              ))}
-            </div>
+          <div className="lxf eyebrow" style={{ color: ac, marginBottom: 32, fontSize: 10 }}>Navigation Center</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {links.map(l => (
+              <button key={l.id} onClick={() => { setPage(l.id); setMenuOpen(false); }} className="lxfh" style={{
+                background: 'none', border: 'none', cursor: 'pointer', fontSize: 28,
+                color: activePage === l.id ? ac : '#121212', fontWeight: 300, textAlign: 'left', padding: 0
+              }}>{l.n}</button>
+            ))}
           </div>
           
-          <button onClick={() => { setMenuOpen(false); onPortal('client'); }} className="pub-btn-gold lxf" style={{ padding: '18px', width: '100%', fontSize: 13, marginBottom: 40 }}>Enter Client Portal</button>
-
-          <div style={{ marginTop: 'auto', borderTop: '1px solid #f0f0f0', paddingTop: 40 }}>
-            <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 8 }}>Immediate Support</div>
-            <div className="lxfh" style={{ fontSize: 22, color: '#121212' }}>{brand.phone}</div>
-            <div className="lxf" style={{ fontSize: 12, color: '#999', marginTop: 4 }}>Consultations available 24/7.</div>
+          <div style={{ marginTop: 'auto', borderTop: '1px solid #f5f5f5', paddingTop: 40 }}>
+            <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 16 }}>Authorized Support</div>
+            <div className="lxfh" style={{ fontSize: 20, color: '#121212' }}>{brand.phone}</div>
+            <div onClick={() => { setMenuOpen(false); onPortal('client'); }} style={{ marginTop: 24, fontSize: 12, fontWeight: 700, color: ac, cursor: 'pointer' }} className="lxf">Access Partner Portal →</div>
           </div>
         </div>
 
-        {/* Backdrop */}
-        {menuOpen && <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)', zIndex: 1999 }} />}
+        {/* Drawer Backdrop */}
+        {menuOpen && <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)', zIndex: 1999 }} />}
       </div>
     </nav>
   );
