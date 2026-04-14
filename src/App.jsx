@@ -359,13 +359,11 @@ export default function App() {
             profile = userSnap.data();
             profileId = userSnap.id;
           } else {
-            // FALLBACK: Search by email (Case-insensitive-ish)
             const q = query(collection(db, 'users'), where('email', '==', sessionUser.email.trim()));
             const snap = await getDocs(q);
             if (!snap.empty) {
               profile = snap.docs[0].data();
               profileId = snap.docs[0].id;
-              // Map the Auth UID to this profile for faster future lookups
               await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
             }
           }
@@ -373,8 +371,6 @@ export default function App() {
           if (profile) {
             setUser({ ...sessionUser, ...profile, id: profileId });
             const targetedRole = profile.role || 'client';
-            
-            // Navigate based on role if on a shared or login page
             if (location.pathname === '/login' || location.pathname === '/') {
               if (targetedRole === 'admin') navigate('/admin');
               else if (targetedRole === 'client') navigate('/portal');
@@ -386,11 +382,29 @@ export default function App() {
               return;
             }
             setUser(null); 
-            if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
-              navigate('/');
-            }
+            if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) navigate('/');
           }
         } else {
+          // PERSISTENCE FALLBACK: Check for OTP Session
+          const savedSession = localStorage.getItem('glasstech_session');
+          if (savedSession) {
+             const sessionData = JSON.parse(savedSession);
+             if (sessionData.expiry > Date.now()) {
+                const userRef = doc(db, 'users', sessionData.id);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                   setUser({ id: sessionData.id, ...userSnap.data() });
+                   if (location.pathname === '/login' || location.pathname === '/') {
+                      navigate('/portal');
+                   }
+                   setAuthLoading(false);
+                   return;
+                }
+             } else {
+                localStorage.removeItem('glasstech_session');
+             }
+          }
+          
           setUser(null);
           if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
             navigate('/');
@@ -772,7 +786,12 @@ export default function App() {
       const userMatch = findUserByPhone(phone);
       if (userMatch) {
          setUser(userMatch);
-         setView('portal');
+         localStorage.setItem('glasstech_session', JSON.stringify({
+           id: userMatch.id,
+           phone: phone,
+           expiry: Date.now() + (24 * 60 * 60 * 1000) // 24h
+         }));
+         navigate('/portal');
          setMagicCode(null);
          return true;
       }
@@ -794,8 +813,9 @@ export default function App() {
   const handleLogout = async () => {
     try {
       if (auth) await signOut(auth);
+      localStorage.removeItem('glasstech_session');
       setUser(null);
-      // Let the routing handle the redirect
+      navigate('/login');
     } catch (e) {
       console.error("Logout failed:", e);
       notify('error', 'Logout failed');
