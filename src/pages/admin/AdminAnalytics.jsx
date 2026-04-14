@@ -135,8 +135,8 @@ export default function AdminAnalytics({ clients = [], invoices = [], brand, get
       <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 20 }}>
         <div className="p-card" style={{ padding: 24 }}>
           <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Revenue Growth (Projected)</h3>
-          <div style={{ height: 300, width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div style={{ height: 300, width: '100%', minHeight: 300 }}>
+            <ResponsiveContainer width="100%" height="100%" debounce={100}>
               <ComposedChart data={ANALYTICS_MONTHLY}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#B5AFA9' }} />
@@ -154,8 +154,8 @@ export default function AdminAnalytics({ clients = [], invoices = [], brand, get
              <h3 className="lxfh" style={{ fontSize: 18 }}>Portfolio Health</h3>
              <PieIcon size={18} color={ac} />
           </div>
-          <div style={{ height: 260, width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div style={{ height: 260, width: '100%', minHeight: 260 }}>
+            <ResponsiveContainer width="100%" height="100%" debounce={100}>
               <PieChart>
                 <Pie data={perfData} innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="value">
                   {perfData.map((entry, index) => <Cell key={index} fill={entry.fill} />)}

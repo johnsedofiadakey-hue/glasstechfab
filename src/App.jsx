@@ -424,11 +424,19 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!user?.id || !db) return;
+    if (!user?.id || !db) {
+      if (!user?.id) console.log("[FETCH] Awaiting user identity...");
+      return;
+    }
+    
+    console.log("[FETCH] Initializing Data Pipeline for:", user.id);
+    
     const projectSub = onSnapshot(collection(db, 'projects'), (snap) => {
+      console.log(`[SYNC] Projects updated: ${snap.size} docs`);
       setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title })));
     });
     const userSub = onSnapshot(collection(db, 'users'), (snap) => {
+      console.log(`[SYNC] Users updated: ${snap.size} docs`);
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setTeamMembers(all.filter(u => u.role !== 'client'));
       setDbClients(all.filter(u => u.role === 'client'));
@@ -488,6 +496,7 @@ export default function App() {
     });
 
     return () => { 
+      console.log("[FETCH] Tearing down Data Pipeline...");
       projectSub && projectSub(); userSub && userSub(); paymentSub && paymentSub(); logSub && logSub(); taskSub && taskSub(); notifSub && notifSub();
       approvalSub && approvalSub(); crSub && crSub(); procSub && procSub(); noteSub && noteSub(); mediaSub && mediaSub(); shipSub && shipSub();
       proposalSub && proposalSub(); bookingSub && bookingSub(); emailSub && emailSub(); transSub && transSub();

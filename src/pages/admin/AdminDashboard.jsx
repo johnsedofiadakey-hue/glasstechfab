@@ -81,8 +81,8 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
               <button className="p-btn-light lxf dt-only" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 10, border: '1px solid var(--border)' }}>View Reports</button>
            </div>
            
-           <div style={{ height: 320, width: '100%', marginLeft: -20 }}>
-            <ResponsiveContainer width="100%" height="100%">
+           <div style={{ height: 320, width: '100%', minHeight: 320, marginLeft: -20, position: 'relative' }}>
+            <ResponsiveContainer width="100%" height="100%" debounce={100}>
               <AreaChart data={REV}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.03)" vertical={false} />
                 <XAxis dataKey="m" tick={{ fill: '#B5AFA9', fontSize: 10, fontFamily: 'Inter' }} axisLine={false} tickLine={false} />
