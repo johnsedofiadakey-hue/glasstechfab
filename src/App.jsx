@@ -90,6 +90,8 @@ export default function App() {
   const [clients, setClients] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [emails, setEmails] = useState([]);
   const [activeMagicCode, setActiveMagicCode] = useState(null);
   const [dbClients, setDbClients] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
