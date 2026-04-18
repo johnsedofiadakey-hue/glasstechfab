@@ -17,7 +17,8 @@ import {
   Settings, 
   Hammer,
   Palette,
-  Package
+  Package,
+  Mail
 } from 'lucide-react';
 
 // --- SHARED COMPONENTS ---
@@ -47,7 +48,7 @@ const BA = ({ before, after, h = 300 }) => {
   );
 };
 
-export function PubNav({ brand, setPage, activePage, onPortal, onLogoUpload, user }) {
+export function PubNav({ brand, setPage, activePage, onPortal, user }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const ac = brand.color || '#B08D57';
@@ -67,63 +68,63 @@ export function PubNav({ brand, setPage, activePage, onPortal, onLogoUpload, use
     { n: 'Contact', id: 'contact' }
   ];
 
+  // FORCE SOLID NAV ON SUBPAGES
+  const forceSolid = activePage !== 'home';
+  const isDarkText = scrolled || menuOpen || forceSolid;
+
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: scrolled || menuOpen ? '#ffffff' : 'transparent',
-      backdropFilter: (scrolled || menuOpen) ? 'blur(20px)' : 'none',
-      WebkitBackdropFilter: (scrolled || menuOpen) ? 'blur(20px)' : 'none',
-      borderBottom: scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
+      background: isDarkText ? '#ffffff' : 'transparent',
+      backdropFilter: isDarkText ? 'blur(20px)' : 'none',
+      WebkitBackdropFilter: isDarkText ? 'blur(20px)' : 'none',
+      borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.06)' : 'none',
       transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-      height: scrolled ? 70 : 100, display: 'flex', alignItems: 'center',
+      height: scrolled ? 70 : 80, display: 'flex', alignItems: 'center',
       padding: '0 40px'
     }}>
       <div style={{ maxWidth: 1600, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001 }}>
-          <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', color: (scrolled || menuOpen) ? '#121212' : '#ffffff' }}>
+          <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', color: isDarkText ? '#121212' : '#ffffff' }}>
             {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
           </div>
         </div>
 
-        {/* Minimalist Deskstop Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 48 }} className="dt-flex">
           <div style={{ display: 'flex', gap: 32 }}>
             {links.map(l => (
               <button key={l.id} onClick={() => setPage(l.id)} className="lxf" style={{
                 background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
-                color: activePage === l.id ? ac : (scrolled ? '#121212' : '#ffffff'),
+                color: activePage === l.id ? ac : (isDarkText ? '#121212' : '#ffffff'),
                 textTransform: 'uppercase', letterSpacing: '0.2em', transition: 'all 0.3s'
               }}>{l.n}</button>
             ))}
           </div>
           {onPortal && (
             <button onClick={() => onPortal('client')} className="lxf" style={{ 
-              padding: '12px 24px', fontSize: 10, fontWeight: 800, background: (scrolled ? '#121212' : '#ffffff'), 
-              color: (scrolled ? '#ffffff' : '#121212'), border: 'none', borderRadius: 2, 
+              padding: '12px 24px', fontSize: 10, fontWeight: 800, background: (isDarkText ? '#1A1410' : '#ffffff'), 
+              color: (isDarkText ? '#ffffff' : '#121212'), border: 'none', borderRadius: 2, 
               textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
             }}>Partner Portal</button>
           )}
         </div>
 
-        {/* Mobile Logic Area */}
+        {/* Simplified Mobile Header Actions */}
         <div className="mob-only" style={{ display: 'flex', alignItems: 'center', gap: 20, zIndex: 1001 }}>
-          {onPortal && (
-            <button onClick={() => onPortal('client')} className="lxf" style={{ 
-              padding: '10px 20px', fontSize: 10, fontWeight: 800, background: (scrolled || menuOpen ? '#121212' : '#ffffff'), 
-              color: (scrolled || menuOpen ? '#ffffff' : '#121212'), border: 'none', borderRadius: 100, 
-              textTransform: 'uppercase', letterSpacing: '0.1em', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-            }}>Portal</button>
-          )}
+          <button onClick={() => { setMenuOpen(false); onPortal('client'); }} className="lxf" style={{ 
+            padding: '8px 16px', fontSize: 9, fontWeight: 800, background: (isDarkText ? '#1A1410' : '#ffffff'), 
+            color: (isDarkText ? '#ffffff' : '#121212'), border: 'none', borderRadius: 100, 
+            textTransform: 'uppercase', letterSpacing: '0.1em'
+          }}>Portal</button>
           <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'relative', width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', transition: '0.3s', transform: menuOpen ? 'rotate(45deg)' : 'none' }}>
+            <div style={{ position: 'relative', width: 24, height: 1.5, background: isDarkText ? '#121212' : '#ffffff', transition: '0.3s', transform: menuOpen ? 'rotate(45deg)' : 'none' }}>
               <div style={{ position: 'absolute', top: menuOpen ? 0 : -8, left: 0, width: 24, height: 1.5, background: 'inherit', transition: '0.3s', opacity: menuOpen ? 0 : 1 }} />
               <div style={{ position: 'absolute', top: menuOpen ? 0 : 8, left: 0, width: 24, height: 1.5, background: 'inherit', transition: '0.3s', transform: menuOpen ? 'rotate(-90deg)' : 'none' }} />
             </div>
           </button>
         </div>
 
-
-        {/* Lateral Slide-in Drawer */}
+        {/* Drawer Still Kept for deeper links/info */}
         <div style={{
           position: 'fixed', top: 0, right: 0, bottom: 0, width: 320,
           background: '#ffffff', zIndex: 2000, padding: '120px 40px 40px',
@@ -148,11 +149,36 @@ export function PubNav({ brand, setPage, activePage, onPortal, onLogoUpload, use
             <div onClick={() => { setMenuOpen(false); onPortal('client'); }} style={{ marginTop: 24, fontSize: 12, fontWeight: 700, color: ac, cursor: 'pointer' }} className="lxf">Access Partner Portal →</div>
           </div>
         </div>
-
-        {/* Drawer Backdrop */}
         {menuOpen && <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)', zIndex: 1999 }} />}
       </div>
     </nav>
+  );
+}
+
+export function PubBottomNav({ activePage, setPage, brand }) {
+  const ac = brand.color || '#B08D57';
+  const items = [
+    { n: 'Home', id: 'home', i: <Home size={20} /> },
+    { n: 'Services', id: 'services', i: <Layout size={20} /> },
+    { n: 'Projects', id: 'portfolio', i: <Layers size={20} /> },
+    { n: 'Catalog', id: 'catalog', i: <Package size={20} /> },
+    { n: 'Contact', id: 'contact', i: <Mail size={20} /> }
+  ];
+
+  return (
+    <div className="pub-bottom-nav mob-only">
+      {items.map(m => (
+        <button 
+          key={m.id} 
+          onClick={() => setPage(m.id)} 
+          className={`pub-bottom-item ${activePage === m.id ? 'active' : ''}`}
+        >
+          <div className="pub-bottom-indicator" />
+          {m.i}
+          <span>{m.n}</span>
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -617,8 +643,9 @@ export default function PublicSite({ page, setPage, brand, content, onPortal, on
 
   return (
     <div style={{ background: '#FDFCFB' }}>
-      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} onLogoUpload={onLogoUpload} user={user} />
+      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} user={user} />
       {render()}
+      <PubBottomNav brand={brand} setPage={setPage} activePage={p} />
       <Footer brand={brand} setPage={setPage} onPortal={onPortal} />
     </div>
   );

@@ -699,52 +699,91 @@ body {
   to { opacity: 1; }
 }
 
-/* ── NATIVE APP REFINEMENTS ── */
-.p-nav-float {
-  position: sticky;
-  top: 0;
-  z-index: 900;
-  background: rgba(249, 247, 244, 0.8);
-  backdrop-filter: blur(14px) saturate(180%);
-  -webkit-backdrop-filter: blur(14px) saturate(180%);
-  padding: calc(12px + var(--safe-top)) 0 12px;
-  margin-bottom: 32px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+/* ── NATIVE APP & PUBLIC NAVIGATION ── */
+.dt-flex { display: flex !important; }
+.mob-only { display: none !important; }
+
+@media (max-width: 900px) {
+  .dt-flex { display: none !important; }
+  .mob-only { display: flex !important; }
+  
+  .pub-page {
+    padding-bottom: calc(100px + var(--safe-bottom)) !important;
+  }
+
+  .hero-title {
+    font-size: clamp(40px, 12vw, 64px) !important;
+  }
 }
 
-.p-mobile-nav {
-  padding-bottom: calc(12px + var(--safe-bottom)) !important;
+.pub-bottom-nav {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 500px;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 40px;
+  box-shadow: 0 12px 48px rgba(26, 20, 16, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 12px;
+  z-index: 5000;
+  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-.mob-swipe {
+.pub-bottom-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #7A6E62;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 8px;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.pub-bottom-item.active {
+  color: #1A1410;
+}
+
+.pub-bottom-indicator {
+  position: absolute;
+  top: -8px;
+  width: 4px;
+  height: 4px;
+  background: var(--ac);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--ac);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.pub-bottom-item.active .pub-bottom-indicator {
+  opacity: 1;
+}
+
+/* Custom Scrollbar for Portfolio/Catalog horizontal sections on mobile */
+.luxe-horiz-scroll {
   display: flex;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  gap: 16px;
-  padding: 8px 16px 24px;
-  margin: 0 -16px;
+  padding-bottom: 24px;
+  gap: 20px;
 }
-
-.mob-swipe::-webkit-scrollbar { display: none; }
-
-.mob-swipe > * {
-  flex-shrink: 0;
-  scroll-snap-align: center;
-  width: 85%;
-}
-
-.glass-matrix {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
-}
-
-.p-card.dark-theme {
-  background: #1A1410 !important;
-  color: #fff !important;
-  border: 1px solid rgba(255,255,255,0.05) !important;
-}
+.luxe-horiz-scroll::-webkit-scrollbar { display: none; }
 
