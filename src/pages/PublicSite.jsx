@@ -48,9 +48,8 @@ const BA = ({ before, after, h = 300 }) => {
   );
 };
 
-export function PubNav({ brand, setPage, activePage, onPortal, user }) {
+export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, setMenuOpen }) {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const ac = brand.color || '#B08D57';
 
   useEffect(() => {
@@ -124,38 +123,84 @@ export function PubNav({ brand, setPage, activePage, onPortal, user }) {
           </button>
         </div>
 
-        {/* Full-Screen Drawer for Mobile */}
+        {/* Full-Screen Smoked Glass Drawer for Mobile */}
         <div 
           className="pub-drawer"
           style={{
-            position: 'fixed', top: 0, right: 0, bottom: 0, width: 320,
-            background: '#ffffff', zIndex: 2000, padding: '120px 40px 40px',
+            position: 'fixed', top: 0, right: 0, bottom: 0, 
+            width: 'min(85vw, 360px)',
+            background: 'rgba(26, 20, 16, 0.94)', 
+            backdropFilter: 'blur(60px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(60px) saturate(180%)',
+            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+            zIndex: 5000, 
+            padding: '140px 48px 48px',
             transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
-            transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-            boxShadow: '-20px 0 60px rgba(0,0,0,0.05)',
+            transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '-40px 0 80px rgba(0,0,0,0.5)',
             display: 'flex', flexDirection: 'column'
           }}
         >
-          <div style={{ position: 'absolute', top: 32, right: 32 }} onClick={() => setMenuOpen(false)}>
-            <X size={28} style={{ color: '#121212', cursor: 'pointer' }} />
-          </div>
-          <div className="lxf eyebrow" style={{ color: ac, marginBottom: 32, fontSize: 10 }}>Navigation Center</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {links.map(l => (
-              <button key={l.id} onClick={() => { setPage(l.id); setMenuOpen(false); }} className="lxfh" style={{
-                background: 'none', border: 'none', cursor: 'pointer', fontSize: 24,
-                color: activePage === l.id ? ac : '#121212', fontWeight: 300, textAlign: 'left', padding: 0
-              }}>{l.n}</button>
-            ))}
+          <div style={{ position: 'absolute', top: 44, right: 40 }} onClick={() => setMenuOpen(false)}>
+            <div style={{ padding: 12, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={24} style={{ color: '#ffffff', cursor: 'pointer' }} />
+            </div>
           </div>
           
-          <div style={{ marginTop: 'auto', borderTop: '1px solid #f5f5f5', paddingTop: 40 }}>
-            <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 16 }}>Authorized Support</div>
-            <div className="lxfh" style={{ fontSize: 20, color: '#121212' }}>{brand.phone}</div>
-            <div onClick={() => { setMenuOpen(false); onPortal('client'); }} style={{ marginTop: 24, fontSize: 12, fontWeight: 700, color: ac, cursor: 'pointer' }} className="lxf">Access Partner Portal →</div>
+          <div className="lxf eyebrow" style={{ color: ac, marginBottom: 48, fontSize: 10, letterSpacing: '.3em', fontWeight: 800 }}>MAPPING THE HUB</div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+            {links.map((l, i) => {
+              const isActive = activePage === l.id;
+              return (
+                <button 
+                  key={l.id} 
+                  onClick={() => { setPage(l.id); setMenuOpen(false); }} 
+                  className="lxfh fade-in" 
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer', 
+                    fontSize: 36, letterSpacing: '-0.02em',
+                    color: isActive ? ac : '#ffffff', 
+                    fontWeight: isActive ? 700 : 300, 
+                    textAlign: 'left', padding: 0,
+                    opacity: menuOpen ? 1 : 0,
+                    transform: menuOpen ? 'none' : 'translateY(20px)',
+                    transition: `all 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + i * 0.05}s`
+                  }}
+                >
+                  {l.n}
+                  {isActive && <div style={{ width: 44, height: 4, background: ac, marginTop: 8, borderRadius: 2 }} />}
+                </button>
+              );
+            })}
+          </div>
+          
+          <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 48 }}>
+            <div className="lxf" style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.2em', marginBottom: 16, fontWeight: 700 }}>Direct Terminal Access</div>
+            <div className="lxfh" style={{ fontSize: 24, color: '#ffffff', fontWeight: 300, marginBottom: 32 }}>{brand.phone}</div>
+            <button 
+              onClick={() => { setMenuOpen(false); onPortal('client'); }} 
+              className="p-btn-gold"
+              style={{ width: '100%', padding: '18px', borderRadius: 14, fontSize: 13, fontWeight: 800 }}
+            >
+              Enter Partner Portal
+            </button>
           </div>
         </div>
-        {menuOpen && <div onClick={() => setMenuOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.1)', backdropFilter: 'blur(10px)', zIndex: 1999 }} />}
+
+        {/* Backdrop (Darker for smoked glass contrast) */}
+        {menuOpen && (
+          <div 
+            onClick={() => setMenuOpen(false)} 
+            className="fade-in"
+            style={{ 
+              position: 'fixed', inset: 0, 
+              background: 'rgba(0,0,0,0.45)', 
+              backdropFilter: 'blur(12px)', 
+              zIndex: 4999 
+            }} 
+          />
+        )}
       </div>
     </nav>
   );
@@ -629,8 +674,9 @@ export function ContactPage({ brand }) {
   );
 }
 
-export default function PublicSite({ page, setPage, brand, content, onPortal, onLogoUpload, user }) {
-  const p = page || 'home';
+export default function PublicSite({ brand, setPage: setP, activePage: p, onPortal, user, content, ...props }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const ac = brand.color || '#B08D57';
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -649,9 +695,9 @@ export default function PublicSite({ page, setPage, brand, content, onPortal, on
 
   return (
     <div style={{ background: '#FDFCFB' }}>
-      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} user={user} />
+      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} user={user} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       {render()}
-      <PubBottomNav brand={brand} setPage={setPage} activePage={p} />
+      {!menuOpen && <PubBottomNav brand={brand} setPage={setPage} activePage={p} />}
       <Footer brand={brand} setPage={setPage} onPortal={onPortal} />
     </div>
   );

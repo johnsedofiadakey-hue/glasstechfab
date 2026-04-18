@@ -23,8 +23,8 @@ html{scroll-behavior:smooth;}
   --glass-border: rgba(255, 255, 255, 0.5);
 
   /* Native App Safe Areas */
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-top: env(safe-area-inset-top, 20px);
+  --safe-bottom: env(safe-area-inset-bottom, 20px);
 }
 
 
@@ -713,7 +713,13 @@ body {
 
   .pub-drawer {
     width: 100% !important;
-    padding: 100px 32px 32px !important;
+    max-width: 400px !important;
+    background: rgba(26, 20, 16, 0.96) !important;
+    backdrop-filter: blur(60px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(60px) saturate(180%) !important;
+    border-left: 1px solid rgba(255,255,255,0.1) !important;
+    padding: 140px 48px 48px !important;
+    box-shadow: -40px 0 80px rgba(0,0,0,0.6) !important;
   }
 
   .hero-title {
@@ -796,6 +802,104 @@ body {
 .pub-bottom-item.active .pub-bottom-indicator {
   opacity: 1;
 }
+
+/* 🧪 UNIFIED GLASS DOCK SYSTEM */
+.glass-dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 480px;
+  height: 76px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 40px;
+  box-shadow: 0 15px 45px rgba(26, 20, 16, 0.12), 0 5px 15px rgba(26, 20, 16, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 12px;
+  z-index: 6000;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-bottom: 0; /* Handled by bottom positioning */
+}
+
+.glass-dock-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #7A6E62;
+  font-size: 9px;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 10px;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+  border-radius: 20px;
+}
+
+.glass-dock-item.active {
+  color: var(--fg);
+  transform: translateY(-2px);
+}
+
+.glass-dock-item .icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.4s;
+  position: relative;
+}
+
+.glass-dock-item.active .icon-box {
+  background: rgba(var(--ac-rgb), 0.12);
+  color: var(--ac);
+  box-shadow: 0 8px 16px rgba(var(--ac-rgb), 0.1);
+}
+
+.glass-dock-item .dot {
+  position: absolute;
+  top: -4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ac);
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.4s;
+}
+
+.glass-dock-item.active .dot {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 📱 MOBILE TERMINAL ENHANCEMENTS */
+@media (max-width: 768px) {
+  .portal-content { padding: 20px 20px 120px !important; }
+  .p-nav-float { margin-bottom: 16px !important; border-radius: 0 0 24px 24px !important; border-top: none !important; }
+  .kpi-grid { display: flex !important; overflow-x: auto !important; gap: 16px !important; padding: 4px 0 20px !important; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .kpi-card { flex: 0 0 280px !important; scroll-snap-align: start !important; }
+  .hub-grid { display: flex !important; flexDirection: column !important; gap: 20px !important; }
+  
+  /* Hide noisy elements on mobile for focus */
+  .mob-hide { display: none !important; }
+}
+
+/* Custom Scrollbar for Horiz KPI list */
+.kpi-grid::-webkit-scrollbar { display: none; }
 
 /* Custom Scrollbar for Portfolio/Catalog horizontal sections on mobile */
 .luxe-horiz-scroll {

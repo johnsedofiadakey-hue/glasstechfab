@@ -109,23 +109,23 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             {/* KPI GRID */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-               <div className="p-card pulse-card" style={{ padding: 32, background: '#fff', border: '1px solid #F0EBE5' }}>
-                  <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', marginBottom: 12 }}>Production Velocity</div>
-                  <div className="lxfh" style={{ fontSize: 44, fontWeight: 300, color: '#121212' }}>{pulse}% <span style={{ fontSize: 14, color: '#B5AFA9', fontWeight: 500 }}>COMPLETE</span></div>
-                  <div style={{ height: 4, background: '#F9F7F4', borderRadius: 10, marginTop: 24, overflow: 'hidden' }}>
+            <div className="kpi-grid">
+               <div className="p-card pulse-card kpi-card" style={{ padding: 24, background: '#fff', border: '1px solid #F0EBE5' }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', marginBottom: 12 }}>Production Velocity</div>
+                  <div className="lxfh" style={{ fontSize: 32, fontWeight: 300, color: '#121212' }}>{pulse}% <span style={{ fontSize: 13, color: '#B5AFA9', fontWeight: 500 }}>COMPLETE</span></div>
+                  <div style={{ height: 4, background: '#F9F7F4', borderRadius: 10, marginTop: 20, overflow: 'hidden' }}>
                      <div style={{ width: `${pulse}%`, height: '100%', background: ac, borderRadius: 10 }} />
                   </div>
                </div>
-               <div className="p-card" style={{ padding: 32, background: '#fff', border: '1px solid #F0EBE5' }}>
-                  <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', marginBottom: 12 }}>Current Phase</div>
-                  <div className="lxfh" style={{ fontSize: 24, fontWeight: 400, color: '#121212' }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
-                  <p className="lxf" style={{ fontSize: 13, color: '#B5AFA9', marginTop: 12 }}>Handover: <span style={{ color: ac, fontWeight: 700 }}>{props.getSLA?.(myProj).date || 'TBD'}</span></p>
+               <div className="p-card kpi-card" style={{ padding: 24, background: '#fff', border: '1px solid #F0EBE5' }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', marginBottom: 12 }}>Current Phase</div>
+                  <div className="lxfh" style={{ fontSize: 22, fontWeight: 400, color: '#121212' }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
+                  <p className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginTop: 10 }}>Handover: <span style={{ color: ac, fontWeight: 700 }}>{props.getSLA?.(myProj).date || 'TBD'}</span></p>
                </div>
-               <div className="p-card" style={{ padding: 32, background: '#121212', border: 'none' }}>
-                  <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', marginBottom: 12, color: ac }}>Account Summary</div>
-                  <div className="lxfh" style={{ fontSize: 24, color: '#fff', fontWeight: 300 }}>{nextInv ? 'Payment Due' : 'All Settled'}</div>
-                  <div className="lxf" style={{ fontSize: 13, color: nextInv ? ac : '#16A34A', fontWeight: 700, marginTop: 12 }}>{nextInv ? nextInv.amount : 'No balance due'}</div>
+               <div className="p-card kpi-card" style={{ padding: 24, background: '#121212', border: 'none' }}>
+                  <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', marginBottom: 12, color: ac }}>Account Summary</div>
+                  <div className="lxfh" style={{ fontSize: 22, color: '#fff', fontWeight: 300 }}>{nextInv ? 'Payment Due' : 'All Settled'}</div>
+                  <div className="lxf" style={{ fontSize: 12, color: nextInv ? ac : '#16A34A', fontWeight: 700, marginTop: 10 }}>{nextInv ? nextInv.amount : 'No balance due'}</div>
                </div>
             </div>
 
@@ -558,34 +558,20 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         </div>
       </div>
 
-      {/* MOBILE BOTTOM NAV */}
+      {/* MOBILE BOTTOM NAVIGATION (Premium Glass Dock) */}
       {isMobile && (
-        <nav className="p-mobile-nav" style={{ 
-          position: 'fixed', bottom: 0, left: 0, right: 0, height: 80, 
-          background: 'var(--bg)', borderTop: '1px solid var(--border)', 
-          backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-          display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-          paddingBottom: 'env(safe-area-inset-bottom)', zIndex: 3000,
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.05)'
-        }}>
+        <nav className="glass-dock">
           {mobileTabs.map(m => (
             <button 
               key={m.id} 
               onClick={() => setTab(m.id)} 
-              style={{ 
-                background: 'none', border: 'none', display: 'flex', flexDirection: 'column', 
-                alignItems: 'center', gap: 4, color: tab === m.id ? ac : 'var(--muted)',
-                transition: 'all 0.3s'
-              }}
+              className={`glass-dock-item ${tab === m.id ? 'active' : ''}`}
             >
-              <div style={{ 
-                width: 44, height: 44, borderRadius: 12, 
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: tab === m.id ? `${ac}15` : 'transparent'
-              }}>
+              <div className="dot" />
+              <div className="icon-box">
                 {m.icon}
               </div>
-              <span style={{ fontSize: 10, fontWeight: tab === m.id ? 700 : 500 }}>{m.label}</span>
+              <span>{m.label}</span>
             </button>
           ))}
         </nav>

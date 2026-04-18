@@ -112,46 +112,31 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
         </div>
       </main>
 
-      {/* MOBILE BOTTOM NAVIGATION (App-like feel) */}
+      {/* MOBILE BOTTOM NAVIGATION (Premium Glass Dock) */}
       {isMobile && (
-        <nav className="p-mobile-nav" style={{ 
-          position: 'fixed', bottom: 0, left: 0, right: 0, height: 80, 
-          background: '#fff', borderTop: '1px solid #F0EBE5', 
-          display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-          paddingBottom: 'env(safe-area-inset-bottom)', zIndex: 3000,
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.05)'
-        }}>
+        <nav className="glass-dock">
           {menu.map(m => (
             <button 
               key={m.id} 
               onClick={() => setView(m.id)} 
-              style={{ 
-                background: 'none', border: 'none', display: 'flex', flexDirection: 'column', 
-                alignItems: 'center', gap: 4, color: view === m.id ? ac : '#B5AFA9',
-                transition: 'all 0.3s'
-              }}
+              className={`glass-dock-item ${view === m.id ? 'active' : ''}`}
             >
-              <div style={{ 
-                width: 44, height: 44, borderRadius: 12, 
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: view === m.id ? `${ac}15` : 'transparent'
-              }}>
+              <div className="dot" />
+              <div className="icon-box">
                 {m.icon}
               </div>
-              <span style={{ fontSize: 10, fontWeight: view === m.id ? 700 : 500 }}>{m.label}</span>
+              <span>{m.label}</span>
             </button>
           ))}
           <button 
             onClick={onLogout} 
-            style={{ 
-              background: 'none', border: 'none', display: 'flex', flexDirection: 'column', 
-              alignItems: 'center', gap: 4, color: '#EF4444'
-            }}
+            className="glass-dock-item"
+            style={{ color: '#EF4444' }}
           >
-            <div style={{ width: 44, height: 44, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="icon-box">
               <LogOut size={20} />
             </div>
-            <span style={{ fontSize: 10, fontWeight: 500 }}>Logout</span>
+            <span>Logout</span>
           </button>
         </nav>
       )}

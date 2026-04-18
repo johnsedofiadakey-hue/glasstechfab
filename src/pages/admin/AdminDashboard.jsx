@@ -29,45 +29,56 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
     <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 24 : 32 }}>
       
       {/* 1. OPERATIONS COMMAND CONTROL */}
-      {!isMobile && (
-        <div className="glass-matrix" style={{ padding: '24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1A1410', color: '#fff', borderRadius: 24, border: 'none' }}>
-          <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
-            <div>
-              <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.2em', color: ac, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Command System</div>
-              <div className="lxfh" style={{ fontSize: 24, fontWeight: 300 }}>Operations Control</div>
-            </div>
-            <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.1)' }} />
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button 
-                onClick={() => typeof props.setMod === 'function' && props.setMod('AddProject')} 
-                className="p-btn-gold lxf" 
-                style={{ padding: '12px 24px', borderRadius: 12, fontSize: 13, fontWeight: 700 }}
-              >
-                <Plus size={18} /> Deploy Project
-              </button>
-              <button 
-                onClick={() => typeof props.setAI === 'function' && props.setAI()} 
-                style={{ height: 48, width: 48, borderRadius: 12, border: `1.5px solid ${ac}`, background: 'none', color: ac, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Sparkles size={20} />
-              </button>
-            </div>
+      {/* 1. OPERATIONS COMMAND CONTROL */}
+      <div className="glass-matrix" style={{ 
+        padding: isMobile ? '20px' : '24px 32px', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: isMobile ? 'flex-start' : 'center', 
+        background: '#1A1410', 
+        color: '#fff', 
+        borderRadius: isMobile ? 24 : 32, 
+        border: 'none',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: isMobile ? 20 : 0
+      }}>
+        <div style={{ display: 'flex', gap: isMobile ? 20 : 32, alignItems: 'center', width: isMobile ? '100%' : 'auto', justifyContent: 'space-between' }}>
+          <div>
+            <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', color: ac, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Command System</div>
+            <div className="lxfh" style={{ fontSize: isMobile ? 20 : 24, fontWeight: 300 }}>Operations Control</div>
           </div>
-          <div style={{ display: 'flex', gap: 40 }}>
-             <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>System Integrity</div>
-                <div style={{ fontSize: 18, color: '#16A34A', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}><TrendingUp size={16} /> 99.9%</div>
-             </div>
-             <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>Daily Throughput</div>
-                <div style={{ fontSize: 18, color: '#fff', fontWeight: 400 }}>+4,280 sqm</div>
-             </div>
+          {!isMobile && <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.1)' }} />}
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button 
+              onClick={() => typeof props.setMod === 'function' && props.setMod('AddProject')} 
+              className="p-btn-gold lxf" 
+              style={{ padding: isMobile ? '10px 16px' : '12px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}
+            >
+              <Plus size={16} /> <span className={isMobile ? "mob-hide" : ""}>Deploy Project</span>
+            </button>
+            <button 
+              onClick={() => typeof props.setAI === 'function' && props.setAI()} 
+              style={{ height: isMobile ? 40 : 48, width: isMobile ? 40 : 48, borderRadius: 12, border: `1.5px solid ${ac}`, background: 'none', color: ac, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Sparkles size={18} />
+            </button>
           </div>
         </div>
-      )}
+        
+        <div style={{ display: 'flex', gap: isMobile ? 24 : 40, width: isMobile ? '100%' : 'auto', borderTop: isMobile ? '1px solid rgba(255,255,255,0.1)' : 'none', paddingTop: isMobile ? 16 : 0 }}>
+           <div style={{ textAlign: isMobile ? 'left' : 'right', flex: isMobile ? 1 : 'none' }}>
+              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>System Integrity</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, color: '#16A34A', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, justifyContent: isMobile ? 'flex-start' : 'flex-end' }}><TrendingUp size={14} /> 99.9%</div>
+           </div>
+           <div style={{ textAlign: 'right', flex: isMobile ? 1 : 'none' }}>
+              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>Production Load</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, color: '#fff', fontWeight: 400 }}>{isMobile ? "82% CAP" : "+4,280 sqm"}</div>
+           </div>
+        </div>
+      </div>
 
-      {/* 2. CORE METRICS OVERVIEW (Scrollable on Mobile) */}
-      <div className={isMobile ? "mob-swipe" : "kpi-grid"}>
+      {/* 2. CORE METRICS OVERVIEW */}
+      <div className="kpi-grid">
         {dashboardStats.map((s, i) => (
           <div key={i} className="p-card" style={{ padding: 24, background: '#fff', borderRadius: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
