@@ -498,11 +498,11 @@ export default function App() {
     const taskSub = onSnapshot(query(collectionGroup(db, 'tasks')), (snap) => {
       setTasks(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
-    const logSub = onSnapshot(query(collectionGroup(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)), (snap) => {
+    const logSub = onSnapshot(query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)), (snap) => {
       const logsRaw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setLogs(logsRaw);
     }, (err) => {
-      console.warn("Activity logs listener failed (likely missing index):", err);
+      console.warn("Activity logs listener failed:", err);
     });
     const notifSub = onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)), (snap) => {
       setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
@@ -534,10 +534,10 @@ export default function App() {
     const emailSub = onSnapshot(collection(db, 'emails'), (snap) => {
       setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
-    const transSub = onSnapshot(query(collectionGroup(db, 'transactions'), orderBy('date', 'desc')), (snap) => {
-      setTransactions(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+    const transSub = onSnapshot(query(collection(db, 'transactions'), orderBy('date', 'desc')), (snap) => {
+      setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, (err) => {
-      console.warn("Transactions listener failed (likely missing index):", err);
+      console.warn("Transactions listener failed:", err);
     });
     const matSub = onSnapshot(query(collectionGroup(db, 'materials')), (snap) => {
       setMaterials(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
