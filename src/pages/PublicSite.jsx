@@ -520,9 +520,9 @@ export function CatalogPage({ brand, setPage, content }) {
         </div>
       </section>
 
-      <section style={{ padding: '80px 24px' }}>
+      <section style={{ padding: '60px 24px' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 32 }}>
+          <div className="pub-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 32 }}>
             {shown.map((p, i) => (
               <div key={p.id} className="p-card magnetic-card rev afu" style={{ padding: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ height: 260, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #F0EBE5' }}>
@@ -564,8 +564,8 @@ export function AboutPage({ brand, content }) {
           <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 6vw, 96px)', color: '#fff', fontWeight: 300, lineHeight: 1.1 }}>{about.storyTitle || 'Our Story'}</h1>
         </div>
       </section>
-      <section style={{ padding: '120px 24px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 80, alignItems: 'center' }}>
+      <section style={{ padding: '60px 24px' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 80, alignItems: 'center' }} className="pub-service-grid">
           <div>
             <h2 className="lxfh" style={{ fontSize: 48, marginBottom: 32 }}>Industrial Precision meets Architectural Luxury.</h2>
             <p className="lxf" style={{ fontSize: 18, color: '#4A4A4A', lineHeight: 1.8, marginBottom: 24 }}>{about.story}</p>
