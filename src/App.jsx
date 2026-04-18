@@ -886,39 +886,71 @@ export default function App() {
   };
 
   const sendOTP = async (phone) => {
-    const user = findUserByPhone(phone);
-    if (!user) throw new Error("Phone number not registered with Glasstech.");
-    
-    // Generate code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setMagicCode(code);
-    
-    // TRIGGER REAL WHATSAPP
     try {
-      await TwilioService.sendWhatsAppOTP(phone, code);
-      notify('success', `WhatsApp OTP Sent to ${phone}`);
-      console.log(`[AUTH] Live WhatsApp OTP Triggered`);
-      return true;
-    } catch (error) {
-      console.error("[OTP Failure]:", error);
-      // SIMULATION FALLBACK: Ensuring you are NEVER locked out during the Sandbox phase
-      console.warn(`[AUTH SIMULATION] Twilio bypassed. Verification Code: ${code}`);
-      notify('success', `[SECURITY ALERT] Your Glasstech Code is: ${code}`);
-      // Show an additional persistent alert for simulation
-      setNotification({ msg: `[SECURE LOGIN] Your verification code is: ${code}`, type: 'success' });
-      return true;
+      if (!db) throw new Error("Database offline.");
+      
+      let clean = phone.replace(/\D/g, ''); 
+      if (clean.startsWith('0')) clean = clean.substring(1);
+      
+      // Look for user by normalized ID (phone) or by scanning the users collection
+      const userRef = doc(db, 'users', clean);
+      const userSnap = await getDoc(userRef);
+      let userMatch = null;
+      
+      if (userSnap.exists()) {
+        userMatch = { id: userSnap.id, ...userSnap.data() };
+      } else {
+        // Fallback: Query all users to find one where phone field ends with 'clean'
+        const q = query(collection(db, 'users'), where('role', '==', 'client'));
+        const snap = await getDocs(q);
+        userMatch = snap.docs.find(d => {
+          let dp = (d.data().phone || '').replace(/\D/g, '');
+          if (dp.startsWith('0')) dp = dp.substring(1);
+          return dp === clean;
+        })?.data();
+      }
+      
+      if (!userMatch) throw new Error("Phone number not registered with Glasstech.");
+      
+      // Generate code
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      setMagicCode(code);
+      
+      // TRIGGER WHATSAPP (Live or Simulation)
+      try {
+        await TwilioService.sendWhatsAppOTP(phone, code);
+        notify('success', `WhatsApp OTP Sent to ${phone}`);
+        return true;
+      } catch (error) {
+        console.warn(`[SANDBOX SIMULATION] Verification Code: ${code}`);
+        setNotification({ msg: `[SECURE LOGIN] Your verification code is: ${code}`, type: 'success' });
+        return true;
+      }
+    } catch (err) {
+      setNotification({ msg: err.message, type: 'error' });
+      throw err;
     }
   };
 
   const verifyOTP = async (phone, code) => {
     if (code === magicCode || code === '123456') {
-      const userMatch = findUserByPhone(phone);
+      let clean = phone.replace(/\D/g, ''); 
+      if (clean.startsWith('0')) clean = clean.substring(1);
+      
+      const q = query(collection(db, 'users'), where('role', '==', 'client'));
+      const snap = await getDocs(q);
+      const userMatch = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => {
+        let dp = (u.phone || '').replace(/\D/g, '');
+        if (dp.startsWith('0')) dp = dp.substring(1);
+        return dp === clean;
+      });
+
       if (userMatch) {
          setUser(userMatch);
          localStorage.setItem('glasstech_session', JSON.stringify({
            id: userMatch.id,
            phone: phone,
-           expiry: Date.now() + (24 * 60 * 60 * 1000) // 24h
+           expiry: Date.now() + (24 * 60 * 60 * 1000)
          }));
          navigate('/portal');
          setMagicCode(null);
@@ -927,7 +959,6 @@ export default function App() {
     }
     throw new Error("Invalid verification code.");
   };
-
 
   const handleLogout = async () => {
     try {
