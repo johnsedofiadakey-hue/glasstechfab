@@ -90,8 +90,7 @@ export default function App() {
   const [clients, setClients] = useState([]);
   const [proposals, setProposals] = useState([]);
   const [invoices, setInvoices] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [emails, setEmails] = useState([]);
+  const [activeMagicCode, setActiveMagicCode] = useState(null);
   const [dbClients, setDbClients] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [logs, setLogs] = useState([]);
@@ -109,6 +108,7 @@ export default function App() {
   const [materials, setMaterials] = useState([]);
   const [assets, setAssets] = useState([]);
   const [magicCode, setMagicCode] = useState(null);
+  const [otp, setOtp] = useState('');
 
   const notify = (type, msg) => {
     setNotification({ type, msg });
@@ -915,6 +915,7 @@ export default function App() {
       // Generate code
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setMagicCode(code);
+      setActiveMagicCode(code); // Capturing for the UI
       
       // TRIGGER WHATSAPP (Live or Simulation)
       try {
@@ -1000,6 +1001,7 @@ export default function App() {
     updateStage, calculateProjectPulse,
     sendOTP, verifyOTP, findUserByPhone,
     deleteClient, // Restored functionality
+    activeMagicCode, // For Fail-Proof UI
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
   };

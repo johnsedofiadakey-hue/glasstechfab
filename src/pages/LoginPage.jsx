@@ -207,8 +207,15 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
                   </button>
                </div>
              ) : (
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                   {props.activeMagicCode && (
+                     <div className="fade-in" style={{ padding: '20px', background: '#FDFCFB', border: `1.5px dashed ${ac}`, borderRadius: 16, textAlign: 'center' }}>
+                        <div style={{ fontSize: 10, color: ac, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Security Fallback</div>
+                        <div style={{ fontSize: 32, fontWeight: 300, color: '#1A1410', letterSpacing: '4px' }}>{props.activeMagicCode}</div>
+                        <p style={{ fontSize: 11, color: '#B5AFA9', marginTop: 8 }}>Use this code if WhatsApp is delayed.</p>
+                     </div>
+                   )}
+                   <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <input 
                       placeholder="••••••" 
                       style={{ width: '100%', textAlign: 'center', fontSize: 32, letterSpacing: '12px', height: 80, fontWeight: 800, borderRadius: 16, border: '2px solid #F0EBE5', outline: 'none', color: '#1A1410' }} 
