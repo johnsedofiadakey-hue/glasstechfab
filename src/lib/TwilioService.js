@@ -47,12 +47,18 @@ export const TwilioService = {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Failed to send WhatsApp message via Twilio.");
+        const errorMsg = result.message || "Twilio Service Error";
+        const errorCode = result.code ? ` (Code: ${result.code})` : "";
+        throw new Error(`${errorMsg}${errorCode}`);
       }
 
       return result;
     } catch (error) {
       console.error("[TwilioService Error]:", error);
+      // Detection of CORS issues
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        throw new Error("Phone Sync blocked by Browser security. Please use the fallback code below.");
+      }
       throw error;
     }
   }

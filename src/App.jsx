@@ -488,31 +488,34 @@ export default function App() {
     
     console.log("[FETCH] Initializing Data Pipeline for:", user.id);
     
-    const projectSub = onSnapshot(collection(db, 'projects'), (snap) => {
-      console.log(`[SYNC] Projects updated: ${snap.size} docs`);
+    let projectSub, userSub, paymentSub, taskSub, logSub, transSub, proposalSub, bookingSub, emailSub, assetSub;
+
+    projectSub = onSnapshot(collection(db, 'projects'), (snap) => {
       setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title })));
     });
-    const userSub = onSnapshot(collection(db, 'users'), (snap) => {
-      console.log(`[REAL-TIME SYNC] Received ${snap.size} user profiles from Firestore.`);
-      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      const clients = all.filter(u => u.role === 'client');
-      const team = all.filter(u => u.role !== 'client');
-      console.log(`[SYNC REPORT] Clients: ${clients.length}, Team: ${team.length}`);
-      setTeamMembers(team);
-      setDbClients(clients);
-    });
-    const paymentSub = onSnapshot(query(collectionGroup(db, 'payments')), (snap) => {
-      setInvoices(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const taskSub = onSnapshot(query(collectionGroup(db, 'tasks')), (snap) => {
-      setTasks(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const logSub = onSnapshot(query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)), (snap) => {
-      const logsRaw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setLogs(logsRaw);
-    }, (err) => {
-      console.warn("Activity logs listener failed:", err);
-    });
+
+    if (user.role === 'admin') {
+      userSub = onSnapshot(collection(db, 'users'), (snap) => {
+        const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const clients = all.filter(u => u.role === 'client');
+        const team = all.filter(u => u.role !== 'client');
+        setTeamMembers(team);
+        setDbClients(clients);
+      });
+      paymentSub = onSnapshot(query(collectionGroup(db, 'payments')), (snap) => {
+        setInvoices(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+      });
+    }
+    if (user.role === 'admin') {
+      taskSub = onSnapshot(query(collectionGroup(db, 'tasks')), (snap) => {
+        setTasks(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
+      });
+      logSub = onSnapshot(query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)), (snap) => {
+        setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => {
+        console.warn("Activity logs listener failed:", err);
+      });
+    }
     const notifSub = onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)), (snap) => {
       setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
     });
@@ -534,26 +537,25 @@ export default function App() {
     const shipSub = onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
       setShipments(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
     });
-    const proposalSub = onSnapshot(collection(db, 'proposals'), (snap) => {
-      setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    const bookingSub = onSnapshot(collection(db, 'bookings'), (snap) => {
-      setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    const emailSub = onSnapshot(collection(db, 'emails'), (snap) => {
-      setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    const transSub = onSnapshot(query(collection(db, 'transactions'), orderBy('date', 'desc')), (snap) => {
-      setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => {
-      console.warn("Transactions listener failed:", err);
-    });
-    const matSub = onSnapshot(query(collectionGroup(db, 'materials')), (snap) => {
-      setMaterials(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const assetSub = onSnapshot(collection(db, 'assets'), (snap) => {
-      setAssets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    if (user.role === 'admin') {
+      proposalSub = onSnapshot(collection(db, 'proposals'), (snap) => {
+        setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      bookingSub = onSnapshot(collection(db, 'bookings'), (snap) => {
+        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      emailSub = onSnapshot(collection(db, 'emails'), (snap) => {
+        setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+      transSub = onSnapshot(query(collection(db, 'transactions'), orderBy('date', 'desc')), (snap) => {
+        setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => {
+        console.warn("Transactions listener failed:", err);
+      });
+      assetSub = onSnapshot(collection(db, 'assets'), (snap) => {
+        setAssets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+    }
 
     return () => { 
       console.log("[FETCH] Tearing down Data Pipeline...");
@@ -926,7 +928,7 @@ export default function App() {
         return true;
       } catch (error) {
         console.warn(`[SANDBOX SIMULATION] Verification Code: ${code}`);
-        setNotification({ msg: `[SECURE LOGIN] Your verification code is: ${code}`, type: 'success' });
+        setNotification({ msg: `[SECURITY ALERT] ${error.message}`, type: 'success' });
         return true;
       }
     } catch (err) {
