@@ -254,10 +254,4 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
     </div>
   );
 }
- records for immediate access.
-         </p>
-      </div>
 
-    </div>
-  );
-}
