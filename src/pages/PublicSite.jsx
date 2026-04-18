@@ -124,20 +124,26 @@ export function PubNav({ brand, setPage, activePage, onPortal, user }) {
           </button>
         </div>
 
-        {/* Drawer Still Kept for deeper links/info */}
-        <div style={{
-          position: 'fixed', top: 0, right: 0, bottom: 0, width: 320,
-          background: '#ffffff', zIndex: 2000, padding: '120px 40px 40px',
-          transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-          boxShadow: '-20px 0 60px rgba(0,0,0,0.05)',
-          display: 'flex', flexDirection: 'column'
-        }}>
+        {/* Full-Screen Drawer for Mobile */}
+        <div 
+          className="pub-drawer"
+          style={{
+            position: 'fixed', top: 0, right: 0, bottom: 0, width: 320,
+            background: '#ffffff', zIndex: 2000, padding: '120px 40px 40px',
+            transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
+            transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '-20px 0 60px rgba(0,0,0,0.05)',
+            display: 'flex', flexDirection: 'column'
+          }}
+        >
+          <div style={{ position: 'absolute', top: 32, right: 32 }} onClick={() => setMenuOpen(false)}>
+            <X size={28} style={{ color: '#121212', cursor: 'pointer' }} />
+          </div>
           <div className="lxf eyebrow" style={{ color: ac, marginBottom: 32, fontSize: 10 }}>Navigation Center</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             {links.map(l => (
               <button key={l.id} onClick={() => { setPage(l.id); setMenuOpen(false); }} className="lxfh" style={{
-                background: 'none', border: 'none', cursor: 'pointer', fontSize: 28,
+                background: 'none', border: 'none', cursor: 'pointer', fontSize: 24,
                 color: activePage === l.id ? ac : '#121212', fontWeight: 300, textAlign: 'left', padding: 0
               }}>{l.n}</button>
             ))}
@@ -374,11 +380,11 @@ export function ServicesPage({ brand, setPage, content }) {
         </div>
       </section>
 
-      <section style={{ padding: '80px 24px' }}>
+      <section style={{ padding: '60px 24px' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(600px, 1fr))', gap: 40 }}>
+          <div className="pub-service-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 40 }}>
             {services.map((s, i) => (
-              <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+              <div key={i} className="pub-service-card magnetic-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
                 <div style={{ height: '100%', minHeight: 400 }}>
                   <img src={s.img} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
@@ -424,9 +430,9 @@ export function PortfolioPage({ brand, setPage, content }) {
         </div>
       </section>
 
-      <section style={{ padding: '80px 24px' }}>
+      <section style={{ padding: '60px 24px' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 40 }}>
+          <div className="pub-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 40 }}>
             {shown.map((p, i) => (
               <div key={p.id} className="magnetic-card rev afu" onClick={() => setPage(`project-${p.id}`)} style={{ cursor: 'pointer', marginBottom: 20 }}>
                 <div style={{ height: 480, overflow: 'hidden', marginBottom: 24, borderRadius: 2, position: 'relative' }} className="hover-img">

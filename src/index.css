@@ -711,8 +711,28 @@ body {
     padding-bottom: calc(100px + var(--safe-bottom)) !important;
   }
 
+  .pub-drawer {
+    width: 100% !important;
+    padding: 100px 32px 32px !important;
+  }
+
   .hero-title {
-    font-size: clamp(40px, 12vw, 64px) !important;
+    font-size: clamp(38px, 12vw, 64px) !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .pub-service-grid, .pub-project-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  .pub-service-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .pub-service-card img-container {
+    height: 300px !important;
   }
 }
 
