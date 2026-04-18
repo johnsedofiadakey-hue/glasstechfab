@@ -97,9 +97,9 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
               {!isMobile && <button className="p-btn-light" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 10, border: '1px solid #F0EBE5' }}>Audit Statements</button>}
            </div>
            
-           <div style={{ height: 320, width: '100%', minHeight: 320, background: 'var(--bg-alt)', borderRadius: 16, overflow: 'hidden' }}>
-            <ResponsiveContainer width="100%" height="100%" minHeight={320} aspect={isMobile ? 1.2 : 2.5}>
-              <AreaChart data={REV} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+            <div style={{ height: 320, width: '100%', minHeight: 320, background: 'var(--bg-alt)', borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
+             <ResponsiveContainer width="100%" height={320} minHeight={320}>
+               <AreaChart data={REV} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.03)" vertical={false} />
                 <XAxis dataKey="m" tick={{ fill: '#B5AFA9', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#B5AFA9', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}k`} />
@@ -145,9 +145,12 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
               )}
            </div>
            
-           <button style={{ width: '100%', marginTop: 24, padding: 14, borderRadius: 12, background: '#F9F7F4', border: '1px solid #F0EBE5', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}>
-             Full Operations Audit
-           </button>
+            <button 
+              onClick={() => typeof props.setMod === 'function' && props.setMod('AuditLog')}
+              style={{ width: '100%', marginTop: 24, padding: 14, borderRadius: 12, background: '#F9F7F4', border: '1px solid #F0EBE5', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+            >
+              Full Operations Audit
+            </button>
         </div>
       </div>
     </div>

@@ -335,7 +335,14 @@ export default function App() {
 
   const logAction = async (pid, type, action, projectTitle) => {
     if (!db) return;
-    const log = { user_id: user?.id, user_name: user?.name || user?.email || 'System', type, action, project_title: projectTitle, created_at: new Date().toISOString() };
+    const log = { 
+      user_id: user?.id || 'System', 
+      user_name: user?.name || user?.email || 'System Account', 
+      type: type || 'General', 
+      action: action || 'Triggered', 
+      project_title: projectTitle || 'System Core', 
+      created_at: new Date().toISOString() 
+    };
     try {
       if (pid) await addDoc(collection(db, 'projects', pid, 'activity_logs'), log);
       else await addDoc(collection(db, 'activity_logs'), log);
@@ -952,6 +959,7 @@ export default function App() {
     assets, updateAsset,
     updateStage, calculateProjectPulse,
     sendOTP, verifyOTP, findUserByPhone,
+    deleteClient, // Restored functionality
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
   };

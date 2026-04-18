@@ -34,9 +34,16 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
   }, [type]);
 
   const getFullNumber = () => {
-    let clean = phone.replace(/\D/g, ''); // Standardizing to digits only for Firestore ID
+    let clean = phone.replace(/\D/g, ''); // Standardizing to digits only
+    const iso = selectedCountry.code.replace('+', '');
+    
+    // Safety check: If user typed their OWN country code already, remove it from the 'clean' part
+    if (clean.startsWith(iso)) {
+      clean = clean.substring(iso.length);
+    }
+    
     if (clean.startsWith('0')) clean = clean.substring(1);
-    return `${selectedCountry.code.replace('+', '')}${clean}`;
+    return `${iso}${clean}`;
   };
 
   const handleRequestOTP = async () => {
