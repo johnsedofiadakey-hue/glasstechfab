@@ -14,66 +14,10 @@ import PulseTargetCard from '../components/PulseTargetCard';
 import MaterialSelector from '../components/MaterialSelector';
 import { 
   TEAM_MEMBERS, BOOKING_SLOTS, PROJECT_STAGES
-} from '../data';
+} from '../data.jsx';
+import PaystackPayModal from '../components/PaystackPayModal';
 
-// --- PAYSTACK PAY MODAL ---
-function PaystackPayModal({ invoice, brand, onClose, onSuccess }) {
-  const ac = brand.color || '#C8A96E';
-  const [step, setStep] = useState('form');
-  const [email, setEmail] = useState('');
 
-  const pay = () => {
-    setStep('processing');
-    setTimeout(() => setStep('success'), 2500);
-  };
-
-  if (step === 'success') {
-    return (
-      <div className="overlay-modal" onClick={onClose}>
-        <div className="modal-box lxf" style={{ maxWidth: 480, textAlign: 'center' }}>
-          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'rgba(22,163,74,.1)', border: '2px solid #16A34A', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-            <CheckCircle size={36} color="#16A34A" />
-          </div>
-          <h2 className="lxfh">Payment Received</h2>
-          <p className="lxf" style={{ color: 'var(--dim)', marginBottom: 24 }}>Transaction successfully processed via Paystack. Invoice {invoice.id} is now cleared.</p>
-          <button onClick={() => { onSuccess(invoice.id); onClose(); }} className="p-btn-gold lxf" style={{ width: '100%', padding: '12px' }}>Return to Portal</button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="overlay-modal" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal-box lxf" style={{ maxWidth: 480, position: 'relative' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-             <div style={{ background: '#09A5DB', width: 32, height: 32, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 18, fontWeight: 800 }}>P</div>
-             <h2 className="lxfh" style={{ fontSize: 22 }}>Paystack Checkout</h2>
-          </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)' }}><X size={24} /></button>
-        </div>
-
-        <div style={{ background: 'var(--bg)', padding: 20, borderRadius: 16, marginBottom: 24, border: '1px solid var(--border)' }}>
-          <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.12em', marginBottom: 6 }}>Payment for {invoice.title}</div>
-          <div style={{ fontSize: 36, fontWeight: 300, color: 'var(--fg)' }}>{invoice.amount} <span style={{ fontSize: 14, color: 'var(--muted)', fontWeight: 400 }}>USD</span></div>
-        </div>
-
-        <div style={{ marginBottom: 24 }}>
-           <PFormField label="Email Address"><input className="p-inp" placeholder="client@example.com" value={email} onChange={e => setEmail(e.target.value)} /></PFormField>
-           <p style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>Secure processing for Glasstech partners via Paystack.</p>
-        </div>
-
-        <button onClick={pay} disabled={step === 'processing'} className="p-btn-dark lxf" style={{ width: '100%', padding: '16px', background: '#000', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          {step === 'processing' ? <><Spinner /> Connecting...</> : <><Lock size={16} /> Pay {invoice.amount}</>}
-        </button>
-        
-        <div style={{ textAlign: 'center', marginTop: 16, opacity: 0.5, fontSize: 11 }}>
-           Verified by <b>Paystack</b>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // --- CLIENT BOOKING VIEW ---
 function ClientBookingView({ brand, bookings, clientEmail }) {
@@ -463,7 +407,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 24, fontWeight: 300 }}>{inv.amount}</div>
-                    <button onClick={() => setPayModal(inv)} className="p-btn-gold" style={{ padding: '6px 20px', fontSize: 12, marginTop: 8 }}>Pay with Paystack</button>
+                    <button onClick={() => setPayModal(inv)} className="p-btn-gold" style={{ padding: '6px 20px', fontSize: 12, marginTop: 8 }}>Secure Checkout</button>
                   </div>
                </div>
              ))}
@@ -537,52 +481,75 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
     }
   };
 
+  const isMobile = window.innerWidth <= 768;
+  const mobileTabs = [
+    { id: 'hub', label: 'Home', icon: <Target size={20} /> },
+    { id: 'timeline', label: 'Roadmap', icon: <Calendar size={20} /> },
+    { id: 'financials', label: 'Finance', icon: <CreditCard size={20} /> },
+    { id: 'book', label: 'Support', icon: <MessageSquare size={20} /> },
+  ];
+
   return (
-    <div className={`portal-layout lxf ${theme === 'dark' ? 'dark-theme' : ''}`} style={{ transition: 'all 0.5s cubic-bezier(0.19, 1, 0.22, 1)' }}>
-      {/* SIDEBAR */}
-      <div className="portal-sidebar">
-        <div style={{ padding: '32px 24px', marginBottom: 20 }}>
-           {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700 }}>{brand.name}</div>}
-        </div>
+    <div className={`portal-layout lxf ${theme === 'dark' ? 'dark-theme' : ''}`} style={{ transition: 'all 0.5s cubic-bezier(0.19, 1, 0.22, 1)', background: 'var(--bg)' }}>
+      {/* SIDEBAR (Desktop) */}
+      {!isMobile && (
+        <div className="portal-sidebar">
+          <div style={{ padding: '32px 24px', marginBottom: 20 }}>
+             {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700 }}>{brand.name}</div>}
+          </div>
 
-        <nav style={{ flex: 1 }}>
-          {tabs.map(t => (
-            <button 
-              key={t.id} 
-              onClick={() => setTab(t.id)} 
-              className={`portal-sidebar-item ${tab === t.id ? 'active' : ''}`}
-            >
-              {t.icon} <span className="n-label">{t.label}</span>
-            </button>
-          ))}
-        </nav>
+          <nav style={{ flex: 1 }}>
+            {tabs.map(t => (
+              <button 
+                key={t.id} 
+                onClick={() => setTab(t.id)} 
+                className={`portal-sidebar-item ${tab === t.id ? 'active' : ''}`}
+              >
+                {t.icon} <span className="n-label">{t.label}</span>
+              </button>
+            ))}
+          </nav>
 
-        <div style={{ padding: 24, borderTop: '1px solid var(--border)' }}>
-           <button onClick={toggleTheme} className="portal-sidebar-item" style={{ padding: '12px 0' }}>
-             {theme === 'light' ? <><Moon size={18} /> Dark Mode</> : <><Sun size={18} /> Light Mode</>}
-           </button>
-           <button onClick={onLogout} className="portal-sidebar-item" style={{ padding: '12px 0', color: '#EF4444' }}>
-             <LogOut size={18} /> Logout
-           </button>
+          <div style={{ padding: 24, borderTop: '1px solid var(--border)' }}>
+             <button onClick={toggleTheme} className="portal-sidebar-item" style={{ padding: '12px 0' }}>
+               {theme === 'light' ? <><Moon size={18} /> Dark Mode</> : <><Sun size={18} /> Light Mode</>}
+             </button>
+             <button onClick={onLogout} className="portal-sidebar-item" style={{ padding: '12px 0', color: '#EF4444' }}>
+               <LogOut size={18} /> Logout
+             </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* MAIN CONTENT AREA */}
-      <div className="portal-content lx-scroll">
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+      <div className="portal-content lx-scroll" style={{ paddingBottom: isMobile ? 120 : 40 }}>
+        <header style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: isMobile ? 'center' : 'center', 
+          marginBottom: isMobile ? 24 : 40,
+          background: isMobile ? 'var(--bg)' : 'transparent',
+          position: isMobile ? 'sticky' : 'static',
+          top: 0,
+          zIndex: 100,
+          padding: isMobile ? '12px 0' : 0
+        }}>
           <div>
-            <h1 className="lxfh" style={{ fontSize: 32, margin: 0 }}>Portal Hub</h1>
-            <p style={{ color: 'var(--dim)', margin: 0 }}>Welcome back, {client?.name}</p>
+            <h1 className="lxfh" style={{ fontSize: isMobile ? 24 : 32, margin: 0 }}>Project Hub</h1>
+            {!isMobile && <p style={{ color: 'var(--dim)', margin: 0 }}>Welcome back, {client?.name}</p>}
           </div>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            {myProjects.length > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 20 }}>
+            {myProjects.length > 1 && !isMobile && (
               <select className="p-inp" style={{ width: 220, background: 'var(--card-bg)' }} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}>
                 {myProjects.map(p => <option key={p.id} value={p.id}>{p.title || p.project}</option>)}
               </select>
             )}
             <NotificationBell notifications={props.notifications} onMarkRead={props.markNotificationRead} />
-            <PAv i={client?.av} s={40} c={ac} />
+            <div onClick={() => setTab('security')} style={{ cursor: 'pointer' }}>
+               <PAv i={client?.av} s={isMobile ? 32 : 40} c={ac} />
+            </div>
+            {isMobile && <button onClick={onLogout} style={{ background: 'none', border: 'none', color: '#EF4444' }}><LogOut size={20} /></button>}
           </div>
         </header>
 
@@ -591,8 +558,42 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         </div>
       </div>
 
-      {payModal && <PaystackPayModal invoice={payModal} brand={brand} onClose={() => setPayModal(null)} onSuccess={(id) => { setPaidIds([...paidIds, id]); props.payInvoice(id, selectedProjectId); }} />}
+      {/* MOBILE BOTTOM NAV */}
+      {isMobile && (
+        <nav className="p-mobile-nav" style={{ 
+          position: 'fixed', bottom: 0, left: 0, right: 0, height: 80, 
+          background: 'var(--bg)', borderTop: '1px solid var(--border)', 
+          backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
+          display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+          paddingBottom: 'env(safe-area-inset-bottom)', zIndex: 3000,
+          boxShadow: '0 -4px 20px rgba(0,0,0,0.05)'
+        }}>
+          {mobileTabs.map(m => (
+            <button 
+              key={m.id} 
+              onClick={() => setTab(m.id)} 
+              style={{ 
+                background: 'none', border: 'none', display: 'flex', flexDirection: 'column', 
+                alignItems: 'center', gap: 4, color: tab === m.id ? ac : 'var(--muted)',
+                transition: 'all 0.3s'
+              }}
+            >
+              <div style={{ 
+                width: 44, height: 44, borderRadius: 12, 
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                background: tab === m.id ? `${ac}15` : 'transparent'
+              }}>
+                {m.icon}
+              </div>
+              <span style={{ fontSize: 10, fontWeight: tab === m.id ? 700 : 500 }}>{m.label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
+
+      {payModal && <PaystackPayModal invoice={payModal} brand={brand} onClose={() => setPayModal(null)} onSuccess={(id) => { setPaidIds([...paidIds, id]); props.payInvoice(id, selectedProjectId, 'Paystack'); }} />}
     </div>
   );
 }
+
 

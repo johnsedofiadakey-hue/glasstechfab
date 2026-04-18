@@ -292,10 +292,24 @@ export default function App() {
         await setDoc(doc(db, 'proposals', p.id), { ...p, createdAt: new Date().toISOString() }, { merge: true });
       }
 
+      // 9. Seed Public Bookings
+      for (const b of BOOKINGS_DATA) {
+        await setDoc(doc(db, 'bookings', b.id), { ...b, createdAt: new Date().toISOString() }, { merge: true });
+      }
+
+      // 10. Seed Email Queue
+      for (const m of EMAIL_QUEUE) {
+        await setDoc(doc(db, 'emails', m.id), { ...m, createdAt: new Date().toISOString() }, { merge: true });
+      }
+
       notify('success', 'Glasstech Production Ecosystem Deployed');
       fetchData();
-    } catch (err) { console.error(err); notify('error', 'Seeding failed'); } finally { setLoading(false); }
-
+    } catch (err) { 
+      console.error("[MIGRATION ERROR]:", err); 
+      notify('error', 'Seeding failed. Check console for details.'); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const fetchData = async () => {
@@ -344,74 +358,64 @@ export default function App() {
       setAuthLoading(false);
       return;
     }
+
+    const checkManualSession = async () => {
+      const savedSession = localStorage.getItem('glasstech_session');
+      if (savedSession) {
+        try {
+          const sessionData = JSON.parse(savedSession);
+          if (sessionData.expiry > Date.now()) {
+            const userRef = doc(db, 'users', sessionData.id);
+            const userSnap = await getDoc(userRef);
+            if (userSnap.exists()) {
+              const u = { id: sessionData.id, ...userSnap.data() };
+              setUser(u);
+              console.log("[AUTH] Restored Client Session:", u.id);
+              // Handle redirect if needed
+              if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
+              return true;
+            }
+          }
+        } catch (e) {
+          console.error("Session restoration failed:", e);
+        }
+      }
+      return false;
+    };
+
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
       try {
         setAuthLoading(true);
-        if (sessionUser) {
-          // Pre-set user with minimal info so listeners can start
-          setUser(prev => prev || { id: sessionUser.uid, email: sessionUser.email, role: 'client' });
-          
-          let profile = null;
-          let profileId = null;
-
+        const sessionRestored = await checkManualSession();
+        
+        if (sessionUser && !sessionRestored) {
+          // Firebase Auth User found - Check if they are Admin
           const userRef = doc(db, 'users', sessionUser.uid);
           const userSnap = await getDoc(userRef);
           
           if (userSnap.exists()) {
-            profile = userSnap.data();
-            profileId = userSnap.id;
+            const profile = userSnap.data();
+            if (profile.role === 'admin') {
+              setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
+              if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
+            }
           } else {
-            // Fallback: search by email (important for newly created accounts or migration)
-            const q = query(collection(db, 'users'), where('email', '==', sessionUser.email.trim()));
+            // Check by email in case of manual doc creation
+            const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
             const snap = await getDocs(q);
             if (!snap.empty) {
-              profile = snap.docs[0].data();
-              profileId = snap.docs[0].id;
-              // Sync the UID with the profile doc
-              await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
+              const profile = snap.docs[0].data();
+              if (profile.role === 'admin') {
+                setUser({ ...sessionUser, ...profile, id: snap.docs[0].id });
+                await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
+                if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
+              }
             }
           }
-          
-          if (profile) {
-            setUser({ ...sessionUser, ...profile, id: profileId });
-            const targetedRole = profile.role || 'client';
-            if (location.pathname === '/login' || location.pathname === '/') {
-              if (targetedRole === 'admin') navigate('/admin');
-              else if (targetedRole === 'client') navigate('/portal');
-            }
-          } else {
-            // If authenticated but no profile yet, don't kick out immediately
-            // Instead, try to create a basic profile if on a protected route
-            if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
-                console.warn("Auth session without profile detected. Awaiting creation...");
-            } else {
-                setUser(null);
-            }
-          }
-        } else {
-          // PERSISTENCE FALLBACK: Check for OTP Session
-          const savedSession = localStorage.getItem('glasstech_session');
-          if (savedSession) {
-             const sessionData = JSON.parse(savedSession);
-             if (sessionData.expiry > Date.now()) {
-                const userRef = doc(db, 'users', sessionData.id);
-                const userSnap = await getDoc(userRef);
-                if (userSnap.exists()) {
-                   setUser({ id: sessionData.id, ...userSnap.data() });
-                   if (location.pathname === '/login' || location.pathname === '/') {
-                      navigate('/portal');
-                   }
-                   setAuthLoading(false);
-                   return;
-                }
-             } else {
-                localStorage.removeItem('glasstech_session');
-             }
-          }
-          
+        } else if (!sessionUser && !sessionRestored) {
           setUser(null);
           if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
-            navigate('/');
+            navigate('/login');
           }
         }
       } catch (e) {
@@ -420,8 +424,10 @@ export default function App() {
         setAuthLoading(false);
       }
     });
+
     return () => authSub && authSub();
-  }, []);
+  }, [location.pathname]);
+
 
   useEffect(() => {
     if (!user?.id || !db) {
@@ -757,8 +763,9 @@ export default function App() {
          notify('error', 'Backend Disconnected: No Persistence');
          return;
       }
-      const id = data.email.replace(/[.@]/g, '_');
-      const cleanPhone = data.phone.replace(/\s/g, '');
+      // Standardize ID on Phone Number
+      const cleanPhone = data.phone.replace(/\D/g, ''); 
+      const id = cleanPhone; 
       const stakeholders = data.stakeholders || [];
       const payload = { 
         ...data, 
@@ -770,13 +777,14 @@ export default function App() {
         joined: new Date().toISOString() 
       };
       await setDoc(doc(db, 'users', id), payload);
-      notify('success', 'New Client Registered');
-      logAction(null, 'CRM', `Registered Client: ${data.name} with ${payload.stakeholders.length} active stakeholders`);
+      notify('success', 'New Client Registered via Phone Registry');
+      logAction(null, 'CRM', `Registered Client Account: ${data.name} [${cleanPhone}]`);
     } catch (e) {
       console.error("[CRM] Registration Error:", e);
       notify('error', 'Failed to register client');
     }
   };
+
 
   const updateClient = async (id, data) => {
     if (!db) return;
@@ -902,14 +910,6 @@ export default function App() {
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
   };
-
-  if (authLoading) return (
-    <div style={{ background: '#1A1410', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#C8A96E', fontFamily: 'Inter' }}>
-      <div className="pulse" style={{ fontSize: '1.2rem', letterSpacing: '4px', textTransform: 'uppercase' }}>Authenticating</div>
-      <div style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>Securing Glasstech Gateway...</div>
-    </div>
-  );
-
   const logoUpload = async (file) => {
     const localUrl = URL.createObjectURL(file);
     setBrand(prev => ({ ...prev, logo: localUrl }));
@@ -923,51 +923,26 @@ export default function App() {
   };
 
   const loginHandler = async (e, p) => {
-    const DEMO_ACCOUNTS = [
-      { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', pw: 'admin123' },
-      { email: 'admin@glasstechfab.com', role: 'admin', name: 'Factory Admin', pw: 'admin123' },
-      { email: 'client@glasstechfab.com', role: 'client', name: 'Elite Client', pw: 'client123' }
-    ];
-    const match = DEMO_ACCOUNTS.find(acc => acc.email === e && acc.pw === p);
-    if (match) {
-      const profile = { ...match, id: match.email.replace(/[.@]/g, '_'), status: 'Active', joined: new Date().toISOString() };
-      setUser(profile);
-      if (match.role === 'admin') navigate('/admin');
-      else if (match.role === 'client') navigate('/portal');
-      return;
-    }
-
     if (!auth) throw new Error("Database offline. Use demo credentials.");
     try { 
+      notify('pending', 'Authenticating with Glasstech Hub...');
       const res = await signInWithEmailAndPassword(auth, e, p);
-      // Ensure profile exists
-      const userDoc = await getDoc(doc(db, 'users', res.user.uid));
-      if (!userDoc.exists()) {
-        await setDoc(doc(db, 'users', res.user.uid), {
-          id: res.user.uid,
-          email: e,
-          name: e.split('@')[0],
-          role: 'client',
-          joined: new Date().toISOString(),
-          status: 'Active'
-        });
-      }
+      
+      // onAuthStateChanged takes it from here
+      return res;
     }
     catch (err) {
+      console.error("[AUTH ERROR]:", err.message);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-        const { createUserWithEmailAndPassword } = await import('firebase/auth');
-        const res = await createUserWithEmailAndPassword(auth, e, p);
-        await setDoc(doc(db, 'users', res.user.uid), {
-          id: res.user.uid,
-          email: e,
-          name: e.split('@')[0],
-          role: 'client',
-          joined: new Date().toISOString(),
-          status: 'Active'
-        });
-      } else throw err;
+        throw new Error("Invalid email or password.");
+      } else if (err.code === 'auth/wrong-password') {
+        throw new Error("Password mismatch. Please check your credentials.");
+      } else {
+        throw new Error(err.message);
+      }
     }
   };
+
 
   if (authLoading) return (
     <div style={{ background: '#1A1410', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#C8A96E', fontFamily: 'Inter' }}>

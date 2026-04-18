@@ -15,7 +15,7 @@ import AIProposalGenerator from '../components/AIProposalGenerator';
 import ClientHub from './admin/ClientHub';
 import FabricationKanban from './admin/FabricationKanban';
 import ProjectProcurement from './admin/ProjectProcurement';
-import { PROJECT_STAGES } from '../data';
+import { PROJECT_STAGES } from '../data.jsx';
 
 export default function AdminPortal({ user, onLogout, onPreview, content, setContent, ...props }) {
   const [view, setView] = useState('dash');

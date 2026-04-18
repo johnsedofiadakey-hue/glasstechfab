@@ -109,17 +109,19 @@ export function PubNav({ brand, setPage, activePage, onPortal, onLogoUpload, use
         <div className="mob-only" style={{ display: 'flex', alignItems: 'center', gap: 20, zIndex: 1001 }}>
           {onPortal && (
             <button onClick={() => onPortal('client')} className="lxf" style={{ 
-              padding: '8px 16px', fontSize: 9, fontWeight: 800, background: (scrolled || menuOpen ? '#121212' : '#ffffff'), 
-              color: (scrolled || menuOpen ? '#ffffff' : '#121212'), border: 'none', borderRadius: 2, 
-              textTransform: 'uppercase', letterSpacing: '0.1em'
-            }}>Login</button>
+              padding: '10px 20px', fontSize: 10, fontWeight: 800, background: (scrolled || menuOpen ? '#121212' : '#ffffff'), 
+              color: (scrolled || menuOpen ? '#ffffff' : '#121212'), border: 'none', borderRadius: 100, 
+              textTransform: 'uppercase', letterSpacing: '0.1em', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}>Portal</button>
           )}
-          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', width: 24, height: 16 }}>
-            <div style={{ position: 'absolute', top: menuOpen ? 8 : 0, left: 0, width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', transform: menuOpen ? 'rotate(45deg)' : 'none', transition: '0.3s' }} />
-            <div style={{ position: 'absolute', top: 8, left: 0, width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', opacity: menuOpen ? 0 : 1, transition: '0.3s' }} />
-            <div style={{ position: 'absolute', top: menuOpen ? 8 : 16, left: 0, width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', transform: menuOpen ? 'rotate(-45deg)' : 'none', transition: '0.3s' }} />
+          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', width: 24, height: 1.5, background: (scrolled || menuOpen) ? '#121212' : '#ffffff', transition: '0.3s', transform: menuOpen ? 'rotate(45deg)' : 'none' }}>
+              <div style={{ position: 'absolute', top: menuOpen ? 0 : -8, left: 0, width: 24, height: 1.5, background: 'inherit', transition: '0.3s', opacity: menuOpen ? 0 : 1 }} />
+              <div style={{ position: 'absolute', top: menuOpen ? 0 : 8, left: 0, width: 24, height: 1.5, background: 'inherit', transition: '0.3s', transform: menuOpen ? 'rotate(-90deg)' : 'none' }} />
+            </div>
           </button>
         </div>
+
 
         {/* Lateral Slide-in Drawer */}
         <div style={{
@@ -197,7 +199,7 @@ export function Footer({ brand, setPage, onPortal }) {
           <div className="lxf" style={{ fontSize: 12, color: '#666' }}>© 2026 Glasstech Fabrications Ltd. All rights reserved.</div>
           <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
             {['Instagram', 'LinkedIn', 'Behance'].map(s => <div key={s} style={{ fontSize: 12, color: '#666', cursor: 'pointer' }}>{s}</div>)}
-            {onPortal && <button onClick={() => onPortal('admin')} style={{ background: 'none', border: 'none', color: '#333', fontSize: 10, cursor: 'pointer', marginLeft: 20 }} className="lxf">Admin</button>}
+            {onPortal && <button onClick={() => onPortal('admin')} style={{ background: 'none', border: 'none', color: '#1A1410', opacity: 0.1, fontSize: 10, cursor: 'pointer', marginLeft: 20 }} className="lxf">Staff Terminal Entry</button>}
           </div>
         </div>
       </div>

@@ -7,20 +7,26 @@ html{scroll-behavior:smooth;}
   --ac: #C8A96E; 
   --ac-rgb: 200, 169, 110;
   --bg: #F9F7F4; 
+  --bg-alt: #FDFCFB;
   --fg: #1A1410; 
   --dim: #7A6E62;
   --muted: #B5AFA9;
   --border: rgba(26, 20, 16, 0.08);
   --sh: 0 12px 40px rgba(26, 20, 16, 0.04);
   
-  --font-h: 'Cormorant Garamond', serif;
-  --font-p: 'DM Sans', sans-serif;
-  --radius: 20px;
+  --font-h: 'Outfit', sans-serif;
+  --font-p: 'Inter', sans-serif;
+  --radius: 16px;
   --glass-blur: 24px;
   
   --glass-bg: rgba(255, 255, 255, 0.65);
   --glass-border: rgba(255, 255, 255, 0.5);
+
+  /* Native App Safe Areas */
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
 }
+
 
 [data-theme='minimal'] {
   --font-h: 'Inter', sans-serif;
@@ -693,8 +699,52 @@ body {
   to { opacity: 1; }
 }
 
-/* ── SOFTWARE ENGINEERED SPACING ── */
-.p-gap-md { gap: 24px; }
-.p-gap-lg { gap: 40px; }
-.p-radius-sm { border-radius: 4px; }
-.p-border-light { border: 1px solid #F0EBE5; }
+/* ── NATIVE APP REFINEMENTS ── */
+.p-nav-float {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: rgba(249, 247, 244, 0.8);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  padding: calc(12px + var(--safe-top)) 0 12px;
+  margin-bottom: 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.p-mobile-nav {
+  padding-bottom: calc(12px + var(--safe-bottom)) !important;
+}
+
+.mob-swipe {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 16px;
+  padding: 8px 16px 24px;
+  margin: 0 -16px;
+}
+
+.mob-swipe::-webkit-scrollbar { display: none; }
+
+.mob-swipe > * {
+  flex-shrink: 0;
+  scroll-snap-align: center;
+  width: 85%;
+}
+
+.glass-matrix {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+}
+
+.p-card.dark-theme {
+  background: #1A1410 !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.05) !important;
+}
+
