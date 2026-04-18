@@ -74,9 +74,13 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
     setErr('');
     try {
       await onLogin(email.trim(), pw.trim());
+      // On success, we wait for App.jsx to handle the onAuthStateChanged redirect.
+      // If no redirect happens after 4 seconds AND we aren't loading, it's likely an application-level failure.
+      setTimeout(() => {
+        setLoading(false);
+      }, 4000);
     } catch (e) {
-      setErr('Invalid administrative credentials.');
-    } finally {
+      setErr(e.message || 'Invalid administrative credentials.');
       setLoading(false);
     }
   };

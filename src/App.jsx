@@ -398,21 +398,57 @@ export default function App() {
             if (profile.role === 'admin') {
               setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
               if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
+            } else {
+              // Not an admin - Sign out to prevent session limbo
+              await signOut(auth);
+              setUser(null);
+              setNotification({ msg: "Unauthorized: Administrator access required.", type: 'error' });
             }
           } else {
-            // Check by email in case of manual doc creation
+            // Check by email in case of manual doc creation OR First-Time Admin Promotion
             const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
             const snap = await getDocs(q);
+            
             if (!snap.empty) {
               const profile = snap.docs[0].data();
               if (profile.role === 'admin') {
                 setUser({ ...sessionUser, ...profile, id: snap.docs[0].id });
+                // Link the Firebase UID to this email-based profile
                 await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
                 if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
+              } else {
+                await signOut(auth);
+                setUser(null);
+                setNotification({ msg: "Unauthorized: Administrator access required.", type: 'error' });
+              }
+            } else {
+              // NO PROFILE FOUND AT ALL - Check if this is the First Admin
+              const adminQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
+              const adminSnap = await getDocs(adminQuery);
+              
+              if (adminSnap.empty) {
+                // FIRST USER AUTOMATIC PROMOTION
+                const newAdmin = {
+                  id: sessionUser.uid,
+                  email: sessionUser.email,
+                  name: sessionUser.displayName || 'Head Admin',
+                  role: 'admin',
+                  createdAt: serverTimestamp()
+                };
+                await setDoc(doc(db, 'users', sessionUser.uid), newAdmin);
+                setUser({ ...sessionUser, ...newAdmin });
+                setNotification({ msg: "LuxeSpace Hub Initialized. Welcome, Admin.", type: 'success' });
+                if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
+              } else {
+                // System already has admins, and this user is not one of them
+                await signOut(auth);
+                setUser(null);
+                setNotification({ msg: "Access Denied: Account not registered in Staff Terminal.", type: 'error' });
               }
             }
           }
-        } else if (!sessionUser && !sessionRestored) {
+        }
+ else if (!sessionUser && !sessionRestored) {
           setUser(null);
           if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
             navigate('/login');
