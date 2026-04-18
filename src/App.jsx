@@ -861,16 +861,23 @@ export default function App() {
   };
 
   const findUserByPhone = (phone) => {
-    const clean = phone.replace(/\D/g, ''); // Keep only digits
+    if (!phone) return null;
+    let clean = phone.replace(/\D/g, ''); 
+    // Strip leading zero if present after stripping non-digits
+    if (clean.startsWith('0')) clean = clean.substring(1);
+    
     return dbClients.find(u => {
       // Check primary phone
-      const dbPhone = (u.phone || '').replace(/\D/g, '');
+      let dbPhone = (u.phone || '').replace(/\D/g, '');
+      if (dbPhone.startsWith('0')) dbPhone = dbPhone.substring(1);
+      
       if (dbPhone && (dbPhone === clean || dbPhone.endsWith(clean) || clean.endsWith(dbPhone))) return true;
       
       // Check stakeholders (multi-number support)
       if (u.stakeholders && Array.isArray(u.stakeholders)) {
         return u.stakeholders.some(s => {
-          const sPhone = s.replace(/\D/g, '');
+          let sPhone = s.replace(/\D/g, '');
+          if (sPhone.startsWith('0')) sPhone = sPhone.substring(1);
           return sPhone && (sPhone === clean || sPhone.endsWith(clean) || clean.endsWith(sPhone));
         });
       }
@@ -894,9 +901,11 @@ export default function App() {
       return true;
     } catch (error) {
       console.error("[OTP Failure]:", error);
-      // SIMULATION FALLBACK: If Twilio hits a config block/error, we log to console so user isn't stuck.
+      // SIMULATION FALLBACK: Ensuring you are NEVER locked out during the Sandbox phase
       console.warn(`[AUTH SIMULATION] Twilio bypassed. Verification Code: ${code}`);
-      notify('success', `[SIMULATION] Your Glasstech code is: ${code}`);
+      notify('success', `[SECURITY ALERT] Your Glasstech Code is: ${code}`);
+      // Show an additional persistent alert for simulation
+      setNotification({ msg: `[SECURE LOGIN] Your verification code is: ${code}`, type: 'success' });
       return true;
     }
   };

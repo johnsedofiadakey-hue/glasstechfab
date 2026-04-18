@@ -187,15 +187,21 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
                       </select>
                     </div>
                     <div style={{ flex: 1, position: 'relative' }}>
-                      <Smartphone size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} />
+                      <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }}>
+                        <Smartphone size={18} />
+                      </div>
                       <input 
-                        placeholder="24 000 0000" 
-                        style={{ width: '100%', height: 56, borderRadius: 12, border: '1px solid #F0EBE5', paddingLeft: 48, fontSize: 16, outline: 'none', background: '#FDFCFB' }} 
+                        type="tel" 
                         value={phone}
-                        onChange={e => setPhone(e.target.value)}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="e.g. 54 773 8678"
+                        style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: 12, border: '1px solid #F0EBE5', background: '#F9F7F4', fontSize: 16, fontWeight: 500 }}
                       />
                     </div>
                   </div>
+                  <p style={{ fontSize: 11, color: '#B5AFA9', marginTop: -16, paddingLeft: 4 }}>
+                    Enter the local number without the leading zero.
+                  </p>
                   <button onClick={handleRequestOTP} disabled={loading} className="luxe-pulse" style={{ height: 60, background: '#1A1410', color: '#fff', borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
                     {loading ? <Spinner /> : <><Send size={18} /> Request Access Code</>}
                   </button>
