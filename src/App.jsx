@@ -395,7 +395,12 @@ export default function App() {
           
           if (userSnap.exists()) {
             const profile = userSnap.data();
-            if (profile.role === 'admin') {
+            if (profile.role === 'admin' || sessionUser.email === 'admin@glasstechfab.com') {
+              if (profile.role !== 'admin') {
+                 // Force promote master email
+                 await updateDoc(doc(db, 'users', sessionUser.uid), { role: 'admin' });
+                 profile.role = 'admin';
+              }
               setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
               if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
             } else {
@@ -411,10 +416,11 @@ export default function App() {
             
             if (!snap.empty) {
               const profile = snap.docs[0].data();
-              if (profile.role === 'admin') {
+              if (profile.role === 'admin' || sessionUser.email === 'admin@glasstechfab.com') {
+                if (profile.role !== 'admin') profile.role = 'admin';
                 setUser({ ...sessionUser, ...profile, id: snap.docs[0].id });
-                // Link the Firebase UID to this email-based profile
-                await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
+                // Link the Firebase UID to this email-based profile and ensure admin role
+                await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, role: 'admin', id: sessionUser.uid }, { merge: true });
                 if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
               } else {
                 await signOut(auth);
