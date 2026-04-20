@@ -2,62 +2,72 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper functions
+    // HELPER FUNCTIONS
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
     function isAdmin() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    function isManagerOf(projectId) {
-      return request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.managerId;
-    }
-    
-    function isProjectOwner(projectId) {
-      return request.auth.uid == get(/databases/$(database)/documents/projects/$(projectId)).data.clientId;
+    function isOwner(clientId) {
+      return isAuthenticated() && request.auth.uid == clientId;
     }
 
-    // Users
+    // --- USER PROFILES ---
     match /users/{userId} {
-      allow read, list: if true;
-      allow write: if true; // Temporary for setup
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || request.auth.uid == userId;
     }
 
-    // Notifications (Global)
-    match /notifications/{notifId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+    // --- OPERATIONS: JOBS & ASSETS ---
+    match /jobs/{jobId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    match /assets/{assetId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
     }
 
-    // Projects (Standardized Structure)
+    // --- PROJECTS & CLIENT DATA ---
     match /projects/{projectId} {
-      allow read, write: if true; // Temporarily open for initialization
+      // Allow read if user is Admin OR the owner of the project
+      allow read: if isAdmin() || isOwner(resource.data.clientId);
+      allow write: if isAdmin();
 
+      // Deep Sub-collections (Payments, Media, Notes, Tasks)
       match /{subcollection}/{docId} {
-        allow read, write: if true;
+        allow read: if isAdmin() || isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.clientId);
+        allow write: if isAdmin();
       }
     }
 
-     // Collection Group Access
-    match /{path=**}/tasks/{taskId} { allow read, write: if true; }
-    match /{path=**}/payments/{paymentId} { allow read, write: if true; }
-    match /{path=**}/procurements/{shipmentId} { allow read, write: if true; }
-    match /{path=**}/approvals/{apprId} { allow read, write: if true; }
-    match /{path=**}/change_requests/{crId} { allow read, write: if true; }
-    match /{path=**}/activity_logs/{logId} { allow read, write: if true; }
-    match /{path=**}/media/{id} { allow read, write: if true; }
-    match /{path=**}/notes/{id} { allow read, write: if true; }
-    match /{path=**}/transactions/{id} { allow read, write: if true; }
-    match /{path=**}/materials/{id} { allow read, write: if true; }
-    match /{path=**}/emails/{id} { allow read, write: if true; }
+    // --- PUBLIC & SHARED COLLECTIONS ---
+    match /bookings/{bookingId} {
+      allow read: if isAdmin();
+      allow create: if true; // Public can book
+    }
+    
+    match /proposals/{proposalId} {
+      allow read, write: if isAdmin();
+    }
 
-    // Root Level Shared
-    match /assets/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /proposals/{id} { allow read: if true; allow write: if isAdmin(); }
-    match /bookings/{id} { allow read, write: if true; }
-
-    // CMS & Brand
     match /cms_content/{docId} {
-      allow read: if true;
-      allow write: if true; // Temporary for setup
+      allow read: if true; // Public can read site content
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notifId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if true; // System-wide notifications
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    match /activity_logs/{logId} {
+       allow read, write: if isAdmin();
     }
   }
 }

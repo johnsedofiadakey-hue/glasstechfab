@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ArrowLeft, Check, Plus, Camera, FileText, DollarSign } from 'lucide-react';
+import { Search, ArrowLeft, Check, Plus, Camera, FileText, DollarSign, ArrowRight, MessageCircle } from 'lucide-react';
 import { PSBadge, SBadge } from '../../components/Shared';
 import { PROJECT_STAGES } from '../../data';
 import AdminTasks from './AdminTasks';
@@ -192,22 +192,69 @@ export default function AdminInstallations({ clients = [], updateProject, dbClie
           <input className="p-inp" placeholder="Search projects..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 34, width: 240 }} />
         </div>
       </div>
-      <div className="p-card overflow-hidden">
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead><tr>{['Installation', 'Category', 'Client(s)', 'Current Stage', 'Progress', 'Actions'].map(h => <th key={h} className="t-head">{h}</th>)}</tr></thead>
-          <tbody>
-            {filtered.map(c => (
-              <tr key={c.id} className="t-row">
-                <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 14, fontWeight: 600 }}>{c.project}</div></td>
-                <td style={{ padding: '14px 16px' }}><span className="lxf" style={{ fontSize: 12, color: ac, fontWeight: 600 }}>{c.cat || 'Full Interior'}</span></td>
-                <td style={{ padding: '14px 16px' }}><div className="lxf" style={{ fontSize: 13, color: '#7A6E62' }}>{c.name}</div></td>
-                <td style={{ padding: '14px 16px' }}><PSBadge s={PROJECT_STAGES.find(s=>s.id === (c.stage || 1))?.name || 'Order Confirmed'} /></td>
-                <td style={{ padding: '14px 16px' }}><div className="prog" style={{ width: 80 }}><div className="prog-f" style={{ width: `${c.progress || 0}%`, background: ac }} /></div></td>
-                <td style={{ padding: '14px 16px' }}><button onClick={() => setSel(c.id)} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 12, cursor: 'pointer' }}>Manage Operations</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      
+      <div className="ops-grid" style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', 
+        gap: 24 
+      }}>
+        {filtered.map(c => {
+          const currentStageObj = PROJECT_STAGES.find(s => s.id === (c.stage || 1));
+          return (
+            <div key={c.id} className="p-card fade-in" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                     <div className="lxf" style={{ fontSize: 10, color: ac, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 4 }}>{c.cat || 'Full Interior'}</div>
+                     <div className="lxfh" style={{ fontSize: 18, fontWeight: 700 }}>{c.project}</div>
+                     <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginTop: 3 }}>{c.name}</div>
+                  </div>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                     <PSBadge s={currentStageObj?.name || 'Order Confirmed'} />
+                  </div>
+               </div>
+
+               <div style={{ marginTop: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 11, fontWeight: 700 }}>
+                     <span style={{ color: '#7A6E62' }}>PROGRESS</span>
+                     <span>{c.progress || 0}%</span>
+                  </div>
+                  <div className="prog" style={{ height: 6, width: '100%', background: '#F0EBE5' }}>
+                     <div className="prog-f" style={{ width: `${c.progress || 0}%`, background: ac }} />
+                  </div>
+               </div>
+
+               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid #F9F7F4' }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                     <button 
+                        onClick={() => props.sendWhatsAppUpdate(c.id, c.id, currentStageObj?.name || 'New Stage')}
+                        className="p-btn-light" 
+                        style={{ height: 36, width: 36, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', color: ac }}
+                        title="Notify Client"
+                     >
+                        <MessageCircle size={16} />
+                     </button>
+                  </div>
+                  <button 
+                     onClick={() => setSel(c.id)} 
+                     className="lxf" 
+                     style={{ 
+                        background: 'none', 
+                        border: 'none', 
+                        color: '#1A1410', 
+                        fontWeight: 700, 
+                        fontSize: 12, 
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                     }}
+                  >
+                     Manage Operations <ArrowRight size={14} />
+                  </button>
+               </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

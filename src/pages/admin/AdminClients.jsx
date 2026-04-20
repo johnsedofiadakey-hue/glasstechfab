@@ -15,40 +15,38 @@ import {
 } from 'lucide-react';
 import { PAv } from '../../components/Shared';
 
-export default function AdminClients({ dbClients, createClient, updateClient, deleteClient, brand, ...props }) {
+export default function AdminClients({ dbClients, createClient, updateClient, deleteClient, resetUserPassword, brand, ...props }) {
   const [showAdd, setShowAdd] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [search, setSearch] = useState('');
-  const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '', stakeholders: [] });
-  const [newStakeholder, setNewStakeholder] = useState('');
+  const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '', username: '', password: '' });
 
   const ac = brand.color || '#B08D57';
 
-  const handleAddStakeholder = () => {
-    if (newStakeholder && !newC.stakeholders.includes(newStakeholder)) {
-      setNewC({ ...newC, stakeholders: [...newC.stakeholders, newStakeholder] });
-      setNewStakeholder('');
-    }
-  };
-
-  const removeStakeholder = (val) => {
-    setNewC({ ...newC, stakeholders: newC.stakeholders.filter(s => s !== val) });
-  };
-
   const resetForm = () => {
-    setNewC({ name: '', email: '', phone: '', company: '', stakeholders: [] });
+    setNewC({ name: '', email: '', phone: '', company: '', username: '', password: '' });
     setEditingClient(null);
     setShowAdd(false);
   };
 
   const handleSubmit = async () => {
-    if (!newC.name || !newC.email || !newC.phone) return alert("Required: Name, Email, Phone");
+    if (!newC.name || !newC.username || (!editingClient && !newC.password)) {
+      return alert("Required: Name, Username, and initial Password");
+    }
+    
     if (editingClient) {
       await updateClient(editingClient.id, newC);
     } else {
       await createClient(newC);
     }
     resetForm();
+  };
+
+  const handleResetPassword = () => {
+    const fresh = prompt("Enter new access password for " + editingClient.name);
+    if (fresh) {
+      resetUserPassword(editingClient.id, fresh);
+    }
   };
 
   const startEdit = (c) => {
@@ -58,7 +56,8 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
       email: c.email || '', 
       phone: c.phone || '', 
       company: c.company || '', 
-      stakeholders: c.stakeholders || [] 
+      username: c.username || '',
+      password: c.password || ''
     });
     setShowAdd(true);
   };
@@ -66,6 +65,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
   const filtered = (dbClients || []).filter(c => 
     c.name?.toLowerCase().includes(search.toLowerCase()) || 
     c.company?.toLowerCase().includes(search.toLowerCase()) ||
+    c.username?.toLowerCase().includes(search.toLowerCase()) ||
     c.email?.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -89,7 +89,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
           <Search size={18} color="#B5AFA9" style={{ marginRight: 16 }} />
           <input 
             type="text" 
-            placeholder="Search by name, company, or email identifier..." 
+            placeholder="Search by name, username, or company..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{ background: 'none', border: 'none', width: '100%', fontSize: 14, outline: 'none', color: '#121212' }}
@@ -123,21 +123,17 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
                         <Mail size={16} color="#B5AFA9" /> {client.email}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#666' }} className="lxf">
-                        <Phone size={16} color="#B5AFA9" /> {client.phone}
+                        <Command size={16} color="#B5AFA9" /> <span style={{ fontWeight: 600 }}>{client.username}</span>
                     </div>
                   </div>
 
                   <div style={{ borderTop: '1px solid #f5f5f5', paddingTop: 20 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Access Registry</div>
-                      <div style={{ fontSize: 10, background: '#F0F9FF', color: '#0369A1', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>{client.stakeholders?.length || 1} ACTIVE</div>
+                      <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Access Method</div>
+                      <div style={{ fontSize: 10, background: '#F0F9FF', color: '#0369A1', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>CREDENTIAL AUTH</div>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {(client.stakeholders || [client.phone]).map(s => (
-                          <div key={s} style={{ background: '#F9F7F4', border: '1px solid #F0EBE5', padding: '6px 12px', borderRadius: 2, fontSize: 12, color: '#121212', fontWeight: 500 }} className="lxf">
-                            {s}
-                          </div>
-                        ))}
+                    <div className="lxf" style={{ fontSize: 14, color: '#1A1410' }}>
+                      Login with username <b>{client.username}</b>
                     </div>
                   </div>
                 </div>
@@ -149,13 +145,6 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
               </div>
             ))}
           </div>
-          {filtered.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '100px 32px', color: '#B5AFA9' }}>
-               <Info size={48} strokeWidth={1} style={{ marginBottom: 20, opacity: 0.3 }} />
-               <p className="lxfh" style={{ fontSize: 20, color: '#121212', marginBottom: 8 }}>No stakeholders found</p>
-               <p className="lxf" style={{ fontSize: 14 }}>Try adjusting your search filters or register a new client.</p>
-            </div>
-          )}
         </div>
       </div>
 
@@ -165,7 +154,6 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
             maxWidth: 640, width: '90%', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', 
             background: '#ffffff', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.3)' 
           }}>
-            {/* Form Header */}
             <div style={{ padding: '32px 40px', background: '#121212', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div className="lxf eyebrow" style={{ color: ac, marginBottom: 8, fontSize: 10 }}>Secure Registration</div>
@@ -177,13 +165,12 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
             <div style={{ padding: 40, maxHeight: '80vh', overflowY: 'auto' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 32 }}>
                 
-                {/* Section 1: Core Identity */}
                 <section>
                   <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>1. Primary Identity</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
                     <div className="p-form-group">
                       <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Full Legal Name / Entity</label>
-                      <input type="text" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.name} onChange={e => setNewC({ ...newC, name: e.target.value })} placeholder="e.g. John Doe / Global Tech Ltd" />
+                      <input className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.name} onChange={e => setNewC({ ...newC, name: e.target.value })} placeholder="e.g. John Doe / Global Tech Ltd" />
                     </div>
                     
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -192,49 +179,33 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
                         <input type="email" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.email} onChange={e => setNewC({ ...newC, email: e.target.value })} placeholder="email@domain.com" />
                       </div>
                       <div className="p-form-group">
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Phone (Primary WhatsApp)</label>
-                        <input type="tel" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.phone} onChange={e => setNewC({ ...newC, phone: e.target.value })} placeholder="+233..." />
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Phone Number</label>
+                        <input className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.phone} onChange={e => setNewC({ ...newC, phone: e.target.value })} placeholder="+233..." />
                       </div>
                     </div>
                   </div>
                 </section>
 
-                {/* Section 2: Organizational Context */}
                 <section>
-                  <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>2. Business Affiliation</div>
-                  <div className="p-form-group">
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Organization / Company</label>
-                    <div style={{ position: 'relative' }}>
-                      <Building size={16} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} />
-                      <input type="text" className="p-inp" style={{ padding: '14px 16px 14px 44px', borderRadius: 8 }} value={newC.company} onChange={e => setNewC({ ...newC, company: e.target.value })} placeholder="Company Name (Optional)" />
+                  <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>2. Managed Credentials</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <div className="p-form-group">
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Portal Username</label>
+                      <input className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.username} onChange={e => setNewC({ ...newC, username: e.target.value.toLowerCase().replace(/\s/g, '_') })} placeholder="e.g. john_doe" disabled={editingClient} />
                     </div>
-                  </div>
-                </section>
-
-                {/* Section 3: Access Control */}
-                <section style={{ padding: 24, background: '#F9F7F4', borderRadius: 12, border: '1px solid #F0EBE5' }}>
-                  <div className="lxf eyebrow" style={{ fontSize: 10, color: ac, marginBottom: 16 }}>3. Stakeholder Access Registry</div>
-                  <p style={{ fontSize: 12, color: '#666', marginBottom: 20 }}>Configure which phone numbers can authenticate for this client profile. First number is usually the primary.</p>
-                  
-                  <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
-                     <input 
-                       type="tel" 
-                       className="p-inp" 
-                       style={{ background: '#fff', borderRadius: 8 }}
-                       placeholder="Add contact number..." 
-                       value={newStakeholder} 
-                       onChange={e => setNewStakeholder(e.target.value)} 
-                       onKeyPress={e => e.key === 'Enter' && handleAddStakeholder()}
-                     />
-                     <button onClick={handleAddStakeholder} className="minimal-btn" style={{ borderRadius: 8, padding: '0 24px', flexShrink: 0 }}>Authorize</button>
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                     {newC.stakeholders.length > 0 ? newC.stakeholders.map(s => (
-                       <div key={s} style={{ background: '#fff', border: '1px solid #F0EBE5', padding: '10px 16px', borderRadius: 8, fontSize: 13, display: 'flex', alignItems: 'center', gap: 12, color: '#121212', fontWeight: 600 }}>
-                          {s} <X size={14} style={{ cursor: 'pointer', color: '#EF4444' }} onClick={() => removeStakeholder(s)} />
-                       </div>
-                     )) : <div style={{ fontSize: 12, color: '#B5AFA9', fontStyle: 'italic' }}>No additional stakeholders specified.</div>}
+                    {!editingClient ? (
+                      <div className="p-form-group">
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Initial Password</label>
+                        <input type="text" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.password} onChange={e => setNewC({ ...newC, password: e.target.value })} placeholder="Create secure password" />
+                      </div>
+                    ) : (
+                      <div className="p-form-group">
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Security Access</label>
+                        <button onClick={handleResetPassword} style={{ width: '100%', padding: '14px', borderRadius: 8, background: '#F9F7F4', border: '1px solid #F0EBE5', color: ac, fontWeight: 700, cursor: 'pointer' }}>
+                          <Shield size={16} style={{ marginRight: 8 }} /> Reset Password
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </section>
 

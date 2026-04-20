@@ -18,7 +18,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { uploadFile } from './lib/firebase';
-import { TwilioService } from './lib/TwilioService';
+import { MessengerService } from './lib/MessengerService';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 const BRAND0 = {
@@ -27,12 +27,12 @@ const BRAND0 = {
   color: '#C8A96E',
   theme: 'classic',
   tagline: 'Complete Interior & Finishing Solutions',
-  phone: '+233 24 111 2222',
+  phone: '+233 59 845 5012',
   email: 'contact@glasstech.com.gh',
   location: 'Spintex Road Industrial Area, Accra',
   website: 'www.glasstech.com.gh',
   instagram: '@glasstech_gh',
-  whatsapp: '+233241112222'
+  whatsapp: '+233598455012'
 };
 
 const INITIAL_CONTENT = {
@@ -104,6 +104,7 @@ export default function App() {
   const [notification, setNotification] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [procurements, setProcurements] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [notes, setNotes] = useState([]);
   const [media, setMedia] = useState([]);
   const [approvals, setApprovals] = useState([]);
@@ -126,17 +127,27 @@ export default function App() {
       const DEMO_ACCOUNTS = [
         { email: 'admin@stormglide.com', role: 'admin', name: 'Super Admin', uid: 'qRcOaTkJ6rYmjha9jNAadrYW6pK2' },
         { email: 'admin@glasstechfab.com', role: 'admin', name: 'Factory Admin', uid: 'pBkrb38P9NaXXjIILQXlqxxC33p2' },
-        { email: 'client@glasstechfab.com', role: 'client', name: 'Elite Client', uid: 'GQL4qVw3NIe9XVq8gZFkuU4Q9dD3' },
-        { email: 'client@demo.com', role: 'client', name: 'Demo Client' }
+        { email: 'client@glasstechfab.com', role: 'client', name: 'Elite Client', username: 'elite_finish', password: 'Glasstech2026', uid: 'GQL4qVw3NIe9XVq8gZFkuU4Q9dD3' },
+        { email: 'client@demo.com', role: 'client', name: 'Demo Client', username: 'demo_user', password: 'Glasstech2026' },
+        { phone: '233547748678', role: 'client', name: 'Authorized Tester', username: 'tester_01', password: 'Glasstech2026' }
       ];
 
       // 1. Initialise Users
       const userMap = {}; 
       for (const acc of DEMO_ACCOUNTS) {
-        const id = acc.uid || acc.email.replace(/[.@]/g, '_');
-        userMap[acc.email] = id;
+        const id = acc.uid || acc.email?.replace(/[.@]/g, '_') || acc.phone;
+        if (!id) continue;
+        userMap[acc.email || acc.phone] = id;
         await setDoc(doc(db, 'users', id), { 
-          id, name: acc.name, email: acc.email, role: acc.role, status: 'Active', joined: new Date().toISOString() 
+          id, 
+          name: acc.name, 
+          email: acc.email || `${acc.phone}@authorized.test`, 
+          username: acc.username || (acc.email ? acc.email.split('@')[0] : acc.phone),
+          password: acc.password || 'Glasstech2026',
+          phone: acc.phone || '', 
+          role: acc.role || 'client', 
+          status: 'Active', 
+          joined: new Date().toISOString() 
         }, { merge: true });
       }
 
@@ -286,6 +297,15 @@ export default function App() {
           for (const a of demoAssets) {
             await setDoc(doc(db, 'assets', a.id), { ...a, createdAt: new Date().toISOString() });
           }
+
+          // 11. Seed Fabrication Jobs
+          const demoJobs = [
+            { id: 'JOB-'+pid+'-01', projectId: pid, projectTitle: item.project || item.title, item: 'Main Frame Extrusions', stage: 'cutting', priority: 'High', panels: [{ id: 1, w: 2400, h: 1200, t: '12mm', f: 'Clear', status: 'Cut' }] },
+            { id: 'JOB-'+pid+'-02', projectId: pid, projectTitle: item.project || item.title, item: 'Glass Panel Batch A', stage: 'queue', priority: 'Normal', panels: [{ id: 2, w: 900, h: 900, t: '8mm', f: 'Frost', status: 'Pending' }] }
+          ];
+          for (const j of demoJobs) {
+            await setDoc(doc(db, 'jobs', j.id), { ...j, createdAt: new Date().toISOString() });
+          }
         }
       }
 
@@ -380,7 +400,6 @@ export default function App() {
               const u = { id: sessionData.id, ...userSnap.data() };
               setUser(u);
               console.log("[AUTH] Restored Client Session:", u.id);
-              // Handle redirect if needed
               if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
               return true;
             }
@@ -390,6 +409,66 @@ export default function App() {
         }
       }
       return false;
+    };
+
+    const loginWithCredentials = async (username, password) => {
+      if (!db) return;
+      try {
+        setAuthLoading(true);
+        const q = query(collection(db, 'users'), where('username', '==', username));
+        const snap = await getDocs(q);
+        
+        if (snap.empty) throw new Error("Account not found. Please contact support.");
+        
+        const uDoc = snap.docs[0];
+        const uData = uDoc.data();
+        
+        if (uData.password !== password) throw new Error("Incorrect access credentials.");
+        
+        const fullUser = { id: uDoc.id, ...uData };
+        setUser(fullUser);
+        
+        localStorage.setItem('glasstech_session', JSON.stringify({
+          id: uDoc.id,
+          expiry: Date.now() + (7 * 24 * 60 * 60 * 1000)
+        }));
+        
+        navigate('/portal');
+        notify('success', `Welcome back, ${uData.name}`);
+      } catch (e) {
+        setNotification({ msg: e.message, type: 'error' });
+        throw e;
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    const resetUserPassword = async (clientId, newPassword) => {
+      if (!db) return;
+      try {
+        await updateDoc(doc(db, 'users', clientId), { password: newPassword });
+        notify('success', 'Access password successfully reset.');
+        logAction(null, 'Security', `Administrator reset password for client ${clientId}`);
+      } catch (e) {
+        notify('error', 'Failed to reset password.');
+      }
+    };
+
+    const changeClientPassword = async (clientId, current, fresh) => {
+      if (!db) return;
+      try {
+        const userRef = doc(db, 'users', clientId);
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) throw new Error("User not found");
+        if (snap.data().password !== current) throw new Error("Current password mismatch.");
+        
+        await updateDoc(userRef, { password: fresh });
+        notify('success', 'Password updated successfully');
+        logAction(null, 'Security', `Client ${clientId} updated their own password.`);
+      } catch (e) {
+        notify('error', e.message || 'Failed to update password');
+        throw e;
+      }
     };
 
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
@@ -555,6 +634,9 @@ export default function App() {
       assetSub = onSnapshot(collection(db, 'assets'), (snap) => {
         setAssets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
+      const jobSub = onSnapshot(collection(db, 'jobs'), (snap) => {
+        setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
     }
 
     return () => { 
@@ -562,7 +644,8 @@ export default function App() {
       projectSub && projectSub(); userSub && userSub(); paymentSub && paymentSub(); logSub && logSub(); taskSub && taskSub(); notifSub && notifSub();
       approvalSub && approvalSub(); crSub && crSub(); procSub && procSub(); noteSub && noteSub(); mediaSub && mediaSub(); shipSub && shipSub();
       proposalSub && proposalSub(); bookingSub && bookingSub(); emailSub && emailSub(); transSub && transSub();
-      matSub && matSub(); assetSub && assetSub();
+      assetSub && assetSub();
+      if (typeof jobSub === 'function') jobSub();
     };
   }, [user?.id]);
   
@@ -798,6 +881,33 @@ export default function App() {
     catch(e) { console.error(e); }
   };
 
+  const createJob = async (data) => {
+    if (!db) return;
+    try { await addDoc(collection(db, 'jobs'), { ...data, createdAt: new Date().toISOString() }); notify('success', 'Job deployed to factory'); }
+    catch(e) { console.error(e); }
+  };
+
+  const updateJob = async (id, data) => {
+    if (!db) return;
+    try { await updateDoc(doc(db, 'jobs', id), data); }
+    catch(e) { console.error(e); }
+  };
+
+  const sendWhatsAppUpdate = async (clientId, projectId, stageName) => {
+    const c = dbClients.find(x => x.id === clientId);
+    const p = clients.find(x => x.id === projectId);
+    if (!c || !p) return notify('error', 'Contact context missing');
+    
+    try {
+      notify('pending', `Dispatching WhatsApp to ${c.name}...`);
+      await MessengerService.sendProgressUpdate(c.phone || '+233241112222', c.name, p.project || p.title, stageName);
+      notify('success', 'Update sent successfully');
+      logAction(projectId, 'Notification', `WhatsApp progress update sent: ${stageName}`);
+    } catch (err) {
+      notify('error', 'Failed to send WhatsApp');
+    }
+  };
+
   const syncCMS = async (key, value) => {
     try {
       notify('pending', 'Saving changes...');
@@ -816,25 +926,22 @@ export default function App() {
          notify('error', 'Backend Disconnected: No Persistence');
          return;
       }
-      // Standardize ID on Phone Number
-      const cleanPhone = data.phone.replace(/\D/g, ''); 
-      const id = cleanPhone; 
-      const stakeholders = data.stakeholders || [];
+      
+      const id = data.username || data.phone.replace(/\D/g, ''); 
       const payload = { 
         ...data, 
         id, 
-        phone: cleanPhone, 
-        stakeholders: [cleanPhone, ...stakeholders],
         role: 'client', 
         status: 'Active', 
         joined: new Date().toISOString() 
       };
+      
       await setDoc(doc(db, 'users', id), payload);
-      notify('success', 'New Client Registered via Phone Registry');
-      logAction(null, 'CRM', `Registered Client Account: ${data.name} [${cleanPhone}]`);
+      notify('success', 'Stakeholder profile initialized with secure access.');
+      logAction(null, 'CRM', `Created Client Account: ${data.username} (${data.name})`);
     } catch (e) {
       console.error("[CRM] Registration Error:", e);
-      notify('error', 'Failed to register client');
+      notify('error', 'Failed to register client. Identifier might be in use.');
     }
   };
 
@@ -921,14 +1028,15 @@ export default function App() {
       setMagicCode(code);
       setActiveMagicCode(code); // Capturing for the UI
       
-      // TRIGGER WHATSAPP (Live or Simulation)
+      // TRIGGER WHATSAPP (Routed via Messenger Hub: Meta, Twilio, or Mock)
       try {
-        await TwilioService.sendWhatsAppOTP(phone, code);
-        notify('success', `WhatsApp OTP Sent to ${phone}`);
+        await MessengerService.sendOTP(phone, code);
+        notify('success', `Access code sent to ${phone}`);
         return true;
       } catch (error) {
-        console.warn(`[SANDBOX SIMULATION] Verification Code: ${code}`);
-        setNotification({ msg: `[SECURITY ALERT] ${error.message}`, type: 'success' });
+        console.warn(`[MESSENGER FAILBACK] Code: ${code} - Error: ${error.message}`);
+        // Fallback: If live messaging fails, we still allow the session but warn the UI
+        setNotification({ msg: `[MESSENGER ALERT] ${error.message}`, type: 'success' });
         return true;
       }
     } catch (err) {
@@ -1004,8 +1112,9 @@ export default function App() {
     assets, updateAsset,
     updateStage, calculateProjectPulse,
     sendOTP, verifyOTP, findUserByPhone,
-    deleteClient, // Restored functionality
-    activeMagicCode, // For Fail-Proof UI
+    loginWithCredentials, resetUserPassword, changeClientPassword,
+    deleteClient, 
+    activeMagicCode, 
     userNotifications, markNotificationRead,
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
   };
@@ -1021,19 +1130,23 @@ export default function App() {
     await updateDoc(doc(db, 'settings', 'branding'), { logo: url });
   };
 
-  const loginHandler = async (e, p) => {
-    if (!auth) throw new Error("Database offline. Use demo credentials.");
+  const loginHandler = async (e, p, mode = 'admin') => {
     try { 
-      notify('pending', 'Authenticating with Glasstech Hub...');
-      const res = await signInWithEmailAndPassword(auth, e, p);
+      notify('pending', `Authenticating with Glasstech Hub...`);
       
-      // onAuthStateChanged takes it from here
-      return res;
+      if (mode === 'admin') {
+        if (!auth) throw new Error("Database offline. Use demo credentials.");
+        const res = await signInWithEmailAndPassword(auth, e, p);
+        return res;
+      } else {
+        // CLIENT LOGIN (Username/Password)
+        return await loginWithCredentials(e, p);
+      }
     }
     catch (err) {
       console.error("[AUTH ERROR]:", err.message);
       if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-        throw new Error("Invalid email or password.");
+        throw new Error("Invalid access identifier or password.");
       } else if (err.code === 'auth/wrong-password') {
         throw new Error("Password mismatch. Please check your credentials.");
       } else {

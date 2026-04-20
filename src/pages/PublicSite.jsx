@@ -123,27 +123,25 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
           </button>
         </div>
 
-        {/* Full-Screen Smoked Glass Drawer for Mobile */}
+        {/* Full-Screen Iron-Clad Frosted Glass Overlay */}
         <div 
           className="pub-drawer"
           style={{
-            position: 'fixed', top: 0, right: 0, bottom: 0, 
-            width: 'min(85vw, 360px)',
-            background: 'rgba(26, 20, 16, 0.94)', 
-            backdropFilter: 'blur(60px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(60px) saturate(180%)',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+            position: 'fixed', top: 0, right: 0, bottom: 0, left: 0,
+            width: '100vw', height: '100vh', minHeight: '100vh',
+            background: 'linear-gradient(165deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0.92) 100%)',
+            backdropFilter: 'blur(80px) saturate(210%) brightness(1.05)',
+            WebkitBackdropFilter: 'blur(80px) saturate(210%) brightness(1.05)',
             zIndex: 5000, 
-            padding: '140px 48px 48px',
             transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
-            transition: 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-            boxShadow: '-40px 0 80px rgba(0,0,0,0.5)',
-            display: 'flex', flexDirection: 'column'
+            transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            display: 'flex', flexDirection: 'column',
+            overflowY: 'auto'
           }}
         >
           <div style={{ position: 'absolute', top: 44, right: 40 }} onClick={() => setMenuOpen(false)}>
-            <div style={{ padding: 12, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <X size={24} style={{ color: '#ffffff', cursor: 'pointer' }} />
+            <div style={{ padding: 12, borderRadius: '50%', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <X size={32} style={{ color: '#121212', cursor: 'pointer' }} />
             </div>
           </div>
           
@@ -160,7 +158,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
                   style={{
                     background: 'none', border: 'none', cursor: 'pointer', 
                     fontSize: 36, letterSpacing: '-0.02em',
-                    color: isActive ? ac : '#ffffff', 
+                    color: isActive ? ac : '#121212', 
                     fontWeight: isActive ? 700 : 300, 
                     textAlign: 'left', padding: 0,
                     opacity: menuOpen ? 1 : 0,
@@ -175,28 +173,28 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
             })}
           </div>
           
-          <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 48 }}>
-            <div className="lxf" style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '.2em', marginBottom: 16, fontWeight: 700 }}>Direct Terminal Access</div>
-            <div className="lxfh" style={{ fontSize: 24, color: '#ffffff', fontWeight: 300, marginBottom: 32 }}>{brand.phone}</div>
+          <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: 48 }}>
+            <div className="lxf" style={{ fontSize: 9, color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', letterSpacing: '.2em', marginBottom: 16, fontWeight: 700 }}>Direct Terminal Access</div>
+            <div className="lxfh" style={{ fontSize: 24, color: '#121212', fontWeight: 300, marginBottom: 32 }}>{brand.phone}</div>
             <button 
               onClick={() => { setMenuOpen(false); onPortal('client'); }} 
-              className="p-btn-gold"
-              style={{ width: '100%', padding: '18px', borderRadius: 14, fontSize: 13, fontWeight: 800 }}
+              className="p-btn-dark"
+              style={{ width: '100%', padding: '18px', borderRadius: 14, fontSize: 13, fontWeight: 800, background: '#1A1410' }}
             >
               Enter Partner Portal
             </button>
           </div>
         </div>
 
-        {/* Backdrop (Darker for smoked glass contrast) */}
+        {/* Backdrop (High-Contrast for glass isolation) */}
         {menuOpen && (
           <div 
             onClick={() => setMenuOpen(false)} 
             className="fade-in"
             style={{ 
               position: 'fixed', inset: 0, 
-              background: 'rgba(0,0,0,0.45)', 
-              backdropFilter: 'blur(12px)', 
+              background: 'rgba(18, 18, 18, 0.25)', 
+              backdropFilter: 'blur(15px)', 
               zIndex: 4999 
             }} 
           />
@@ -674,7 +672,8 @@ export function ContactPage({ brand }) {
   );
 }
 
-export default function PublicSite({ brand, setPage: setP, activePage: p, onPortal, user, content, ...props }) {
+export default function PublicSite({ brand, setPage, page, onPortal, user, content, ...props }) {
+  const p = page || 'home';
   const [menuOpen, setMenuOpen] = useState(false);
   const ac = brand.color || '#B08D57';
 

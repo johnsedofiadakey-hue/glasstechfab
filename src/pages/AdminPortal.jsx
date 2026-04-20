@@ -37,6 +37,10 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       setMod,
       onSelectClient: handleSelectClient,
       PROJECT_STAGES,
+      jobs: props.jobs,
+      createJob: props.createJob,
+      updateJob: props.updateJob,
+      sendWhatsAppUpdate: props.sendWhatsAppUpdate,
       ...props 
     };
     switch (view) {

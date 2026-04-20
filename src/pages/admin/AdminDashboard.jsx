@@ -13,22 +13,51 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
   const isMobile = window.innerWidth <= 768;
   
   const totalRev = (invoices || []).filter(i => i?.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
-  const pendingInvs = (invoices || []).filter(i => i?.status === 'Pending');
+  const pendingInvs = (invoices || []).filter(i => i?.status === 'Pending' || i?.status === 'pending');
   const totalUnpaid = pendingInvs.reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
   const pendingApprovals = (props.approvals || []).filter(a => a.status === 'pending').length;
   const delayedProjects = (clients || []).filter(c => getSLA && c ? getSLA(c).delayed : false).length;
+  const activeJobs = (props.jobs || []).filter(j => j.stage !== 'ready').length;
+  const activeShipments = (props.procurements || []).filter(p => p.isShipment && p.status !== 'Delivered').length;
 
   const dashboardStats = [
-    { label: 'Settled Revenue', value: `$${(totalRev / 1000).toFixed(1)}k`, target: 100, icon: <DollarSign size={22} />, sub: 'Validated liquidity', color: '#16A34A', trend: 18 },
-    { label: 'Awaiting Capital', value: `$${(totalUnpaid / 1000).toFixed(1)}k`, target: 10, icon: <Receipt size={22} />, sub: `${pendingInvs.length} active invoices`, color: '#B45309', trend: 2 },
-    { label: 'Risk Exposure', value: delayedProjects, target: 0, icon: <AlertTriangle size={22} />, sub: 'SLA priority alerts', color: '#EF4444', trend: -5 },
-    { label: 'Client Approvals', value: pendingApprovals, target: 0, icon: <CheckCircle size={22} />, sub: 'Pending terminal sign-offs', color: ac, trend: 12 },
+    { label: 'Settled Revenue', value: `$${(totalRev / 1000).toFixed(1)}k`, icon: <DollarSign size={22} />, sub: 'Validated liquidity', color: '#16A34A', trend: 18 },
+    { label: 'Awaiting Capital', value: `$${(totalUnpaid / 1000).toFixed(1)}k`, icon: <Receipt size={22} />, sub: `${pendingInvs.length} active invoices`, color: '#B45309', trend: 2 },
+    { label: 'Risk Exposure', value: delayedProjects, icon: <AlertTriangle size={22} />, sub: 'SLA priority alerts', color: '#EF4444', trend: -5 },
+    { label: 'Client Approvals', value: pendingApprovals, icon: <CheckCircle size={22} />, sub: 'Pending terminal sign-offs', color: ac, trend: 12 },
   ];
+
+  // --- DYNAMIC ANALYTICS ENGINE ---
+  const getRevenueData = () => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const revenueMap = {};
+
+    // Initialize last 6 months
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        revenueMap[months[d.getMonth()]] = 0;
+    }
+
+    (invoices || []).forEach(inv => {
+        if (inv.status?.toLowerCase() === 'paid') {
+            const date = new Date(inv.date);
+            const amt = parseFloat(inv.amount?.replace(/[$,]/g, '') || 0) / 1000;
+            const m = months[date.getMonth()];
+            if (revenueMap[m] !== undefined) {
+                revenueMap[m] += amt;
+            }
+        }
+    });
+
+    return Object.keys(revenueMap).map(m => ({ m, v: parseFloat(revenueMap[m].toFixed(1)) }));
+  };
+
+  const dynamicRevData = getRevenueData();
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 24 : 32 }}>
       
-      {/* 1. OPERATIONS COMMAND CONTROL */}
       {/* 1. OPERATIONS COMMAND CONTROL */}
       <div className="glass-matrix" style={{ 
         padding: isMobile ? '20px' : '24px 32px', 
@@ -67,16 +96,16 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
         
         <div style={{ display: 'flex', gap: isMobile ? 24 : 40, width: isMobile ? '100%' : 'auto', borderTop: isMobile ? '1px solid rgba(255,255,255,0.1)' : 'none', paddingTop: isMobile ? 16 : 0 }}>
            <div style={{ textAlign: isMobile ? 'left' : 'right', flex: isMobile ? 1 : 'none' }}>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>System Integrity</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, color: '#16A34A', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, justifyContent: isMobile ? 'flex-start' : 'flex-end' }}><TrendingUp size={14} /> 99.9%</div>
+              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>Live Logistics</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, color: '#16A34A', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, justifyContent: isMobile ? 'flex-start' : 'flex-end' }}><Truck size={14} /> {activeShipments} Tracking</div>
            </div>
            <div style={{ textAlign: 'right', flex: isMobile ? 1 : 'none' }}>
               <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>Production Load</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, color: '#fff', fontWeight: 400 }}>{isMobile ? "82% CAP" : "+4,280 sqm"}</div>
+              <div style={{ fontSize: isMobile ? 16 : 18, color: '#fff', fontWeight: 400 }}>{activeJobs} Active Jobs</div>
            </div>
         </div>
       </div>
-
+ 
       {/* 2. CORE METRICS OVERVIEW */}
       <div className="kpi-grid">
         {dashboardStats.map((s, i) => (
@@ -95,7 +124,7 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
           </div>
         ))}
       </div>
-
+ 
       {/* 3. PERFORMANCE ARCHITECTURE */}
       <div className="hub-grid">
         {/* REVENUE MOMENTUM */}
@@ -110,7 +139,7 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
            
             <div style={{ height: 320, width: '100%', minHeight: 320, background: 'var(--bg-alt)', borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
              <ResponsiveContainer width="100%" height={320} minHeight={320}>
-               <AreaChart data={REV} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+               <AreaChart data={dynamicRevData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.03)" vertical={false} />
                 <XAxis dataKey="m" tick={{ fill: '#B5AFA9', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#B5AFA9', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}k`} />

@@ -448,35 +448,93 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         );
       case 'book':
         return <ClientBookingView brand={brand} clientEmail={client.email} />;
-      case 'security':
+      case 'security': {
+        const [pwData, setPwData] = useState({ current: '', next: '', confirm: '' });
+        const [pwLoading, setPwLoading] = useState(false);
+
+        const handleUpdatePassword = async () => {
+          if (!pwData.current || !pwData.next) return alert("Please fill in both current and new passwords.");
+          if (pwData.next !== pwData.confirm) return alert("New passwords do not match.");
+          
+          setPwLoading(true);
+          try {
+            await props.changeClientPassword(client.id, pwData.current, pwData.next);
+            setPwData({ current: '', next: '', confirm: '' });
+          } catch (e) {
+            // Error managed by App.jsx notify
+          } finally {
+            setPwLoading(false);
+          }
+        };
+
         return (
-          <div className="p-card fade-in" style={{ padding: 48, maxWidth: 600, margin: '0 auto' }}>
+          <div className="p-card fade-in" style={{ padding: isMobile ? 24 : 48, maxWidth: 600, margin: '0 auto' }}>
              <div style={{ textAlign: 'center', marginBottom: 40 }}>
                 <div style={{ width: 64, height: 64, borderRadius: 20, background: `${ac}15`, color: ac, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                    <ShieldCheck size={32} />
                 </div>
-                <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: '#1A1410' }}>Account Security</h2>
-                <p className="lxf" style={{ fontSize: 14, color: '#B5AFA9', marginTop: 8 }}>Manage your access credentials and primary contact</p>
+                <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: 'var(--fg)' }}>Account Security</h2>
+                <p className="lxf" style={{ fontSize: 14, color: 'var(--dim)', marginTop: 8 }}>Manage your managed access credentials</p>
              </div>
              
              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 <div style={{ padding: 24, background: 'var(--bg-alt)', borderRadius: 16, border: `1px solid var(--border)` }}>
-                   <div className="lxf" style={{ fontSize: 11, fontWeight: 700, color: ac, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>Verified WhatsApp Key</div>
+                   <div className="lxf" style={{ fontSize: 10, fontWeight: 700, color: ac, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>Portal Identifier</div>
                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className="lxfh" style={{ fontSize: 18 }}>{client.phone || 'Not Verified'}</div>
-                      <div className="lxf" style={{ fontSize: 11, background: '#16A34A15', color: '#16A34A', padding: '4px 10px', borderRadius: 4, fontWeight: 700 }}>VERIFIED</div>
+                      <div className="lxfh" style={{ fontSize: 18 }}>{client.username || 'Not Set'}</div>
+                      <div className="lxf" style={{ fontSize: 10, background: ac+'20', color: ac, padding: '4px 10px', borderRadius: 4, fontWeight: 700 }}>ACTIVE ACCOUNT</div>
                    </div>
-                   <p className="lxf" style={{ fontSize: 12, color: 'var(--dim)', marginTop: 12 }}>This number is used for all one-time password (OTP) authorizations.</p>
+                   <p className="lxf" style={{ fontSize: 12, color: 'var(--dim)', marginTop: 12 }}>This is your unique username for Glasstech Hub access.</p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                   <PFormField label="Login Email (Alias)"><input className="p-inp" value={client.email} disabled /></PFormField>
-                   <PFormField label="Change Backup Password"><input className="p-inp" type="password" placeholder="Enter new password" /></PFormField>
-                   <button className="p-btn-gold" style={{ padding: '14px', marginTop: 12 }}>Update Security Profile</button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                   <div className="p-form-group">
+                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>Current Password</label>
+                      <input 
+                        className="p-inp" 
+                        type="password" 
+                        value={pwData.current}
+                        onChange={e => setPwData({ ...pwData, current: e.target.value })}
+                        placeholder="••••••••" 
+                      />
+                   </div>
+                   
+                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
+                      <div className="p-form-group">
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>New Password</label>
+                        <input 
+                          className="p-inp" 
+                          type="password" 
+                          value={pwData.next}
+                          onChange={e => setPwData({ ...pwData, next: e.target.value })}
+                          placeholder="Update password" 
+                        />
+                      </div>
+                      <div className="p-form-group">
+                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>Confirm New</label>
+                        <input 
+                          className="p-inp" 
+                          type="password" 
+                          value={pwData.confirm}
+                          onChange={e => setPwData({ ...pwData, confirm: e.target.value })}
+                          placeholder="Re-type password" 
+                        />
+                      </div>
+                   </div>
+
+                   <button 
+                    onClick={handleUpdatePassword} 
+                    disabled={pwLoading}
+                    className="p-btn-gold" 
+                    style={{ padding: '16px', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                   >
+                     {pwLoading ? <Spinner /> : <><Lock size={16} /> Update Access Password</>}
+                   </button>
                 </div>
              </div>
           </div>
         );
+      }
       default: return null;
     }
   };

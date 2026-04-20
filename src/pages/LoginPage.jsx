@@ -16,78 +16,33 @@ const COUNTRIES = [
 ];
 
 export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...props }) {
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [email, setEmail] = useState('');
-  const [pw, setPw] = useState('');
-  const [step, setStep] = useState(1); 
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
   const [isAdminLogin, setIsAdminLogin] = useState(type === 'admin');
 
   const ac = brand.color || '#C8A96E';
 
-  // Detection of entry mode from props
   useEffect(() => {
     setIsAdminLogin(type === 'admin');
   }, [type]);
 
-  const getFullNumber = () => {
-    let clean = phone.replace(/\D/g, ''); // Standardizing to digits only
-    const iso = selectedCountry.code.replace('+', '');
+  const handleLoginSubmit = async () => {
+    const loginPath = isAdminLogin ? 'admin' : 'client';
+    const identifier = isAdminLogin ? email : username;
+    const cred = isAdminLogin ? pw : password;
+
+    if (!identifier || !cred) return setErr('Identification and access password required.');
     
-    // Safety check: If user typed their OWN country code already, remove it from the 'clean' part
-    if (clean.startsWith(iso)) {
-      clean = clean.substring(iso.length);
-    }
-    
-    if (clean.startsWith('0')) clean = clean.substring(1);
-    return `${iso}${clean}`;
-  };
-
-  const handleRequestOTP = async () => {
-    if (!phone) return setErr('Please enter your WhatsApp number');
-    const fullNumber = getFullNumber();
     setLoading(true);
     setErr('');
     try {
-      await props.sendOTP(fullNumber);
-      setStep(2);
+      await onLogin(identifier.trim(), cred.trim(), loginPath);
+      // Admin redirect is handled by App.jsx auth listener
+      // Client redirect is handled by loginWithCredentials within onLogin
     } catch (e) {
-      setErr(e.message || 'Verification failed. Contact support.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyOTP = async () => {
-    if (!otp) return setErr('Please enter the 6-digit code');
-    const fullNumber = getFullNumber();
-    setLoading(true);
-    setErr('');
-    try {
-      await props.verifyOTP(fullNumber, otp);
-    } catch (e) {
-      setErr(e.message || 'Invalid code. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdminLogin = async () => {
-    if (!email || !pw) return setErr('Credentials required');
-    setLoading(true);
-    setErr('');
-    try {
-      await onLogin(email.trim(), pw.trim());
-      // On success, we wait for App.jsx to handle the onAuthStateChanged redirect.
-      // If no redirect happens after 4 seconds AND we aren't loading, it's likely an application-level failure.
-      setTimeout(() => {
-        setLoading(false);
-      }, 4000);
-    } catch (e) {
-      setErr(e.message || 'Invalid administrative credentials.');
+      setErr(e.message || 'Login failed. Please check your credentials.');
       setLoading(false);
     }
   };
@@ -137,31 +92,18 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
            {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 32, marginBottom: 24, filter: isAdminLogin && 'brightness(0) invert(1)' }} />
              : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: isAdminLogin ? '#fff' : '#1A1410', marginBottom: 24 }}>{brand.name}</div>}
            
-           {!isAdminLogin ? (
-             <>
-               <h1 className="lxfh" style={{ fontSize: 32, fontWeight: 300, color: '#1A1410', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                 Partner Portal <ShieldCheck size={24} color={ac} />
-               </h1>
-               <p style={{ fontSize: 15, color: '#6A635C', lineHeight: 1.6 }}>
-                 {step === 1 
-                   ? 'Enter your registered WhatsApp number to access your project dashboard.' 
-                   : 'Check your WhatsApp for the 6-digit verification code.'}
-               </p>
-             </>
-           ) : (
-             <>
-               <h1 className="lxfh" style={{ fontSize: 28, fontWeight: 300, color: '#fff', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-                 Staff Entry <Lock size={20} color={ac} />
-               </h1>
-               <p style={{ fontSize: 13, color: '#625C54', textTransform: 'uppercase', letterSpacing: '.1em' }}>Secured Terminal Environment</p>
-             </>
-           )}
+          <h1 className="lxfh" style={{ fontSize: isAdminLogin ? 28 : 32, fontWeight: 300, color: isAdminLogin ? '#fff' : '#1A1410', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+            {isAdminLogin ? 'Staff Entry' : 'Partner Portal'} {isAdminLogin ? <Lock size={20} color={ac} /> : <ShieldCheck size={24} color={ac} />}
+          </h1>
+          <p style={{ fontSize: 13, color: isAdminLogin ? '#625C54' : '#6A635C', textTransform: isAdminLogin ? 'uppercase' : 'none', letterSpacing: isAdminLogin ? '.1em' : 'normal' }}>
+            {isAdminLogin ? 'Secured Terminal Environment' : 'Enter your designated credentials to access your dashboard.'}
+          </p>
         </div>
 
         {/* ERROR DISPLAY */}
         {err && (
           <div className="fade-in" style={{ 
-            padding: '14px 18px', background: '#FEF2F2', border: '1px solid #FEE2E2', 
+            padding: '14px 18px', background: isAdminLogin ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2', border: `1px solid ${isAdminLogin ? 'rgba(239, 68, 68, 0.2)' : '#FEE2E2'}`, 
             borderRadius: 12, color: '#DC2626', fontSize: 13, marginBottom: 32, 
             display: 'flex', gap: 10, alignItems: 'center' 
           }}>
@@ -170,93 +112,52 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
         )}
 
         {/* CORE FORM LOGIC */}
-        {!isAdminLogin ? (
-          <div className="fade-in">
-             {step === 1 ? (
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <div style={{ width: 110, position: 'relative' }}>
-                      <select 
-                        style={{ width: '100%', height: 56, borderRadius: 12, border: '1px solid #F0EBE5', background: '#FDFCFB', textAlign: 'center', fontSize: 14, fontWeight: 600, outline: 'none' }}
-                        value={selectedCountry.code}
-                        onChange={e => setSelectedCountry(COUNTRIES.find(x => x.code === e.target.value))}
-                      >
-                        {COUNTRIES.map(c => (
-                          <option key={c.name} value={c.code}>{c.flag} {c.code}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div style={{ flex: 1, position: 'relative' }}>
-                      <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }}>
-                        <Smartphone size={18} />
-                      </div>
-                      <input 
-                        type="tel" 
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="e.g. 54 773 8678"
-                        style={{ width: '100%', padding: '16px 16px 16px 48px', borderRadius: 12, border: '1px solid #F0EBE5', background: '#F9F7F4', fontSize: 16, fontWeight: 500 }}
-                      />
-                    </div>
-                  </div>
-                  <p style={{ fontSize: 11, color: '#B5AFA9', marginTop: -16, paddingLeft: 4 }}>
-                    Enter the local number without the leading zero.
-                  </p>
-                  <button onClick={handleRequestOTP} disabled={loading} className="luxe-pulse" style={{ height: 60, background: '#1A1410', color: '#fff', borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                    {loading ? <Spinner /> : <><Send size={18} /> Request Access Code</>}
-                  </button>
-               </div>
-             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                   {props.activeMagicCode && (
-                     <div className="fade-in" style={{ padding: '20px', background: '#FDFCFB', border: `1.5px dashed ${ac}`, borderRadius: 16, textAlign: 'center' }}>
-                        <div style={{ fontSize: 10, color: ac, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Security Fallback</div>
-                        <div style={{ fontSize: 32, fontWeight: 300, color: '#1A1410', letterSpacing: '4px' }}>{props.activeMagicCode}</div>
-                        <p style={{ fontSize: 11, color: '#B5AFA9', marginTop: 8 }}>Use this code if WhatsApp is delayed.</p>
-                     </div>
-                   )}
-                   <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <input 
-                      placeholder="••••••" 
-                      style={{ width: '100%', textAlign: 'center', fontSize: 32, letterSpacing: '12px', height: 80, fontWeight: 800, borderRadius: 16, border: '2px solid #F0EBE5', outline: 'none', color: '#1A1410' }} 
-                      maxLength="6"
-                      value={otp}
-                      onChange={e => setOtp(e.target.value)}
-                    />
-                  </div>
-                  <button onClick={handleVerifyOTP} disabled={loading} style={{ height: 60, background: ac, color: '#121212', borderRadius: 14, border: 'none', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-                    {loading ? <Spinner /> : <><ArrowRight size={18} /> Verify & Enter Hub</>}
-                  </button>
-                  <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', color: '#B5AFA9', fontSize: 13, cursor: 'pointer', fontWeight: 600 }}>Back to phone entry</button>
-               </div>
-             )}
+        <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div style={{ position: 'relative' }}>
+            {isAdminLogin ? <Mail size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} /> : <Command size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} />}
+            <input 
+              placeholder={isAdminLogin ? "Staff ID (Email)" : "Username"} 
+              style={{ width: '100%', height: 56, paddingLeft: 48, background: isAdminLogin ? 'rgba(255,255,255,0.03)' : '#F9F7F4', border: isAdminLogin ? '1px solid rgba(255,255,255,0.1)' : '1px solid #F0EBE5', color: isAdminLogin ? '#fff' : '#121212', borderRadius: 12, outline: 'none' }}
+              value={isAdminLogin ? email : username} 
+              onChange={e => isAdminLogin ? setEmail(e.target.value) : setUsername(e.target.value)} 
+            />
           </div>
-        ) : (
-          <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div style={{ position: 'relative' }}>
-              <Mail size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} />
-              <input 
-                placeholder="Staff Identity (Email)" 
-                style={{ width: '100%', height: 56, paddingLeft: 48, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 12, outline: 'none' }}
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-              />
-            </div>
-            <div style={{ position: 'relative' }}>
-              <KeyRound size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} />
-              <input 
-                type="password" 
-                placeholder="Access Password" 
-                style={{ width: '100%', height: 56, paddingLeft: 48, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 12, outline: 'none' }}
-                value={pw} 
-                onChange={e => setPw(e.target.value)} 
-              />
-            </div>
-            <button onClick={handleAdminLogin} disabled={loading} style={{ height: 60, marginTop: 12, background: 'linear-gradient(135deg, #E5C387, #C8A96E)', color: '#121212', border: 'none', borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-              {loading ? <Spinner /> : <><Command size={18} /> Authorize Terminal</>}
-            </button>
+          <div style={{ position: 'relative' }}>
+            <KeyRound size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} />
+            <input 
+              type="password" 
+              placeholder="Access Password" 
+              style={{ width: '100%', height: 56, paddingLeft: 48, background: isAdminLogin ? 'rgba(255,255,255,0.03)' : '#F9F7F4', border: isAdminLogin ? '1px solid rgba(255,255,255,0.1)' : '1px solid #F0EBE5', color: isAdminLogin ? '#fff' : '#121212', borderRadius: 12, outline: 'none' }}
+              value={isAdminLogin ? pw : password} 
+              onChange={e => isAdminLogin ? setPw(e.target.value) : setPassword(e.target.value)} 
+              onKeyPress={e => e.key === 'Enter' && handleLoginSubmit()}
+            />
           </div>
-        )}
+          <button onClick={handleLoginSubmit} disabled={loading} style={{ height: 60, marginTop: 12, background: isAdminLogin ? 'linear-gradient(135deg, #E5C387, #C8A96E)' : '#1A1410', color: isAdminLogin ? '#121212' : '#fff', border: 'none', borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            {loading ? <Spinner /> : isAdminLogin ? <><Command size={18} /> Authorize Terminal</> : <><ArrowRight size={18} /> Enter Portal</>}
+          </button>
+        </div>
+
+        {/* SECURITY INFO FOOTER */}
+        <div style={{ marginTop: 48, borderTop: `1px solid ${isAdminLogin ? 'rgba(255,255,255,0.05)' : '#F0EBE5'}`, paddingTop: 32, textAlign: 'center' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 16 }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#B5AFA9', fontSize: 11 }}>
+                <Shield size={14} /> End-to-End Encrypted
+             </div>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#B5AFA9', fontSize: 11 }}>
+                <Globe size={14} /> Global Availability
+             </div>
+          </div>
+          {!isAdminLogin && (
+            <p style={{ fontSize: 12, color: '#B5AFA9', lineHeight: 1.6 }}>
+              Lost your credentials? Your project manager can reset your access password anytime.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
         {/* SECURITY INFO FOOTER */}
         <div style={{ marginTop: 48, borderTop: `1px solid ${isAdminLogin ? 'rgba(255,255,255,0.05)' : '#F0EBE5'}`, paddingTop: 32, textAlign: 'center' }}>
