@@ -907,7 +907,7 @@ body {
   .p-nav-float { margin-bottom: 16px !important; border-radius: 0 0 24px 24px !important; border-top: none !important; }
   .kpi-grid { display: flex !important; overflow-x: auto !important; gap: 16px !important; padding: 4px 0 20px !important; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
   .kpi-card { flex: 0 0 280px !important; scroll-snap-align: start !important; }
-  .hub-grid { display: flex !important; flexDirection: column !important; gap: 20px !important; }
+  .hub-grid { display: flex !important; flex-direction: column !important; gap: 20px !important; }
   
   /* Hide noisy elements on mobile for focus */
   .mob-hide { display: none !important; }
