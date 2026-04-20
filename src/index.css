@@ -808,15 +808,6 @@ body {
   opacity: 1;
   transform: scaleX(1);
 }
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--ac);
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.pub-bottom-item.active .pub-bottom-indicator {
-  opacity: 1;
-}
 
 /* 🧪 UNIFIED GLASS DOCK SYSTEM */
 .glass-dock {
