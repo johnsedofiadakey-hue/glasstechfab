@@ -18,6 +18,8 @@ const COUNTRIES = [
 export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...props }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [pw, setPw] = useState('');
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
   const [isAdminLogin, setIsAdminLogin] = useState(type === 'admin');
@@ -39,8 +41,6 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
     setErr('');
     try {
       await onLogin(identifier.trim(), cred.trim(), loginPath);
-      // Admin redirect is handled by App.jsx auth listener
-      // Client redirect is handled by loginWithCredentials within onLogin
     } catch (e) {
       setErr(e.message || 'Login failed. Please check your credentials.');
       setLoading(false);
@@ -134,7 +134,7 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
             />
           </div>
           <button onClick={handleLoginSubmit} disabled={loading} style={{ height: 60, marginTop: 12, background: isAdminLogin ? 'linear-gradient(135deg, #E5C387, #C8A96E)' : '#1A1410', color: isAdminLogin ? '#121212' : '#fff', border: 'none', borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-            {loading ? <Spinner /> : isAdminLogin ? <><Command size={18} /> Authorize Terminal</> : <><ArrowRight size={18} /> Enter Portal</>}
+            {loading ? <Spinner /> : isAdminLogin ? <><Shield size={18} /> Authorize Terminal</> : <><ArrowRight size={18} /> Enter Portal</>}
           </button>
         </div>
 
@@ -151,27 +151,6 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
           {!isAdminLogin && (
             <p style={{ fontSize: 12, color: '#B5AFA9', lineHeight: 1.6 }}>
               Lost your credentials? Your project manager can reset your access password anytime.
-            </p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-        {/* SECURITY INFO FOOTER */}
-        <div style={{ marginTop: 48, borderTop: `1px solid ${isAdminLogin ? 'rgba(255,255,255,0.05)' : '#F0EBE5'}`, paddingTop: 32, textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 16 }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#B5AFA9', fontSize: 11 }}>
-                <Shield size={14} /> End-to-End Encrypted
-             </div>
-             <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#B5AFA9', fontSize: 11 }}>
-                <Globe size={14} /> Global Availability
-             </div>
-          </div>
-          {!isAdminLogin && (
-            <p style={{ fontSize: 12, color: '#B5AFA9', lineHeight: 1.6 }}>
-              Can't sign in? Your project manager handles authorization. Contact support at <span style={{ color: ac }}>{brand.phone}</span>
             </p>
           )}
         </div>
