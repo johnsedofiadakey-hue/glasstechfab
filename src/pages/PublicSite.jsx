@@ -631,57 +631,105 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
 }
 
 export function CatalogPage({ brand, setPage, content }) {
-  const ac = brand.color || '#B08D57';
+  const ac = brand.color || '#C8A96E';
   const products = content.products || [];
   const [filter, setFilter] = useState('All');
-  const cats = ['All', ...new Set(products.map(p => p.cat))];
+  const cats = ['All', ...new Set(products.map(p => p.cat).filter(Boolean))];
   const shown = filter === 'All' ? products : products.filter(p => p.cat === filter);
 
   return (
-    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
-      <section style={{ padding: '80px 24px', background: '#121212' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 20 }}>Product Catalog</div>
-          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 6vw, 96px)', color: '#fff', fontWeight: 300, lineHeight: 1.1 }}>Industrial & <em style={{ fontStyle: 'italic', color: ac }}>Structural</em> Materials</h1>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 48 }}>
+    <div className="pub-page" style={{ background: '#F9F7F4', paddingTop: 90, minHeight: '100vh' }}>
+      <section style={{ padding: '100px 5vw', background: '#0D0B09', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: '-50%', left: '-10%', width: '50vw', height: '50vw', background: `radial-gradient(circle, ${ac}20 0%, transparent 70%)`, filter: 'blur(80px)' }} />
+        <div style={{ maxWidth: 1600, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, letterSpacing: '0.4em' }}>EXCLUSIVE MARKETPLACE</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 8vw, 120px)', color: '#fff', fontWeight: 300, lineHeight: 0.9, letterSpacing: '-0.04em' }}>
+            Industrial & <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Structural</em> Assets
+          </h1>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 64 }}>
             {cats.map(c => (
-              <button key={c} onClick={() => setFilter(c)} className="lxf" style={{
-                padding: '10px 20px', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase',
+              <button key={c} onClick={() => setFilter(c)} className="lxf glass-panel" style={{
+                padding: '12px 24px', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase',
                 background: filter === c ? ac : 'rgba(255,255,255,0.05)',
-                color: filter === c ? '#121212' : '#fff', border: 'none', cursor: 'pointer', fontWeight: 600
+                color: filter === c ? '#1A1410' : '#fff', border: 'none', cursor: 'pointer',
+                transition: 'all 0.4s ease', fontWeight: 800, borderRadius: 12
               }}>{c}</button>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={{ padding: '60px 24px' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div className="pub-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 32 }}>
+      <section style={{ padding: '80px 5vw' }}>
+        <div style={{ maxWidth: 1600, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 48 }}>
             {shown.map((p, i) => (
-              <div key={p.id} className="p-card magnetic-card rev afu" style={{ padding: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ height: 260, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #F0EBE5' }}>
-                  {p.img ? <img src={p.img} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 40 }} /> : <Package size={48} color="#B5AFA9" />}
-                </div>
-                <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ color: ac, fontSize: 10, fontWeight: 750, textTransform: 'uppercase', marginBottom: 8, letterSpacing: '.08em' }}>{p.cat}</div>
-                  <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 8 }}>{p.name}</h3>
-                  <p className="lxf" style={{ fontSize: 14, color: '#666', lineHeight: 1.6, marginBottom: 24 }}>{p.desc}</p>
+              <div key={p.id} className="magnetic-card rev d1" style={{ 
+                background: '#fff', 
+                borderRadius: 24, 
+                overflow: 'hidden',
+                boxShadow: '0 24px 48px -12px rgba(26,20,16,0.05)',
+                display: 'flex', 
+                flexDirection: 'column',
+                border: '1px solid rgba(0,0,0,0.03)'
+              }}>
+                <div style={{ height: 320, background: '#F5F2EE', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
+                  {p.img ? <img src={p.img} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply' }} className="hover-scale" /> : <Package size={64} color="#DCD7D1" />}
                   
-                  <div style={{ background: '#FDFCFB', padding: '12px 16px', borderRadius: 4, display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 20, border: '1px solid #F0EBE5' }}>
-                     <span style={{ fontSize: 9, color: '#B5AFA9', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em' }}>Specifications</span>
-                     <span style={{ fontSize: 12, fontWeight: 700, color: '#1A1410' }}>{p.specs}</span>
+                  {/* Availability Badge */}
+                  <div style={{ 
+                    position: 'absolute', top: 24, right: 24, 
+                    background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)',
+                    padding: '8px 16px', borderRadius: 100,
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    fontSize: 10, fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                  }}>
+                    <div style={{ 
+                      width: 8, height: 8, borderRadius: '50%', 
+                      background: p.status === 'Pre-order' ? '#D97706' : '#059669',
+                      boxShadow: `0 0 8px ${p.status === 'Pre-order' ? '#D97706' : '#059669'}`
+                    }} className={p.status === 'Pre-order' ? '' : 'pulse'} />
+                    {p.status || 'Available'}
+                  </div>
+                  
+                  {/* Category Label */}
+                  <div style={{ position: 'absolute', top: 24, left: 24, color: '#1A1410', fontSize: 10, fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', opacity: 0.5 }}>
+                    {p.cat}
+                  </div>
+                </div>
+                
+                <div style={{ padding: 40, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <h3 className="lxfh" style={{ fontSize: 28, marginBottom: 12, letterSpacing: '-0.02em', color: '#1A1410' }}>{p.name}</h3>
+                  <p className="lxf" style={{ fontSize: 15, color: '#6A635C', lineHeight: 1.7, marginBottom: 32 }}>{p.desc}</p>
+                  
+                  {/* Pricing Matrix */}
+                  <div style={{ 
+                    background: '#F9F7F4', borderRadius: 16, padding: 24, marginBottom: 32,
+                    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, border: '1px solid #F0EBE5'
+                  }}>
+                    <div>
+                      <div className="lxf" style={{ fontSize: 10, color: '#888', textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, marginBottom: 4 }}>FOB Price</div>
+                      <div className="lxfh" style={{ fontSize: 24, color: '#1A1410' }}>{p.fobPrice || 'POA'}</div>
+                    </div>
+                    <div>
+                      <div className="lxf" style={{ fontSize: 10, color: '#888', textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, marginBottom: 4 }}>Landed Cost</div>
+                      <div className="lxfh" style={{ fontSize: 24, color: ac }}>{p.landedCost || 'POA'}</div>
+                    </div>
                   </div>
 
-                  <div style={{ marginTop: 'auto', display: 'flex', gap: 10 }}>
-                    <button onClick={() => setPage('contact')} className="pub-btn-dark lxf" style={{ flex: 1, padding: '12px', fontSize: 11 }}>Inquire Today</button>
-                    <button onClick={() => { alert(`Downloading: ${p.name}_Specifications.pdf (Simulated Download)`); }} className="pub-btn-outline lxf" style={{ padding: '12px', border: '1px solid #121212', color: '#121212', fontSize: 11 }}>Specs</button>
+                  <div style={{ marginTop: 'auto', display: 'flex', gap: 12 }}>
+                    <button onClick={() => setPage('contact')} className="pub-btn-dark lxf" style={{ flex: 2, padding: '18px', fontSize: 13, borderRadius: 12 }}>
+                      {p.status === 'Pre-order' ? 'Request Pre-order' : 'Inquire Availability'}
+                    </button>
+                    <button onClick={() => alert(`Downloading Technical Specs for ${p.name}`)} className="lxf" style={{ flex: 1, padding: '18px', fontSize: 13, borderRadius: 12, border: '1px solid #E5E5E5', background: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+                      Specs
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
-          {shown.length === 0 && <div style={{ textAlign: 'center', padding: 80, color: '#B5AFA9' }}>No products found in this category.</div>}
+          {shown.length === 0 && <div style={{ textAlign: 'center', padding: 120, color: '#B5AFA9', fontSize: 16, letterSpacing: '.1em', textTransform: 'uppercase' }}>No assets found in this category.</div>}
         </div>
       </section>
     </div>

@@ -1156,9 +1156,13 @@ export default function App() {
     try { 
       notify('pending', `Authenticating with Glasstech Hub...`);
       
-      if (mode === 'admin') {
+      // Auto-detect admin by email if they forgot to toggle the mode
+      const isAdminEmail = (e === 'admin@stormglide.com' || e === 'admin@glasstechfab.com');
+      const isActualAdminMode = mode === 'admin' || isAdminEmail;
+      
+      if (isActualAdminMode) {
         if (!isFirebaseEnabled || !auth) {
-          if ((e === 'admin@stormglide.com' || e === 'admin@glasstechfab.com') && (p === 'admin123' || p === 'Glasstech2026')) {
+          if (isAdminEmail && (p === 'admin123' || p === 'Glasstech2026')) {
             const mockUser = { email: e, role: 'admin', uid: 'mock-admin' };
             setUser(mockUser);
             localStorage.setItem('lxf_session', JSON.stringify(mockUser));

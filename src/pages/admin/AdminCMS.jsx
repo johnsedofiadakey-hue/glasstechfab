@@ -163,7 +163,7 @@ function CMSServices({ services, onSave, ac }) {
 
 function CMSProducts({ products, onSave, ac }) {
   const [list, setList] = useState(products || []);
-  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass' });
+  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass', specs: '', fobPrice: '', landedCost: '', status: 'Available' });
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -175,17 +175,32 @@ function CMSProducts({ products, onSave, ac }) {
             <input className="p-inp" placeholder="Category" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} />
             <input className="p-inp" placeholder="Image URL" value={newItem.img} onChange={e => setNewItem({...newItem, img: e.target.value})} />
           </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <input className="p-inp" placeholder="FOB Price (e.g. $120/sqm)" value={newItem.fobPrice} onChange={e => setNewItem({...newItem, fobPrice: e.target.value})} />
+            <input className="p-inp" placeholder="Landed Cost (e.g. $165/sqm)" value={newItem.landedCost} onChange={e => setNewItem({...newItem, landedCost: e.target.value})} />
+            <select className="p-inp" value={newItem.status} onChange={e => setNewItem({...newItem, status: e.target.value})}>
+              <option value="Available">Available</option>
+              <option value="Pre-order">Pre-order</option>
+            </select>
+          </div>
           <textarea className="p-inp" placeholder="Technical Description" rows={2} value={newItem.desc} onChange={e => setNewItem({...newItem, desc: e.target.value})} />
-          <button onClick={() => { setList([...list, { ...newItem, id: Date.now() }]); setNewItem({ name:'', desc:'', img:'', cat:'Glass' }); }} className="p-btn-gold lxf" style={{ marginTop: 12, padding: '8px 20px' }}>Add to Catalog</button>
+          <button onClick={() => { setList([...list, { ...newItem, id: Date.now() }]); setNewItem({ name:'', desc:'', img:'', cat:'Glass', specs:'', fobPrice:'', landedCost:'', status:'Available' }); }} className="p-btn-gold lxf" style={{ marginTop: 12, padding: '8px 20px' }}>Add to Catalog</button>
        </div>
        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
          {list.map(p => (
            <div key={p.id} className="p-card" style={{ padding: 16 }}>
               <img src={p.img} alt="" style={{ width: '100%', height: 120, objectFit: 'contain', marginBottom: 12, background: '#fff', borderRadius: 6 }} />
-              <div className="lxf" style={{ fontSize: 10, color: ac, fontWeight: 600 }}>{p.cat}</div>
+              <div className="lxf" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                <span style={{ fontSize: 10, color: ac, fontWeight: 600 }}>{p.cat}</span>
+                <span style={{ fontSize: 10, color: p.status === 'Pre-order' ? '#D97706' : '#059669', fontWeight: 700 }}>{p.status}</span>
+              </div>
               <div className="lxfh" style={{ fontSize: 16, marginBottom: 4 }}>{p.name}</div>
-              <p className="lxf" style={{ fontSize: 12, color: '#7A6E62', lineHeight: 1.6 }}>{p.desc}</p>
-              <button onClick={() => setList(list.filter(x => x.id !== p.id))} style={{ color: '#ff4444', fontSize: 11, background: 'none', border: 'none', padding: 0, marginTop: 12, cursor: 'pointer' }}>Remove</button>
+              <p className="lxf" style={{ fontSize: 12, color: '#7A6E62', lineHeight: 1.6, marginBottom: 8 }}>{p.desc}</p>
+              <div style={{ display: 'flex', gap: 8, fontSize: 11, marginBottom: 8, background: 'rgba(0,0,0,0.02)', padding: 8, borderRadius: 4 }}>
+                <div style={{ flex: 1 }}><strong>FOB:</strong> {p.fobPrice}</div>
+                <div style={{ flex: 1 }}><strong>Landed:</strong> {p.landedCost}</div>
+              </div>
+              <button onClick={() => setList(list.filter(x => x.id !== p.id))} style={{ color: '#ff4444', fontSize: 11, background: 'none', border: 'none', padding: 0, marginTop: 4, cursor: 'pointer' }}>Remove</button>
            </div>
          ))}
        </div>

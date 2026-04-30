@@ -103,11 +103,11 @@ export const PORTFOLIO_DATA = [
 ];
 
 export const PRODUCTS_DATA = [
-  {id:'P1',name:'Reflective Low-E Glass',cat:'Glass Systems',desc:'High-performance glass that reduces heat gain while maximizing natural light.',img:'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',specs:'12mm Tempered, Bronze Tinted'},
-  {id:'P2',name:'Minimalist Sliding Door',cat:'Aluminum Systems',desc:'Ultra-slim profiles for unobstructed views and smooth silent operation.',img:'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',specs:'Black Powder Coated, Heavy Duty'},
-  {id:'P3',name:'Structural Curtain Wall',cat:'Facades',desc:'Advanced aluminum framing for commercial facades and glass towers.',img:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80',specs:'Pressure Equalized, Thermal Break'},
-  {id:'P4',name:'Smart Privacy Glass',cat:'Glass Systems',desc:'Switchable opacity glass for instant privacy in offices and washrooms.',img:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80',specs:'PDLC Film, Remote Controlled'},
-  {id:'P5',name:'Matte Architectural Hinge',cat:'Hardware',desc:'Industrial-grade stainless steel hinges with architectural matte finish.',img:'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80',specs:'316 Grade SS, 150kg Load'},
+  {id:'P1',name:'Reflective Low-E Glass',cat:'Glass Systems',desc:'High-performance glass that reduces heat gain while maximizing natural light.',img:'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',specs:'12mm Tempered, Bronze Tinted', fobPrice:'$120/sqm', landedCost:'$165/sqm', status:'Available'},
+  {id:'P2',name:'Minimalist Sliding Door',cat:'Aluminum Systems',desc:'Ultra-slim profiles for unobstructed views and smooth silent operation.',img:'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',specs:'Black Powder Coated, Heavy Duty', fobPrice:'$850/unit', landedCost:'$1,100/unit', status:'Available'},
+  {id:'P3',name:'Structural Curtain Wall',cat:'Facades',desc:'Advanced aluminum framing for commercial facades and glass towers.',img:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80',specs:'Pressure Equalized, Thermal Break', fobPrice:'$450/profile', landedCost:'$600/profile', status:'Pre-order'},
+  {id:'P4',name:'Smart Privacy Glass',cat:'Glass Systems',desc:'Switchable opacity glass for instant privacy in offices and washrooms.',img:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80',specs:'PDLC Film, Remote Controlled', fobPrice:'$800/sqm', landedCost:'$950/sqm', status:'Pre-order'},
+  {id:'P5',name:'Matte Architectural Hinge',cat:'Hardware',desc:'Industrial-grade stainless steel hinges with architectural matte finish.',img:'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80',specs:'316 Grade SS, 150kg Load', fobPrice:'$45/unit', landedCost:'$60/unit', status:'Available'},
 ];
 
 export const SERVICES_DATA = [
