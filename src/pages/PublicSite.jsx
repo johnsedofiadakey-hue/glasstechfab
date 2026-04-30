@@ -89,7 +89,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         {/* LOGO */}
         <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
-            <img src={brand.logo} alt={brand.name} style={{ height: window.innerWidth <= 900 ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
+            <img src={brand.logo} alt={brand.name} style={{ height: window.innerWidth <= 900 ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain' }} />
           ) : (
             <div className="lxfh" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff', whiteSpace: 'nowrap' }}>
               {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>

@@ -27,11 +27,11 @@ export const PROCUREMENT_STAGES = [
 ];
 
 export const ABOUT_DATA = {
-  founder: 'Ama Asante',
+  founder: 'John Dakey',
   role: 'Managing Director',
-  storyTitle: 'Complete Interior & Finishing Solutions.',
-  story: 'Glasstech Fabrications has evolved into a premier full-service interior finishing partner. Based in Accra, we provide end-to-end solutions for luxury residential and large-scale commercial developments — from design to total handover.',
-  bio: 'Our mission is to deliver world-class interior engineering that combines technical precision with exquisite aesthetic design — managing every trade from plumbing to the final glass finishing.',
+  storyTitle: 'Crafting the Future of Structural Glass & Interiors',
+  story: 'Under the leadership of John Dakey, Managing Director, Glasstech Fabrications has evolved from a structural glass specialist into Ghana’s premier hub for complete interior finishing. Our mission is to bridge the gap between industrial engineering and luxury design.',
+  bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.',
   image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=700&q=80'
 };
 
@@ -90,7 +90,7 @@ export const BRAND0 = {
 };
 
 export const TEAM_MEMBERS = [
-  {id:1,name:'Ama Asante',role:'admin',bio:'15 years in industrial fabrication and glass engineering.',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80',av:'AA',email:'ama@glasstechfab.com',phone:'+233 24 111 0001',status:'Online'},
+  {id:1,name:'John Dakey',role:'Managing Director',bio:'Visionary leader with a focus on structural glass and interior finishing engineering.',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&q=80',av:'JD',email:'john@glasstechfab.com',phone:'+233 59 845 5012',status:'Online'},
   {id:2,name:'Kwame Osei',role:'Technical Lead',bio:'Expert in curtain wall systems and high-pressure glazing.',img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',av:'KO',email:'kwame@glasstechfab.com',phone:'+233 24 111 0002',status:'Online'},
   {id:3,name:'Abena Darko',role:'admin',bio:'Ensures on-site precision and safety across all glass installations.',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',av:'AD',email:'admin@glasstechfab.com',phone:'+233 24 111 0003',status:'Idle'},
   {id:4,name:'Nana Boateng',role:'CAD Engineer',bio:'Specializes in precision technical drawings and fabrication specs.',img:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',av:'NB',email:'nana@glasstechfab.com',phone:'+233 24 111 0004',status:'Idle'},
