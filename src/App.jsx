@@ -166,11 +166,15 @@ export default function App() {
       });
       setContent(newContent);
       if (newContent.brand) setBrand(prev => ({ ...prev, ...newContent.brand }));
+    }, (err) => {
+      console.warn("CMS Sync Permission Issue:", err);
+      // Fallback to initial content if permission denied
+      setContent(INITIAL_CONTENT);
     });
 
     fetchData();
     return () => { unsubMsg(); unsubTest(); unsubCMS(); };
-  }, [db]);
+  }, [db, user]);
 
   useEffect(() => {
     if (!db && !isFirebaseEnabled) {
@@ -408,21 +412,25 @@ export default function App() {
     }
     try {
       setLoading(true);
-      const [uSnap, pSnap, iSnap] = await Promise.all([
-        getDocs(collection(db, 'users')),
-        getDocs(collection(db, 'proposals')),
-        getDocs(collection(db, 'invoices'))
-      ]);
       
-      const allUsers = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setClients(allUsers.filter(u => u.role === 'client'));
-      setTeamMembers(allUsers.filter(u => u.role !== 'client'));
+      // ONLY FETCH PROTECTED DATA IF USER IS AUTHENTICATED
+      if (user) {
+        const [uSnap, pSnap, iSnap] = await Promise.all([
+          getDocs(collection(db, 'users')),
+          getDocs(collection(db, 'proposals')),
+          getDocs(collection(db, 'invoices'))
+        ]);
+        
+        const allUsers = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setClients(allUsers.filter(u => u.role === 'client'));
+        setTeamMembers(allUsers.filter(u => u.role !== 'client'));
 
-      setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-      setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
       
     } catch (err) { 
-      console.warn('Fetch failed:', err); 
+      console.warn('Fetch failed (likely missing permissions for public view):', err); 
     } finally { 
       setLoading(false); 
     }
