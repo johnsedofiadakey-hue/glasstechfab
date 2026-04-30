@@ -15,7 +15,7 @@ const firebaseConfig = {
   appId: env.VITE_FIREBASE_APP_ID
 };
 
-let app, auth, db, storage;
+let app, auth, db, storage, isFirebaseEnabled = false;
 
 try {
   if (hasKeys) {
@@ -23,15 +23,17 @@ try {
     auth = getAuth(app);
     db = getFirestore(app);
     storage = getStorage(app);
+    isFirebaseEnabled = true;
   } else {
     // Return null so consumers can guard explicitly
     app = null; auth = null; db = null; storage = null;
   }
 } catch (e) {
+  console.warn("Firebase initialization failed:", e);
   app = null; auth = null; db = null; storage = null;
 }
 
-export { auth, db, storage };
+export { auth, db, storage, isFirebaseEnabled };
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 

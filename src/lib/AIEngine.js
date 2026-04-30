@@ -7,10 +7,12 @@ import OpenAI from 'openai';
  */
 
 const env = import.meta.env;
-const openai = new OpenAI({
+const hasAIKey = !!env.VITE_OPENAI_API_KEY && env.VITE_OPENAI_API_KEY !== 'your_openai_key_here';
+
+const openai = hasAIKey ? new OpenAI({
   apiKey: env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true // Essential for client-side demo; logic should move to edge functions for prod
-});
+}) : null;
 
 export const AIEngine = {
   /**
@@ -57,19 +59,41 @@ export const AIEngine = {
   },
 
   useFallbackTemplate(project) {
-    const isComm = project.type === 'Commercial';
+    const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     return `
-# Architectural Glass Proposal: ${project.title || 'Elite Project'}
-## Scope of Fabrication
-Precision fabrication and installation of high-spec glass systems.
+# PROJECT PROPOSAL: ${project.title?.toUpperCase() || 'GLASSTECH PRECISION SYSTEM'}
+**Date:** ${date}  
+**Reference ID:** LXF-${Math.floor(1000 + Math.random() * 9000)}  
+**Status:** AI Generated Draft (Mock)
 
-### Key Deliverables:
-1. **Structural Glazing**: High-performance units for ${project.specs?.dimensions || 'site specs'}.
-2. **Material**: ${project.specs?.glassType || 'Tempered Security Glass'}.
-3. **Safety**: Verified by Glasstech structural audit teams.
+---
 
-### Executive Summary:
-Glasstech Fabrications will utilize proprietary precision-cutting and premium grade aluminum to ensure structural integrity and a premium industrial aesthetic.
+## 1. Executive Summary
+This proposal outlines the technical and aesthetic integration of premium ${project.type || 'Architectural'} solutions for the **${project.title || 'Client Development'}**. Glasstech Fabrications aims to deploy industrial-grade precision engineering coupled with high-end finishing to ensure structural longevity and visual excellence.
+
+## 2. Technical Scope of Fabrication
+The proposed scope includes the engineering, supply, and precision-fitting of:
+- **Structural Systems:** Custom-curated aluminum framework with anodic coating.
+- **Glass Integration:** ${project.specs?.glassType || 'Low-E Tempered Security Glass'} tailored to site-specific environmental loads.
+- **Precision Detailing:** Micro-tolerance alignment using laser-guided structural audits.
+
+## 3. Material Performance Benchmarks
+| Feature | Benchmark | Compliance |
+|---------|-----------|------------|
+| Wind Load Resistance | Up to 2.5 kPa | ASTM E330 |
+| Thermal Performance | U-Value < 1.8 W/m²K | ISO 15099 |
+| Acoustic Dampening | STC 35-40 dB | ASTM E90 |
+
+## 4. Estimated Timeline
+- **Phase A (Procurement & Fabrication):** 21-25 Business Days
+- **Phase B (On-site Integration):** 10-14 Business Days
+- **Phase C (QA & Structural Certification):** 3-5 Business Days
+
+## 5. Structural Safety & Sustainability
+All fabrications undergo a multi-point inspection by SGS-certified technicians. We utilize sustainable sourcing for our aluminum and recycled content in our structural glass units where possible, adhering to LEED-compliant standards.
+
+---
+*Authorized for review by Glasstech Intelligence Hub.*
     `;
   },
 

@@ -26,23 +26,23 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
   const isMobile = window.innerWidth <= 768;
 
   return (
-    <div className="lx-admin" style={{ display: 'flex', minHeight: '100vh', background: '#F9F7F4', '--ac': ac }}>
+    <div className="lx-admin" style={{ display: 'flex', minHeight: '100vh', background: 'transparent', '--ac': ac }}>
       {/* NARROW SIDEBAR (Desktop Only) */}
       {!isMobile && (
-        <aside className="p-sidebar-narrow">
+        <aside className="p-sidebar-narrow" style={{ background: 'rgba(26, 20, 16, 0.9)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <div style={{ padding: '32px 24px', display: 'flex', justifyContent: 'center' }}>
             {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 24, width: 24, objectFit: 'contain' }} /> : <div className="lxfh" style={{ fontSize: 20, color: ac }}>G</div>}
           </div>
           <nav style={{ flex: 1, padding: '0 12px' }}>
             {fullMenu.map(m => (
-              <button key={m.id} onClick={() => setView(m.id)} className={`lxf${view === m.id ? ' active' : ''}`} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'none', border: 'none', borderRadius: 12, cursor: 'pointer', color: view === m.id ? ac : 'rgba(249,247,244,.45)', transition: 'all .3s', marginBottom: 8, overflow: 'hidden' }}>
+              <button key={m.id} onClick={() => setView(m.id)} className={`lxf${view === m.id ? ' active' : ''}`} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: view === m.id ? 'rgba(200, 169, 110, 0.1)' : 'none', border: 'none', borderRadius: 16, cursor: 'pointer', color: view === m.id ? ac : 'rgba(249,247,244,.45)', transition: 'all 0.3s', marginBottom: 8, overflow: 'hidden' }}>
                 <div style={{ flexShrink: 0 }}>{m.icon}</div>
-                <span className="n-label" style={{ fontWeight: view === m.id ? 700 : 400 }}>{m.label}</span>
+                <span className="n-label" style={{ fontWeight: view === m.id ? 800 : 400 }}>{m.label}</span>
               </button>
             ))}
           </nav>
           <div style={{ padding: 12, borderTop: '1px solid rgba(255,255,255,.05)' }}>
-            <button onClick={onLogout} className="lxf" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'none', border: 'none', color: 'rgba(249,247,244,.4)', cursor: 'pointer', overflow: 'hidden' }}>
+            <button onClick={onLogout} className="lxf" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', background: 'none', border: 'none', color: 'rgba(249,247,244,.4)', cursor: 'pointer', overflow: 'hidden' }}>
               <LogOut size={16} /><span className="n-label">Logout</span>
             </button>
           </div>
@@ -53,12 +53,19 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
       <main className="lx-main-admin" style={{ flex: 1, marginLeft: !isMobile ? 80 : 0 }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           {/* RESPONSIVE HEADER */}
-          <header className={`p-nav-float ${isMobile ? 'mobile-header' : ''}`}>
+          <header className={`p-nav-float ${isMobile ? 'mobile-header' : ''}`} style={{ 
+            marginTop: isMobile ? 0 : 24,
+            borderRadius: isMobile ? 0 : 20,
+            background: 'rgba(255, 255, 255, 0.4)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            border: '1px solid rgba(255, 255, 255, 0.6)',
+            boxShadow: 'var(--sh-md)'
+          }}>
             <div className="header-inner" style={{ 
               display: 'flex', 
               justifyContent: 'space-between', 
-              alignItems: isMobile ? 'center' : 'center', 
-              padding: isMobile ? '0 16px' : '0 20px',
+              alignItems: 'center', 
+              padding: isMobile ? '0 16px' : '20px 32px',
               flexDirection: 'row',
               height: isMobile ? 60 : 'auto'
             }}>

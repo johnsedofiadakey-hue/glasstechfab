@@ -75,17 +75,17 @@ export const TOP_SERVICES = [
 export const BRAND0 = {
   name: 'Glasstech Fabrications',
   tagline: 'Complete Interior & Finishing Solutions',
-  logo:null,
-  color:'#1A1410',
-  phone:'+233 24 111 2222',
-  email:'contact@glasstech.com.gh',
-  location:'Spintex Road Industrial Area, Accra',
-  instagram:'@glasstech_gh',
-  facebook:'GlasstechFabrications',
-  twitter:'@glasstech_gh',
-  linkedin:'glasstech-fabrications',
-  whatsapp:'+233241112222',
-  website:'www.glasstech.com.gh'
+  logo: '/logo.png',
+  color: '#C8A96E',
+  phone: '+233 59 845 5012',
+  email: 'contact@glasstech.com.gh',
+  location: 'Spintex Road Industrial Area, Accra',
+  instagram: '@glasstech_gh',
+  facebook: 'GlasstechFabrications',
+  twitter: '@glasstech_gh',
+  linkedin: 'glasstech-fabrications',
+  whatsapp: '+233598455012',
+  website: 'www.glasstech.com.gh'
 };
 
 export const TEAM_MEMBERS = [
@@ -99,6 +99,15 @@ export const PORTFOLIO_DATA = [
   {id:1,title:'The Volta Suite',cat:'Full Interior',after:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80',before:'',year:'2024',loc:'East Legon, Accra',area:'4,200 sq ft',duration:'5 months',budget:'$195,000',style:'Modern Industrial',hasBA:false,desc:'Total interior finishing including kitchens, tiling, and lighting.',imgs:['https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80']},
   {id:2,title:'Airport Hills Kitchen',cat:'Kitchen Installation',after:'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=1600&q=80',before:'',year:'2024',loc:'Airport Hills',area:'1,100 sq ft',duration:'2 months',budget:'$72,000',style:'Minimalist',hasBA:false,desc:'Bespoke smart kitchen installation with high-gloss finish.',imgs:['https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=1600&q=80']},
   {id:3,title:'Corporate HQ Fit-out',cat:'Office Fit-out',after:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80',before:'',year:'2025',loc:'Ridge, Accra',area:'8,500 sq ft',duration:'8 months',budget:'$450,000',style:'Contemporary',hasBA:false,desc:'Full office interior finishing with structural glass partitions.',imgs:['https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80']},
+  {id:4,title:'Marina Bay Skylight',cat:'Glass & Aluminum',after:'https://images.unsplash.com/photo-1600585154340-be6199f7a096?w=1600&q=80',before:'',year:'2025',loc:'Tema Waterfront',area:'2,400 sq ft',duration:'3 months',budget:'$120,000',style:'Structural',hasBA:false,desc:'High-performance reflective glass skylight with structural aluminum support.',imgs:['https://images.unsplash.com/photo-1600585154340-be6199f7a096?w=1600&q=80']},
+];
+
+export const PRODUCTS_DATA = [
+  {id:'P1',name:'Reflective Low-E Glass',cat:'Glass Systems',desc:'High-performance glass that reduces heat gain while maximizing natural light.',img:'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&q=80',specs:'12mm Tempered, Bronze Tinted'},
+  {id:'P2',name:'Minimalist Sliding Door',cat:'Aluminum Systems',desc:'Ultra-slim profiles for unobstructed views and smooth silent operation.',img:'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80',specs:'Black Powder Coated, Heavy Duty'},
+  {id:'P3',name:'Structural Curtain Wall',cat:'Facades',desc:'Advanced aluminum framing for commercial facades and glass towers.',img:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80',specs:'Pressure Equalized, Thermal Break'},
+  {id:'P4',name:'Smart Privacy Glass',cat:'Glass Systems',desc:'Switchable opacity glass for instant privacy in offices and washrooms.',img:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80',specs:'PDLC Film, Remote Controlled'},
+  {id:'P5',name:'Matte Architectural Hinge',cat:'Hardware',desc:'Industrial-grade stainless steel hinges with architectural matte finish.',img:'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80',specs:'316 Grade SS, 150kg Load'},
 ];
 
 export const SERVICES_DATA = [
@@ -200,3 +209,4 @@ export const PROCESS_STEPS = [
   {n:'03',title:'Precision Fabrication',body:'In our state-of-the-most facility, we process glass and aluminum components using advanced industrial automation.',img:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500&q=80'},
   {n:'04',title:'System Handover',body:'After professional installation by our specialist teams, we perform a final safety audit and formal handover.',img:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=500&q=80'},
 ];
+

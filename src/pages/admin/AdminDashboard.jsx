@@ -109,18 +109,18 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
       {/* 2. CORE METRICS OVERVIEW */}
       <div className="kpi-grid">
         {dashboardStats.map((s, i) => (
-          <div key={i} className="p-card" style={{ padding: 24, background: '#fff', borderRadius: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, border: `1px solid ${s.color}20`, background: `${s.color}08`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
+          <div key={i} className="p-card" style={{ padding: 32, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 24, border: '1px solid rgba(255,255,255,0.5)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 16, border: `1px solid ${s.color}20`, background: `${s.color}08`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
                 {s.icon}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, fontWeight: 800, color: s.trend > 0 ? '#16A34A' : '#EF4444' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: s.trend > 0 ? '#16A34A' : '#EF4444', background: s.trend > 0 ? '#16A34A10' : '#EF444410', padding: '6px 12px', borderRadius: 100 }}>
                  {s.trend > 0 ? <TrendingUp size={14} /> : <AlertTriangle size={14} />} {Math.abs(s.trend)}%
               </div>
             </div>
-            <div className="lxf eyebrow" style={{ fontSize: 9, color: '#B5AFA9', marginBottom: 4 }}>{s.label}</div>
-            <div className="lxfh" style={{ fontSize: 32, fontWeight: 300, color: '#121212' }}>{s.value}</div>
-            <p className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginTop: 12 }}>{s.sub}</p>
+            <div className="lxf eyebrow" style={{ fontSize: 10, color: '#7A6E62', marginBottom: 6, fontWeight: 800 }}>{s.label}</div>
+            <div className="lxfh" style={{ fontSize: 36, fontWeight: 300, color: '#1A1410', letterSpacing: '-0.02em' }}>{s.value}</div>
+            <p className="lxf" style={{ fontSize: 13, color: '#B5AFA9', marginTop: 14 }}>{s.sub}</p>
           </div>
         ))}
       </div>
@@ -128,13 +128,13 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
       {/* 3. PERFORMANCE ARCHITECTURE */}
       <div className="hub-grid">
         {/* REVENUE MOMENTUM */}
-        <div className="p-card" style={{ padding: 32, background: '#fff', borderRadius: 24 }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+        <div className="p-card" style={{ padding: 40, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 32, border: '1px solid rgba(255,255,255,0.5)' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48 }}>
               <div>
-                <h3 className="lxfh" style={{ fontSize: 22 }}>Financial Velocity</h3>
-                <p className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Trailing revenue against production targets.</p>
+                <h3 className="lxfh" style={{ fontSize: 28, letterSpacing: '-0.02em' }}>Financial Velocity</h3>
+                <p className="lxf" style={{ fontSize: 14, color: '#7A6E62' }}>Trailing revenue against production targets.</p>
               </div>
-              {!isMobile && <button className="p-btn-light" style={{ padding: '10px 20px', fontSize: 11, borderRadius: 10, border: '1px solid #F0EBE5' }}>Audit Statements</button>}
+              {!isMobile && <button className="p-btn-light lxf" style={{ padding: '12px 24px', fontSize: 11, borderRadius: 14, border: '1px solid #F0EBE5', fontWeight: 800 }}>AUDIT STATEMENTS</button>}
            </div>
            
             <div style={{ height: 320, width: '100%', minHeight: 320, background: 'var(--bg-alt)', borderRadius: 16, overflow: 'hidden', position: 'relative' }}>
@@ -160,10 +160,10 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
         </div>
 
         {/* OPERATIONS FEED */}
-        <div className="p-card" style={{ padding: 32, background: '#fff', borderRadius: 24 }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-              <h3 className="lxfh" style={{ fontSize: 20 }}>Live Throughput</h3>
-              <div className="luxe-pulse" style={{ background: '#16A34A', width: 8, height: 8, borderRadius: '50%' }}></div>
+        <div className="p-card" style={{ padding: 40, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 32, border: '1px solid rgba(255,255,255,0.5)' }}>
+           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+              <h3 className="lxfh" style={{ fontSize: 24, letterSpacing: '-0.02em' }}>Live Throughput</h3>
+              <div className="luxe-pulse" style={{ background: '#16A34A', width: 10, height: 10, borderRadius: '50%' }}></div>
            </div>
            
            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

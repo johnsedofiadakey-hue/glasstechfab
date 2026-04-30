@@ -74,36 +74,43 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: isDarkText ? '#ffffff' : 'transparent',
-      backdropFilter: isDarkText ? 'blur(20px)' : 'none',
-      WebkitBackdropFilter: isDarkText ? 'blur(20px)' : 'none',
-      borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.06)' : 'none',
-      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
-      height: scrolled ? 70 : 80, display: 'flex', alignItems: 'center',
-      padding: '0 40px'
+      background: isDarkText ? 'rgba(255,255,255,0.8)' : 'transparent',
+      backdropFilter: isDarkText ? 'blur(24px) saturate(180%)' : 'none',
+      WebkitBackdropFilter: isDarkText ? 'blur(24px) saturate(180%)' : 'none',
+      borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.05)' : 'none',
+      transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+      height: scrolled ? 80 : 100, display: 'flex', alignItems: 'center',
+      padding: '0 5vw'
     }}>
-      <div style={{ maxWidth: 1600, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ maxWidth: 1800, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001 }}>
-          <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.03em', color: isDarkText ? '#121212' : '#ffffff' }}>
-            {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
-          </div>
+          {brand.logo ? (
+             <img src={brand.logo} alt={brand.name} style={{ height: 36, objectFit: 'contain', filter: isDarkText ? 'invert(1)' : 'none' }} />
+          ) : (
+            <div className="lxfh" style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff' }}>
+              {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
+            </div>
+          )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 48 }} className="dt-flex">
-          <div style={{ display: 'flex', gap: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 64 }} className="dt-flex">
+          <div style={{ display: 'flex', gap: 40 }}>
             {links.map(l => (
               <button key={l.id} onClick={() => setPage(l.id)} className="lxf" style={{
                 background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
-                color: activePage === l.id ? ac : (isDarkText ? '#121212' : '#ffffff'),
-                textTransform: 'uppercase', letterSpacing: '0.2em', transition: 'all 0.3s'
+                color: activePage === l.id ? ac : (isDarkText ? '#1A1410' : '#ffffff'),
+                textTransform: 'uppercase', letterSpacing: '0.25em', transition: 'all 0.3s',
+                opacity: activePage === l.id ? 1 : 0.7
               }}>{l.n}</button>
             ))}
           </div>
           {onPortal && (
-            <button onClick={() => onPortal('client')} className="lxf" style={{ 
-              padding: '12px 24px', fontSize: 10, fontWeight: 800, background: (isDarkText ? '#1A1410' : '#ffffff'), 
-              color: (isDarkText ? '#ffffff' : '#121212'), border: 'none', borderRadius: 2, 
-              textTransform: 'uppercase', letterSpacing: '0.15em', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            <button onClick={() => onPortal('client')} className="lxf p-btn-dark" style={{ 
+              padding: '14px 32px', fontSize: 11, fontWeight: 800, 
+              background: (isDarkText ? '#1A1410' : '#ffffff'), 
+              color: (isDarkText ? '#ffffff' : '#1A1410'), 
+              borderRadius: 14, 
+              textTransform: 'uppercase', letterSpacing: '0.15em'
             }}>Partner Portal</button>
           )}
         </div>
@@ -286,51 +293,91 @@ export function Footer({ brand, setPage, onPortal }) {
 
 export function Hero({ slides, brand, setPage }) {
   const [active, setActive] = useState(0);
-  const ac = brand.color || '#B08D57';
+  const ac = brand.color || '#C8A96E';
 
   useEffect(() => {
-    const int = setInterval(() => setActive(s => (s + 1) % (slides.length || 1)), 8000);
+    const int = setInterval(() => setActive(s => (s + 1) % (slides.length || 1)), 10000);
     return () => clearInterval(int);
   }, [slides.length]);
 
   if (!slides || slides.length === 0) return null;
 
   return (
-    <section style={{ height: '100vh', position: 'relative', background: '#121212', overflow: 'hidden' }}>
+    <section style={{ height: '100vh', minHeight: 700, position: 'relative', background: '#0D0B09', overflow: 'hidden' }}>
       {slides.map((s, i) => (
         <div key={i} style={{
-          position: 'absolute', inset: 0, transition: 'opacity 1.5s cubic-bezier(0.4, 0, 0.2, 1)',
+          position: 'absolute', inset: 0, transition: 'opacity 2s cubic-bezier(0.4, 0, 0.2, 1)',
           opacity: active === i ? 1 : 0, zIndex: active === i ? 1 : 0
         }}>
-          <img src={s.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.45, transform: active === i ? 'scale(1.05)' : 'scale(1)', transition: 'transform 8s linear' }} />
+          <img src={s.img} alt="" style={{ 
+            width: '100%', height: '100%', objectFit: 'cover', 
+            opacity: 0.6, 
+            transform: active === i ? 'scale(1.1)' : 'scale(1)', 
+            transition: 'transform 10s ease-out' 
+          }} />
           <div style={{
-            position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(18,18,18,0.2), rgba(18,18,18,0.75))',
-            display: 'flex', alignItems: 'center', padding: '0 24px'
+            position: 'absolute', inset: 0, 
+            background: 'linear-gradient(to bottom, rgba(13,11,9,0.4) 0%, rgba(13,11,9,0.8) 100%)',
+            display: 'flex', alignItems: 'center', padding: '0 5vw'
           }}>
             <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto' }}>
-              <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 16, fontSize: 11, letterSpacing: '0.3em' }}>Complete Interior & Finishing Solutions</div>
-              <h1 className="lxfh afu d2 hero-title" style={{ fontSize: 'clamp(38px, 8vw, 110px)', color: '#fff', fontWeight: 300, lineHeight: 1, marginBottom: 40, maxWidth: 950 }}>
-                {s.title.split(' ').map((w, j) => j === 1 ? <em key={j} style={{ fontStyle: 'italic', color: ac }}>{w} </em> : w + ' ')}
+              <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontSize: 12, letterSpacing: '0.4em', fontWeight: 800 }}>ESTABLISHED PRECISION</div>
+              <h1 className="lxfh afu d2" style={{ 
+                fontSize: 'clamp(48px, 10vw, 120px)', 
+                color: '#fff', 
+                fontWeight: 300, 
+                lineHeight: 0.9, 
+                marginBottom: 48, 
+                maxWidth: 1100,
+                letterSpacing: '-0.04em'
+              }}>
+                {s.title.split(' ').map((w, j) => (
+                  <span key={j} style={{ display: 'inline-block', marginRight: '0.25em' }}>
+                    {j === 1 ? <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>{w}</em> : w}
+                  </span>
+                ))}
               </h1>
-              <div className="afu d3" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                <button onClick={() => setPage('portfolio')} className="pub-btn-gold lxf" style={{ padding: '16px 40px', fontSize: 13 }}>Explore Projects</button>
-                <button onClick={() => setPage('contact')} className="pub-btn-outline lxf" style={{ padding: '16px 40px', border: '1px solid rgba(255,255,255,0.3)', color: '#fff' }}>Project Consultation</button>
+              <div className="afu d3" style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                <button onClick={() => setPage('portfolio')} className="p-btn-dark lxf" style={{ padding: '20px 48px', fontSize: 13, background: '#fff', color: '#0D0B09', borderRadius: 16 }}>Explore Portfolio</button>
+                <button onClick={() => setPage('contact')} className="lxf glass-panel" style={{ padding: '20px 48px', color: '#fff', fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Project Consultation</button>
               </div>
             </div>
           </div>
         </div>
       ))}
-      <div style={{ position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 12, zIndex: 10 }}>
+      
+      {/* Decorative Slide Progress Indicators */}
+      <div style={{ position: 'absolute', bottom: 60, left: '5vw', display: 'flex', gap: 16, zIndex: 10 }}>
         {slides.map((_, i) => (
-          <button key={i} onClick={() => setActive(i)} className={`slider-dot${active === i ? ' active' : ''}`} />
+          <button 
+            key={i} 
+            onClick={() => setActive(i)} 
+            style={{ 
+              width: 60, height: 4, 
+              background: active === i ? ac : 'rgba(255,255,255,0.2)', 
+              border: 'none', borderRadius: 10, cursor: 'pointer', 
+              transition: 'all 0.6s' 
+            }} 
+          />
         ))}
+      </div>
+
+      <div style={{ position: 'absolute', bottom: 60, right: '5vw', zIndex: 10 }} className="dt-only">
+         <div style={{ display: 'flex', gap: 20 }}>
+            <button onClick={() => setActive(s => (s - 1 + slides.length) % slides.length)} className="glass-panel" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer' }}>
+               <ChevronLeft size={24} />
+            </button>
+            <button onClick={() => setActive(s => (s + 1) % slides.length)} className="glass-panel" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', cursor: 'pointer' }}>
+               <ChevronRight size={24} />
+            </button>
+         </div>
       </div>
     </section>
   );
 }
 
 export function ServicesPreview({ brand, setPage }) {
-  const ac = brand.color || '#B08D57';
+  const ac = brand.color || '#C8A96E';
   const services = [
     { n: 'Interior Design', i: <Palette size={32} />, d: 'Full space planning and aesthetic curation.' },
     { n: 'Kitchen Setup', i: <Layout size={32} />, d: 'Custom cabinetry and high-end installations.' },
@@ -340,19 +387,23 @@ export function ServicesPreview({ brand, setPage }) {
     { n: 'Glass Systems', i: <Droplet size={32} />, d: 'Structural glass and aluminum engineering.' }
   ];
   return (
-    <section style={{ padding: '120px 24px', background: '#FDFCFB' }}>
+    <section style={{ padding: '160px 5vw', background: 'transparent', position: 'relative' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 80 }}>
-          <div className="eyebrow lxf" style={{ marginBottom: 16 }}>Our Capabilities</div>
-          <h2 className="lxfh" style={{ fontSize: 'clamp(32px, 5vw, 64px)', color: '#121212', lineHeight: 1.1 }}>Comprehensive <em style={{ fontStyle: 'italic', color: ac }}>Interior</em> Finishing.</h2>
+        <div style={{ textAlign: 'left', marginBottom: 100 }}>
+          <div className="eyebrow lxf afu d1" style={{ marginBottom: 24 }}>CORE CAPABILITIES</div>
+          <h2 className="lxfh afu d2" style={{ fontSize: 'clamp(40px, 6vw, 80px)', color: '#1A1410', lineHeight: 1, letterSpacing: '-0.04em' }}>
+            Comprehensive <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Interior</em> Finishing.
+          </h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 32 }}>
           {services.map((s, i) => (
-            <div key={i} className="p-card magnetic-card rev afu" style={{ padding: '60px 40px', background: '#fff', border: '1px solid rgba(0,0,0,0.06)', borderRadius: 2, transition: 'all .3s' }}>
-              <div style={{ color: ac, marginBottom: 32 }}>{s.i}</div>
-              <h3 className="lxfh" style={{ fontSize: 26, marginBottom: 16 }}>{s.n}</h3>
-              <p className="lxf" style={{ fontSize: 16, color: '#4A4A4A', lineHeight: 1.8, marginBottom: 32 }}>{s.d}</p>
-              <button onClick={() => setPage('services')} style={{ border: 'none', background: 'none', color: ac, fontWeight: 700, fontSize: 12, letterSpacing: '.12em', textTransform: 'uppercase', cursor: 'pointer', padding: 0 }}>Learn more <ChevronRight size={14} style={{ transform: 'translateY(2px)' }} /></button>
+            <div key={i} className="p-card rev d1" style={{ padding: '80px 48px', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.6)' }}>
+              <div style={{ color: ac, marginBottom: 40, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.i}</div>
+              <h3 className="lxfh" style={{ fontSize: 28, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.n}</h3>
+              <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.d}</p>
+              <button onClick={() => setPage('services')} style={{ border: 'none', background: 'none', color: ac, fontWeight: 800, fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                Learn more <ChevronRight size={14} />
+              </button>
             </div>
           ))}
         </div>
@@ -371,15 +422,15 @@ export function HomePage({ brand, setPage, content }) {
   }, []);
 
   return (
-    <div className="pub-page" style={{ background: '#FDFCFB' }}>
+    <div className="pub-page" style={{ background: 'transparent' }}>
       <Hero slides={slides} brand={brand} setPage={setPage} />
       
-      <section style={{ background: '#121212', padding: '0 24px' }}>
+      <section style={{ background: '#0D0B09', padding: '0 5vw' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-          {[['250+', 'Projects Delivered'], ['8', 'Years'], ['15', 'Specialists'], ['$5M+', 'Project Value']].map(([n, l], i) => (
-            <div key={l} style={{ flex: 1, minWidth: 200, textAlign: 'center', padding: '56px 20px', borderRight: (i < 3) ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-              <div className="lxfh" style={{ fontSize: 48, color: brand.color || '#B08D57', fontWeight: 300 }}>{n}</div>
-              <div className="lxf" style={{ fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: 'rgba(249,247,244,0.3)', marginTop: 8 }}>{l}</div>
+          {[['250+', 'Projects Delivered'], ['8', 'Years Experience'], ['15', 'Finishing Specialists'], ['$12M+', 'Ecosystem Value']].map(([n, l], i) => (
+            <div key={l} style={{ flex: 1, minWidth: 200, textAlign: 'left', padding: '80px 40px', borderRight: (i < 3) ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+              <div className="lxfh" style={{ fontSize: 64, color: brand.color || '#C8A96E', fontWeight: 300, letterSpacing: '-0.04em' }}>{n}</div>
+              <div className="lxf" style={{ fontSize: 12, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(249,247,244,0.4)', marginTop: 12, fontWeight: 700 }}>{l}</div>
             </div>
           ))}
         </div>
@@ -387,14 +438,51 @@ export function HomePage({ brand, setPage, content }) {
 
       <ServicesPreview brand={brand} setPage={setPage} />
 
-      <section style={{ padding: '120px 24px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', textAlign: 'center' }}>
-          <div className="eyebrow lxf" style={{ marginBottom: 24 }}>About Glasstech</div>
-          <h2 className="lxfh" style={{ fontSize: 'clamp(32px, 5vw, 64px)', color: '#121212', lineHeight: 1.1, marginBottom: 40 }}>From Structural Glass to <em style={{ fontStyle: 'italic', color: brand.color || '#B08D57' }}>Full Interior</em> Finishing.</h2>
-          <p className="lxf" style={{ fontSize: 18, color: '#4A4A4A', maxWidth: 850, margin: '0 auto 64px', lineHeight: 1.9 }}>
-            Our evolution from structural specialists to a full-service interior finishing company means we handle every technical and aesthetic detail of your project. We bring industrial precision to every kitchen, washroom, and retail fit-out we curate.
+      <section style={{ padding: '160px 5vw', background: '#fff', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'left' }}>
+          <div className="eyebrow lxf afu d1" style={{ marginBottom: 32 }}>ABOUT THE HUB</div>
+          <h2 className="lxfh afu d2" style={{ fontSize: 'clamp(40px, 6vw, 80px)', color: '#1A1410', lineHeight: 1, marginBottom: 48, letterSpacing: '-0.04em' }}>
+            From Structural Glass to <em style={{ fontStyle: 'italic', color: brand.color || '#C8A96E', fontWeight: 400 }}>Full Interior</em> Finishing.
+          </h2>
+          <p className="lxf afu d3" style={{ fontSize: 20, color: '#6A635C', maxWidth: 900, margin: '0 0 64px', lineHeight: 1.8 }}>
+            Our evolution from structural specialists to a full-service interior finishing powerhouse means we handle every technical and aesthetic detail of your project. We bring industrial precision to every kitchen, washroom, and retail fit-out we curate.
           </p>
-          <button onClick={() => setPage('about')} className="pub-btn-dark lxf" style={{ padding: '18px 48px' }}>Our Full Story</button>
+          <button onClick={() => setPage('about')} className="p-btn-dark lxf afu d4" style={{ padding: '24px 64px', borderRadius: 16, fontSize: 14 }}>Explore Our Full Story</button>
+        </div>
+      </section>
+
+      {/* NEW: TECHNICAL EXCELLENCE SECTION */}
+      <section style={{ padding: '160px 5vw', background: '#0D0B09', color: '#fff' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 100, alignItems: 'center' }}>
+            <div>
+              <div className="eyebrow lxf" style={{ color: brand.color || '#C8A96E', marginBottom: 24 }}>TECHNICAL EXCELLENCE</div>
+              <h2 className="lxfh" style={{ fontSize: 'clamp(40px, 5vw, 72px)', lineHeight: 1.1, marginBottom: 40, letterSpacing: '-0.04em' }}>
+                Engineering <em style={{ fontStyle: 'italic', color: brand.color || '#C8A96E', fontWeight: 400 }}>Precision</em> in Every Detail.
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                {[
+                  { t: 'High-Performance Glazing', d: 'Our structural glass systems meet global safety standards with superior thermal and acoustic insulation.' },
+                  { t: 'Robotic Fabrication', d: 'Precision CNC cutting and automated assembly ensure sub-millimeter accuracy for every aluminum profile.' },
+                  { t: 'Architectural Integration', d: 'We work closely with leading architects to integrate complex systems into seamless design visions.' }
+                ].map((f, i) => (
+                  <div key={i} className="rev in d1" style={{ display: 'flex', gap: 20 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Check size={20} color={brand.color || '#C8A96E'} />
+                    </div>
+                    <div>
+                      <div className="lxfh" style={{ fontSize: 20, marginBottom: 8 }}>{f.t}</div>
+                      <p className="lxf" style={{ fontSize: 15, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6 }}>{f.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rev in d3" style={{ position: 'relative' }}>
+              <div style={{ position: 'absolute', inset: -40, background: brand.color || '#C8A96E', opacity: 0.1, borderRadius: '50%', filter: 'blur(100px)' }} />
+              <img src="https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=1200&q=80" style={{ width: '100%', height: 600, objectFit: 'cover', borderRadius: 32, position: 'relative', zIndex: 1 }} />
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -402,7 +490,7 @@ export function HomePage({ brand, setPage, content }) {
 }
 
 export function ServicesPage({ brand, setPage, content }) {
-  const ac = brand.color || '#B08D57';
+  const ac = brand.color || '#C8A96E';
   const services = [
     { title: 'Interior Design & Planning', icon: <Palette size={40} />, desc: 'Concept development, spatial planning, and aesthetic curation for luxury interiors.', img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80' },
     { title: 'Kitchen Installation', icon: <Layout size={40} />, desc: 'Bespoke cabinetry, smart appliances, and premium ergonomic designs.', img: 'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=800&q=80' },
@@ -415,27 +503,29 @@ export function ServicesPage({ brand, setPage, content }) {
   ];
 
   return (
-    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
-      <section style={{ padding: '80px 24px', background: '#121212' }}>
+    <div className="pub-page" style={{ background: 'transparent', paddingTop: 100 }}>
+      <section style={{ padding: '120px 5vw', background: '#0D0B09' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 20 }}>Our Services</div>
-          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 6vw, 96px)', color: '#fff', fontWeight: 300, lineHeight: 1.1 }}>Complete Interior <em style={{ fontStyle: 'italic', color: ac }}>Solutions</em></h1>
+          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontWeight: 800 }}>OUR CAPABILITIES</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 8vw, 100px)', color: '#fff', fontWeight: 300, lineHeight: 0.9, letterSpacing: '-0.04em' }}>
+            Complete Interior <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Solutions</em>
+          </h1>
         </div>
       </section>
 
-      <section style={{ padding: '60px 24px' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div className="pub-service-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: 40 }}>
+      <section style={{ padding: '100px 5vw' }}>
+        <div style={{ maxWidth: 1600, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(600px, 1fr))', gap: 48 }}>
             {services.map((s, i) => (
-              <div key={i} className="pub-service-card magnetic-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: 0, background: '#fff', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-                <div style={{ height: '100%', minHeight: 400 }}>
+              <div key={i} className="p-card magnetic-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 32, overflow: 'hidden' }}>
+                <div style={{ height: '100%', minHeight: 450 }}>
                   <img src={s.img} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <div style={{ padding: '60px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <div style={{ color: ac, marginBottom: 24 }}>{s.icon}</div>
-                  <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 16 }}>{s.title}</h3>
-                  <p className="lxf" style={{ fontSize: 16, color: '#666', lineHeight: 1.8, marginBottom: 32 }}>{s.desc}</p>
-                  <button onClick={() => setPage('contact')} className="pub-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '14px 28px' }}>Request Quote</button>
+                <div style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ color: ac, marginBottom: 32, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.icon}</div>
+                  <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.title}</h3>
+                  <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.desc}</p>
+                  <button onClick={() => setPage('contact')} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '16px 32px', borderRadius: 14 }}>Request Consultation</button>
                 </div>
               </div>
             ))}
@@ -447,7 +537,7 @@ export function ServicesPage({ brand, setPage, content }) {
 }
 
 export function PortfolioPage({ brand, setPage, content }) {
-  const ac = brand.color || '#B08D57';
+  const ac = brand.color || '#C8A96E';
   const portfolio = content.portfolio || [];
   const cats = ['All', 'Full Interior', 'Kitchen Installation', 'Office Fit-out', 'Residential Finishing', 'Glass & Aluminum'];
   const [filter, setFilter] = useState('All');
@@ -455,35 +545,37 @@ export function PortfolioPage({ brand, setPage, content }) {
   const shown = filter === 'All' ? portfolio : portfolio.filter(p => p.cat === filter);
 
   return (
-    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
-      <section style={{ padding: '80px 24px', background: '#121212' }}>
+    <div className="pub-page" style={{ background: 'transparent', paddingTop: 100 }}>
+      <section style={{ padding: '120px 5vw', background: '#0D0B09' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 20 }}>Portfolio</div>
-          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 6vw, 96px)', color: '#fff', fontWeight: 300, lineHeight: 1.1 }}>Explore Our <em style={{ fontStyle: 'italic', color: ac }}>Work</em></h1>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 48 }}>
+          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontWeight: 800 }}>CRAFTED LEGACY</div>
+          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 8vw, 100px)', color: '#fff', fontWeight: 300, lineHeight: 0.9, letterSpacing: '-0.04em' }}>
+            Explore Our <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Works</em>
+          </h1>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 56 }}>
             {cats.map(c => (
-              <button key={c} onClick={() => setFilter(c)} className="lxf" style={{
-                padding: '10px 20px', fontSize: 11, letterSpacing: '.12em', textTransform: 'uppercase',
+              <button key={c} onClick={() => setFilter(c)} className="lxf glass-panel" style={{
+                padding: '12px 24px', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase',
                 background: filter === c ? ac : 'rgba(255,255,255,0.05)',
-                color: filter === c ? '#121212' : '#fff', borderRadius: 2, border: 'none', cursor: 'pointer',
-                transition: '0.3s', fontWeight: 600
+                color: filter === c ? '#1A1410' : '#fff', border: 'none', cursor: 'pointer',
+                transition: '0.4s', fontWeight: 800, borderRadius: 12
               }}>{c}</button>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={{ padding: '60px 24px' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div className="pub-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 40 }}>
+      <section style={{ padding: '100px 5vw' }}>
+        <div style={{ maxWidth: 1600, margin: '0 auto' }}>
+          <div className="pub-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: 48 }}>
             {shown.map((p, i) => (
-              <div key={p.id} className="magnetic-card rev afu" onClick={() => setPage(`project-${p.id}`)} style={{ cursor: 'pointer', marginBottom: 20 }}>
-                <div style={{ height: 480, overflow: 'hidden', marginBottom: 24, borderRadius: 2, position: 'relative' }} className="hover-img">
-                  <img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.8s ease' }} className="hover-scale" />
-                  <div style={{ position: 'absolute', top: 20, left: 20, background: ac, color: '#121212', padding: '6px 12px', fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{p.cat}</div>
+              <div key={p.id} className="magnetic-card rev d1" onClick={() => setPage(`project-${p.id}`)} style={{ cursor: 'pointer' }}>
+                <div style={{ height: 540, overflow: 'hidden', marginBottom: 32, borderRadius: 32, position: 'relative' }} className="hover-img">
+                  <img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} className="hover-scale" />
+                  <div style={{ position: 'absolute', top: 32, left: 32, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(10px)', color: '#1A1410', padding: '10px 20px', fontSize: 10, fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', borderRadius: 100 }}>{p.cat}</div>
                 </div>
-                <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>{p.title}</h3>
-                <div className="lxf" style={{ color: '#666', fontSize: 14 }}>{p.loc} · {p.year}</div>
+                <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 12, letterSpacing: '-0.02em' }}>{p.title}</h3>
+                <div className="lxf" style={{ color: '#7A6E62', fontSize: 15, fontWeight: 600 }}>{p.loc} · {p.year}</div>
               </div>
             ))}
           </div>
@@ -576,9 +668,9 @@ export function CatalogPage({ brand, setPage, content }) {
                   <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 8 }}>{p.name}</h3>
                   <p className="lxf" style={{ fontSize: 14, color: '#666', lineHeight: 1.6, marginBottom: 24 }}>{p.desc}</p>
                   
-                  <div style={{ background: '#FDFCFB', padding: '12px 16px', borderRadius: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, border: '1px solid #F0EBE5' }}>
-                     <span style={{ fontSize: 11, color: '#B5AFA9', fontWeight: 700, textTransform: 'uppercase' }}>Availability</span>
-                     <span style={{ fontSize: 12, fontWeight: 700, color: ac }}>Price on Request</span>
+                  <div style={{ background: '#FDFCFB', padding: '12px 16px', borderRadius: 4, display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 20, border: '1px solid #F0EBE5' }}>
+                     <span style={{ fontSize: 9, color: '#B5AFA9', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.05em' }}>Specifications</span>
+                     <span style={{ fontSize: 12, fontWeight: 700, color: '#1A1410' }}>{p.specs}</span>
                   </div>
 
                   <div style={{ marginTop: 'auto', display: 'flex', gap: 10 }}>
