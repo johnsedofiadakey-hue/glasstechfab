@@ -525,15 +525,15 @@ export function HomePage({ brand, setPage, content }) {
 export function ServicesPage({ brand, setPage, content }) {
   const ac = brand.color || '#C8A96E';
   const services = [
-    { title: 'Interior Design & Planning', icon: <Palette size={40} />, desc: 'Concept development, spatial planning, and aesthetic curation for luxury interiors.', img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80' },
-    { title: 'Kitchen Installation', icon: <Layout size={40} />, desc: 'Bespoke cabinetry, smart appliances, and premium ergonomic designs.', img: 'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=800&q=80' },
-    { title: 'Wardrobes & Storage', icon: <Home size={40} />, desc: 'Custom walk-in closets and integrated storage solutions for optimized living.', img: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&q=80' },
-    { title: 'Washroom Finishing', icon: <Droplet size={40} />, desc: 'Luxury sanitary installations, expert waterproofing, and premium tiling.', img: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80' },
-    { title: 'Tiling & Flooring', icon: <Layers size={40} />, desc: 'Precision porcelain, marble, and hardwood installations for high-traffic zones.', img: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&q=80' },
-    { title: 'Ceiling & Lighting', icon: <Zap size={40} />, desc: 'Suspended ceilings, recessed lighting, and integrated home automation.', img: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80' },
-    { title: 'Plumbing & Electrical', icon: <Settings size={40} />, desc: 'Industrial-grade MEP engineering, electrical works, and plumbing for reliable residential and commercial infrastructure.', img: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80' },
-    { title: 'Glass & Aluminum Works', icon: <Hammer size={40} />, desc: 'Structural glass balustrades, curtain walls, minimalist windows, and precision aluminum partitions.', img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80' },
-    { title: 'China Sourcing & Logistics', icon: <Package size={40} />, desc: 'Direct furniture purchase and freight from China. We manage curation, procurement, and shipping to Ghana.', img: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80' }
+    { title: 'Interior Design & Planning', icon: <Palette size={40} />, desc: 'Creative concept development, luxury spatial planning, and aesthetic curation for residential and commercial interiors in Ghana.', img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80' },
+    { title: 'Modern Kitchen Systems', icon: <Layout size={40} />, desc: 'Bespoke kitchen cabinets, smart appliance integration, and ergonomic kitchen islands with premium quartz or granite finishes.', img: 'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=800&q=80' },
+    { title: 'Wardrobes & Closets', icon: <Home size={40} />, desc: 'Custom walk-in closets, modular wardrobe systems, and smart storage solutions for high-end homes and hotels.', img: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&q=80' },
+    { title: 'Shower Cubicles & Baths', icon: <Droplet size={40} />, desc: 'Frameless shower cubicles, tempered glass enclosures, luxury sanitary installations, and expert bathroom waterproofing.', img: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80' },
+    { title: 'Premium Tiling & Flooring', icon: <Layers size={40} />, desc: 'Precision porcelain tiling, marble flooring, and luxury vinyl installations for residential and high-traffic commercial zones.', img: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&q=80' },
+    { title: 'Ceilings & Smart Lighting', icon: <Zap size={40} />, desc: 'Suspended POP ceilings, recessed LED lighting, and integrated home automation systems for modern smart homes.', img: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80' },
+    { title: 'MEP & Technical Works', icon: <Settings size={40} />, desc: 'Industrial-grade electrical works, precision plumbing, and mechanical engineering for turnkey building infrastructure.', img: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80' },
+    { title: 'Aluminum & Glass Works', icon: <Hammer size={40} />, desc: 'Structural glass balustrades, office glass partitions, frameless glass doors, skylights, and curtain wall engineering.', img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80' },
+    { title: 'China Sourcing & Logistics', icon: <Package size={40} />, desc: 'Direct furniture purchase and freight from China. We handle curation, procurement, and shipping for Ghana-based projects.', img: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80' }
   ];
 
   return (
