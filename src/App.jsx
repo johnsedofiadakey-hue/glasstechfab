@@ -48,7 +48,8 @@ const INITIAL_CONTENT = {
   process: PROCESS_STEPS,
   portfolio: PORTFOLIO_DATA,
   gallery: ROOM_GALLERY,
-  products: PRODUCTS_DATA
+  products: PRODUCTS_DATA,
+  brand: BRAND0
 };
 
 const ProtectedRoute = ({ user, role, children, setView }) => {
@@ -163,7 +164,7 @@ export default function App() {
         }
       });
       setContent(newContent);
-      if (newContent.brand) setBrand(newContent.brand);
+      if (newContent.brand) setBrand(prev => ({ ...prev, ...newContent.brand }));
     });
 
     fetchData();
