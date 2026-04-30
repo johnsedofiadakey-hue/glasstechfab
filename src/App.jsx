@@ -40,10 +40,10 @@ const INITIAL_CONTENT = {
   about: {
     ...ABOUT_DATA,
     founder: 'John Dakey',
+    role: 'Managing Director',
     storyTitle: 'Crafting the Future of Structural Glass & Interiors',
     story: 'Under the leadership of John Dakey, Managing Director, Glasstech Fabrications has evolved from a structural glass specialist into Ghana’s premier hub for complete interior finishing. Our mission is to bridge the gap between industrial engineering and luxury design.',
-    bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.',
-    role: 'Managing Director'
+    bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.'
   },
   services: SERVICES_DATA,
   process: PROCESS_STEPS,
@@ -151,17 +151,36 @@ export default function App() {
 
   useEffect(() => {
     if (!db) return;
-    const qMsg = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
-    const unsubMsg = onSnapshot(qMsg, (s) => setMessages(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    
+    // 📨 MESSAGE LISTENER (ONLY FOR LOGGED IN USERS)
+    let unsubMsg = () => {};
+    if (user) {
+      const qMsg = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
+      unsubMsg = onSnapshot(qMsg, (s) => setMessages(s.docs.map(d => ({id: d.id, ...d.data()}))), (err) => {
+        console.warn("Message Sync Issue:", err);
+      });
+    }
+
+    // 💬 TESTIMONIAL LISTENER (PUBLIC CAN SEE)
     const qTest = query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'));
-    const unsubTest = onSnapshot(qTest, (s) => setTestimonials(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    const unsubTest = onSnapshot(qTest, (s) => setTestimonials(s.docs.map(d => ({id: d.id, ...d.data()}))), (err) => {
+      console.warn("Testimonial Sync Issue:", err);
+    });
     
     // 🌐 REAL-TIME CMS LISTENER
     const unsubCMS = onSnapshot(collection(db, 'cms_content'), (s) => {
       const newContent = { ...INITIAL_CONTENT };
       s.docs.forEach(doc => {
         if (doc.data().content) {
-          newContent[doc.id] = doc.data().content;
+          const c = doc.data().content;
+          // 🛡️ AUTO-REPAIR: If "Ama Asante" is found in the DB, silently upgrade it to John Dakey
+          if (doc.id === 'about' && (c.founder === 'Ama Asante' || !c.founder)) {
+            const upgraded = { ...c, founder: 'John Dakey', role: 'Managing Director' };
+            syncCMS('about', upgraded);
+            newContent[doc.id] = upgraded;
+          } else {
+            newContent[doc.id] = c;
+          }
         }
       });
       setContent(newContent);

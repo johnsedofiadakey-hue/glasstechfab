@@ -95,8 +95,20 @@ export function printDoc(doc, type, brand) {
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${type} ${doc.id}</title>
   <style>:root{--ac:${ac};}@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=DM+Sans:wght@300;400;500;600&display=swap');${PRINT_CSS}</style>
   </head><body>
-  <div class="ph"><div><div class="ph-name">${brand.name}</div><div class="ph-title">${type === 'proposal' ? 'Project Proposal' : 'Tax Invoice'}<br/><span style="font-size:18px;opacity:.5">${doc.title || ''}</span></div>${isPaid ? '<div style="margin-top:12px"><span class="stamp">PAID</span></div>' : ''}</div>
-  <div style="text-align:right"><div style="font-family:monospace;font-size:22px;color:var(--ac);font-weight:700">${doc.id}</div><div style="font-size:12px;color:rgba(255,255,255,.38);margin-top:4px">Date: ${doc.date || ''}</div></div></div>
+  <div class="ph" style="display:flex;justify-content:space-between;align-items:center;">
+    <div style="display:flex;align-items:center;gap:20px;">
+      ${brand.logo ? `<img src="${brand.logo}" style="height:60px;object-fit:contain;" />` : ''}
+      <div>
+        <div class="ph-name">${brand.name}</div>
+        <div class="ph-title">${type === 'proposal' ? 'Project Proposal' : 'Tax Invoice'}<br/><span style="font-size:18px;opacity:.5">${doc.title || ''}</span></div>
+        ${isPaid ? '<div style="margin-top:12px"><span class="stamp">PAID</span></div>' : ''}
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:monospace;font-size:22px;color:var(--ac);font-weight:700">${doc.id}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.38);margin-top:4px">Date: ${doc.date || ''}</div>
+    </div>
+  </div>
   <div class="gold-bar"></div><div class="body">
   <div class="info-grid"><div><div class="lbl">From</div><div class="val" style="font-family:'Cormorant Garamond',serif;font-size:20px">${brand.name}</div><div style="font-size:12px;color:#888;margin-top:4px">${brand.email || ''}</div><div style="font-size:12px;color:#888">${brand.phone || ''}</div></div>
   <div><div class="lbl">Prepared For</div><div class="val" style="font-family:'Cormorant Garamond',serif;font-size:20px">${doc.client || ''}</div></div></div>

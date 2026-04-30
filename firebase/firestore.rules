@@ -66,6 +66,23 @@ service cloud.firestore {
       allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
     }
 
+    match /testimonials/{testId} {
+      allow read: if true; // Public can see testimonials
+      allow create: if true; // Public can submit
+      allow update, delete: if isAdmin();
+    }
+
+    match /messages/{msgId} {
+      allow read: if isAdmin() || (isAuthenticated() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId));
+      allow create: if isAuthenticated();
+      allow delete: if isAdmin();
+    }
+
+    match /invoices/{invId} {
+       allow read: if isAdmin() || (isAuthenticated() && request.auth.token.email == resource.data.clientEmail);
+       allow write: if isAdmin();
+    }
+
     match /activity_logs/{logId} {
        allow read, write: if isAdmin();
     }
