@@ -23,9 +23,9 @@ import {
   CreditCard,
   Building,
   CheckCircle,
-  Send
+  Send,
+  Sparkles
 } from 'lucide-react';
-
 // --- SHARED COMPONENTS ---
 
 const Av = ({ i, s = 40, c }) => (
