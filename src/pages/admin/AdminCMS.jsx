@@ -163,48 +163,138 @@ function CMSServices({ services, onSave, ac }) {
 
 function CMSProducts({ products, onSave, ac }) {
   const [list, setList] = useState(products || []);
-  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass', specs: '', fobPrice: '', landedCost: '', status: 'Available' });
+  const [isAdding, setIsAdding] = useState(false);
+  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass Systems', specs: '', fobPrice: '', landedCost: '', status: 'Available' });
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setUploading(true);
+      try {
+        const compressed = await compressImage(file, { maxWidth: 1000, quality: 0.8 });
+        const url = await uploadFile('assets', `products/${Date.now()}_${file.name}`, compressed);
+        setNewItem(prev => ({ ...prev, img: url }));
+      } catch (err) { alert('Upload failed. Error: ' + err.message); }
+      setUploading(false);
+    }
+  };
+
+  const handleAddProduct = () => {
+    if (!newItem.name || !newItem.img) return alert('Name and Image are required.');
+    setList([{ ...newItem, id: Date.now() }, ...list]);
+    setNewItem({ name: '', desc: '', img: '', cat: 'Glass Systems', specs: '', fobPrice: '', landedCost: '', status: 'Available' });
+    setIsAdding(false);
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-       <h3 className="lxfh" style={{ fontSize: 20 }}>Industrial Product Catalog</h3>
-       <div style={{ background: '#F9F7F4', padding: 24, borderRadius: 12 }}>
-          <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 16 }}>Add New Product</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <input className="p-inp" placeholder="Product Name" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} />
-            <input className="p-inp" placeholder="Category" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} />
-            <input className="p-inp" placeholder="Image URL" value={newItem.img} onChange={e => setNewItem({...newItem, img: e.target.value})} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <input className="p-inp" placeholder="FOB Price (e.g. $120/sqm)" value={newItem.fobPrice} onChange={e => setNewItem({...newItem, fobPrice: e.target.value})} />
-            <input className="p-inp" placeholder="Landed Cost (e.g. $165/sqm)" value={newItem.landedCost} onChange={e => setNewItem({...newItem, landedCost: e.target.value})} />
-            <select className="p-inp" value={newItem.status} onChange={e => setNewItem({...newItem, status: e.target.value})}>
-              <option value="Available">Available</option>
-              <option value="Pre-order">Pre-order</option>
-            </select>
-          </div>
-          <textarea className="p-inp" placeholder="Technical Description" rows={2} value={newItem.desc} onChange={e => setNewItem({...newItem, desc: e.target.value})} />
-          <button onClick={() => { setList([...list, { ...newItem, id: Date.now() }]); setNewItem({ name:'', desc:'', img:'', cat:'Glass', specs:'', fobPrice:'', landedCost:'', status:'Available' }); }} className="p-btn-gold lxf" style={{ marginTop: 12, padding: '8px 20px' }}>Add to Catalog</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative' }}>
+       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+         <h3 className="lxfh" style={{ fontSize: 24, color: '#1A1410' }}>Marketplace Assets</h3>
+         <button onClick={() => setIsAdding(true)} className="p-btn-gold lxf" style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 100 }}>
+           <Upload size={16} /> Add Asset
+         </button>
        </div>
-       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+
+       {isAdding && (
+         <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+           <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,11,9,0.7)', backdropFilter: 'blur(8px)' }} onClick={() => setIsAdding(false)} />
+           <div className="fade-in" style={{ position: 'relative', width: '100%', maxWidth: 700, background: '#fff', borderRadius: 24, overflow: 'hidden', boxShadow: '0 32px 64px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
+             <div style={{ padding: '24px 32px', borderBottom: '1px solid #F0EBE5', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F9F7F4' }}>
+               <h4 className="lxfh" style={{ fontSize: 20 }}>Create New Asset</h4>
+               <button onClick={() => setIsAdding(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9' }}><X size={20} /></button>
+             </div>
+             
+             <div style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 24, maxHeight: '70vh', overflowY: 'auto' }}>
+               {/* Image Uploader */}
+               <div>
+                 <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Asset Image</div>
+                 <div style={{ height: 200, background: newItem.img ? '#fff' : '#F9F7F4', border: newItem.img ? '1px solid #F0EBE5' : '2px dashed #DCD7D1', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                   {uploading ? (
+                     <div className="lxf" style={{ color: ac, fontWeight: 600 }}>Uploading...</div>
+                   ) : newItem.img ? (
+                     <img src={newItem.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply' }} />
+                   ) : (
+                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#B5AFA9' }}>
+                       <Upload size={32} style={{ marginBottom: 12 }} />
+                       <div className="lxf" style={{ fontSize: 13, fontWeight: 600 }}>Click to browse or drag image here</div>
+                     </div>
+                   )}
+                   <input type="file" accept="image/*" onChange={handleImageUpload} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} disabled={uploading} />
+                 </div>
+               </div>
+
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                 <div>
+                   <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Asset Name</div>
+                   <input className="p-inp" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} style={{ width: '100%' }} />
+                 </div>
+                 <div>
+                   <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Category</div>
+                   <input className="p-inp" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} style={{ width: '100%' }} />
+                 </div>
+               </div>
+
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+                 <div>
+                   <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>FOB Price</div>
+                   <input className="p-inp" placeholder="$0.00" value={newItem.fobPrice} onChange={e => setNewItem({...newItem, fobPrice: e.target.value})} style={{ width: '100%' }} />
+                 </div>
+                 <div>
+                   <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Landed Cost</div>
+                   <input className="p-inp" placeholder="$0.00" value={newItem.landedCost} onChange={e => setNewItem({...newItem, landedCost: e.target.value})} style={{ width: '100%' }} />
+                 </div>
+                 <div>
+                   <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Status</div>
+                   <select className="p-inp" value={newItem.status} onChange={e => setNewItem({...newItem, status: e.target.value})} style={{ width: '100%' }}>
+                     <option value="Available">Available</option>
+                     <option value="Pre-order">Pre-order</option>
+                   </select>
+                 </div>
+               </div>
+
+               <div>
+                 <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Technical Description</div>
+                 <textarea className="p-inp" rows={3} value={newItem.desc} onChange={e => setNewItem({...newItem, desc: e.target.value})} style={{ width: '100%' }} />
+               </div>
+             </div>
+
+             <div style={{ padding: '24px 32px', background: '#F9F7F4', borderTop: '1px solid #F0EBE5', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+               <button onClick={() => setIsAdding(false)} className="p-btn-outline lxf" style={{ padding: '12px 24px', borderRadius: 8 }}>Cancel</button>
+               <button onClick={handleAddProduct} className="p-btn-gold lxf" style={{ padding: '12px 32px', borderRadius: 8 }}>Create Asset</button>
+             </div>
+           </div>
+         </div>
+       )}
+
+       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
          {list.map(p => (
-           <div key={p.id} className="p-card" style={{ padding: 16 }}>
-              <img src={p.img} alt="" style={{ width: '100%', height: 120, objectFit: 'contain', marginBottom: 12, background: '#fff', borderRadius: 6 }} />
-              <div className="lxf" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontSize: 10, color: ac, fontWeight: 600 }}>{p.cat}</span>
-                <span style={{ fontSize: 10, color: p.status === 'Pre-order' ? '#D97706' : '#059669', fontWeight: 700 }}>{p.status}</span>
+           <div key={p.id} className="p-card" style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ height: 180, background: '#F9F7F4', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #F0EBE5' }}>
+                {p.img ? <img src={p.img} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', mixBlendMode: 'multiply', padding: 24 }} /> : <div style={{ color: '#B5AFA9' }}>No Image</div>}
+                <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: 100, fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em', color: p.status === 'Pre-order' ? '#D97706' : '#059669', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                  {p.status}
+                </div>
               </div>
-              <div className="lxfh" style={{ fontSize: 16, marginBottom: 4 }}>{p.name}</div>
-              <p className="lxf" style={{ fontSize: 12, color: '#7A6E62', lineHeight: 1.6, marginBottom: 8 }}>{p.desc}</p>
-              <div style={{ display: 'flex', gap: 8, fontSize: 11, marginBottom: 8, background: 'rgba(0,0,0,0.02)', padding: 8, borderRadius: 4 }}>
-                <div style={{ flex: 1 }}><strong>FOB:</strong> {p.fobPrice}</div>
-                <div style={{ flex: 1 }}><strong>Landed:</strong> {p.landedCost}</div>
+              
+              <div style={{ padding: 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <div className="lxf" style={{ fontSize: 10, color: ac, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', marginBottom: 6 }}>{p.cat}</div>
+                <div className="lxfh" style={{ fontSize: 18, marginBottom: 12, color: '#1A1410' }}>{p.name}</div>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, background: '#FDFCFB', padding: 12, borderRadius: 8, border: '1px solid #F0EBE5', marginBottom: 20 }}>
+                  <div><div style={{ fontSize: 9, color: '#888', textTransform: 'uppercase', fontWeight: 700 }}>FOB</div><div style={{ fontSize: 13, fontWeight: 600 }}>{p.fobPrice || '-'}</div></div>
+                  <div><div style={{ fontSize: 9, color: '#888', textTransform: 'uppercase', fontWeight: 700 }}>Landed</div><div style={{ fontSize: 13, fontWeight: 600, color: ac }}>{p.landedCost || '-'}</div></div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'auto', borderTop: '1px solid #F0EBE5', paddingTop: 16 }}>
+                  <button onClick={() => setList(list.filter(x => x.id !== p.id))} style={{ color: '#ff4444', fontSize: 12, background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontWeight: 500 }}><Trash size={14} /> Remove</button>
+                  <button className="lxf" style={{ color: '#1A1410', fontSize: 12, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontWeight: 600 }}>Edit</button>
+                </div>
               </div>
-              <button onClick={() => setList(list.filter(x => x.id !== p.id))} style={{ color: '#ff4444', fontSize: 11, background: 'none', border: 'none', padding: 0, marginTop: 4, cursor: 'pointer' }}>Remove</button>
            </div>
          ))}
        </div>
-       <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Update Catalog</button>
+       <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '12px 32px', borderRadius: 100, marginTop: 12 }}>Update Catalog Data</button>
     </div>
   );
 }

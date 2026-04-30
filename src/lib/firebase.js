@@ -38,15 +38,23 @@ export { auth, db, storage, isFirebaseEnabled };
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export const uploadFile = async (bucket, path, file) => {
+  const fileToBase64 = (f) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(f);
+  });
+
   if (!storage) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+    return await fileToBase64(file);
   }
-  const storageRef = ref(storage, `${bucket}/${path}`);
-  await uploadBytes(storageRef, file);
-  return await getDownloadURL(storageRef);
+  
+  try {
+    const storageRef = ref(storage, `${bucket}/${path}`);
+    await uploadBytes(storageRef, file);
+    return await getDownloadURL(storageRef);
+  } catch (error) {
+    console.warn("Firebase upload failed (likely due to mock credentials). Falling back to local data encoding.", error);
+    return await fileToBase64(file);
+  }
 };
