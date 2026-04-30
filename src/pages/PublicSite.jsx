@@ -78,33 +78,37 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
   return (
     <nav style={{
       position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: isDarkText ? 'rgba(255,255,255,0.8)' : 'transparent',
+      background: isDarkText ? 'rgba(255,255,255,0.92)' : 'transparent',
       backdropFilter: isDarkText ? 'blur(24px) saturate(180%)' : 'none',
       WebkitBackdropFilter: isDarkText ? 'blur(24px) saturate(180%)' : 'none',
-      borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.05)' : 'none',
-      transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-      height: scrolled ? 80 : 100, display: 'flex', alignItems: 'center',
+      borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.06)' : 'none',
+      transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+      height: scrolled ? 64 : 80, display: 'flex', alignItems: 'center',
       padding: '0 5vw'
     }}>
       <div style={{ maxWidth: 1800, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001 }}>
+        
+        {/* LOGO */}
+        <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
-             <img src={brand.logo} alt={brand.name} style={{ height: 36, objectFit: 'contain', filter: isDarkText ? 'invert(1)' : 'none' }} />
+            <img src={brand.logo} alt={brand.name} style={{ height: 32, objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
           ) : (
-            <div className="lxfh" style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff' }}>
+            <div className="lxfh" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff', whiteSpace: 'nowrap' }}>
               {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
             </div>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 64 }} className="dt-flex">
-          <div style={{ display: 'flex', gap: 40 }}>
+        {/* DESKTOP NAV */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 48 }} className="dt-flex">
+          <div style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
             {links.map(l => (
               <button key={l.id} onClick={() => setPage(l.id)} className="lxf" style={{
                 background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
                 color: activePage === l.id ? ac : (isDarkText ? '#1A1410' : '#ffffff'),
-                textTransform: 'uppercase', letterSpacing: '0.25em', transition: 'all 0.3s',
-                opacity: activePage === l.id ? 1 : 0.7
+                textTransform: 'uppercase', letterSpacing: '0.22em', transition: 'all 0.3s',
+                opacity: activePage === l.id ? 1 : 0.65, whiteSpace: 'nowrap', padding: '4px 0',
+                borderBottom: activePage === l.id ? `2px solid ${ac}` : '2px solid transparent'
               }}>{l.n}</button>
             ))}
             <select 
@@ -113,7 +117,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
               className="lxf"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 800,
-                color: isDarkText ? '#1A1410' : '#ffffff', opacity: 0.8, outline: 'none'
+                color: isDarkText ? '#1A1410' : '#ffffff', opacity: 0.75, outline: 'none'
               }}
             >
               <option value="USD">USD ($)</option>
@@ -123,102 +127,162 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
           </div>
           {onPortal && (
             <button onClick={() => onPortal('client')} className="lxf p-btn-dark" style={{ 
-              padding: '14px 32px', fontSize: 11, fontWeight: 800, 
-              background: (isDarkText ? '#1A1410' : '#ffffff'), 
-              color: (isDarkText ? '#ffffff' : '#1A1410'), 
-              borderRadius: 14, 
-              textTransform: 'uppercase', letterSpacing: '0.15em'
+              padding: '12px 28px', fontSize: 10, fontWeight: 800, 
+              background: isDarkText ? '#1A1410' : '#ffffff', 
+              color: isDarkText ? '#ffffff' : '#1A1410', 
+              borderRadius: 12, border: 'none',
+              textTransform: 'uppercase', letterSpacing: '0.12em', whiteSpace: 'nowrap', cursor: 'pointer'
             }}>Partner Portal</button>
           )}
         </div>
 
-        {/* Simplified Mobile Header Actions */}
-        <div className="mob-only" style={{ display: 'flex', alignItems: 'center', gap: 20, zIndex: 1001 }}>
-          <button onClick={() => { setMenuOpen(false); onPortal('client'); }} className="lxf" style={{ 
-            padding: '8px 16px', fontSize: 9, fontWeight: 800, background: (isDarkText ? '#1A1410' : '#ffffff'), 
-            color: (isDarkText ? '#ffffff' : '#121212'), border: 'none', borderRadius: 100, 
-            textTransform: 'uppercase', letterSpacing: '0.1em'
-          }}>Portal</button>
-          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', position: 'relative', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'relative', width: 24, height: 1.5, background: isDarkText ? '#121212' : '#ffffff', transition: '0.3s', transform: menuOpen ? 'rotate(45deg)' : 'none' }}>
-              <div style={{ position: 'absolute', top: menuOpen ? 0 : -8, left: 0, width: 24, height: 1.5, background: 'inherit', transition: '0.3s', opacity: menuOpen ? 0 : 1 }} />
-              <div style={{ position: 'absolute', top: menuOpen ? 0 : 8, left: 0, width: 24, height: 1.5, background: 'inherit', transition: '0.3s', transform: menuOpen ? 'rotate(-90deg)' : 'none' }} />
-            </div>
+        {/* MOBILE HEADER — logo left, [Portal pill + Hamburger] right */}
+        <div className="mob-only" style={{ display: 'flex', alignItems: 'center', gap: 12, zIndex: 1001, flexShrink: 0 }}>
+          {onPortal && (
+            <button
+              onClick={() => { setMenuOpen(false); onPortal('client'); }}
+              style={{ 
+                padding: '7px 14px', fontSize: 9, fontWeight: 800,
+                background: isDarkText ? '#1A1410' : 'rgba(255,255,255,0.15)',
+                color: isDarkText ? '#ffffff' : '#ffffff',
+                border: isDarkText ? 'none' : '1px solid rgba(255,255,255,0.4)',
+                borderRadius: 100, textTransform: 'uppercase', letterSpacing: '0.1em',
+                cursor: 'pointer', whiteSpace: 'nowrap', backdropFilter: isDarkText ? 'none' : 'blur(8px)'
+              }}
+            >
+              Portal
+            </button>
+          )}
+
+          {/* Hamburger button — clean 3-bar icon with smooth X transition */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              width: 40, height: 40, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 5,
+              padding: 8, borderRadius: 8,
+              background: menuOpen ? 'rgba(0,0,0,0.05)' : 'transparent',
+              transition: 'background 0.3s'
+            }}
+          >
+            {/* Bar 1 */}
+            <span style={{
+              display: 'block', width: 22, height: 2, borderRadius: 2,
+              background: isDarkText ? '#1A1410' : '#ffffff',
+              transformOrigin: 'center',
+              transition: 'transform 0.35s cubic-bezier(0.23,1,0.32,1), opacity 0.25s',
+              transform: menuOpen ? 'translateY(7px) rotate(45deg)' : 'none'
+            }} />
+            {/* Bar 2 (middle — fades out when open) */}
+            <span style={{
+              display: 'block', width: 22, height: 2, borderRadius: 2,
+              background: isDarkText ? '#1A1410' : '#ffffff',
+              transition: 'opacity 0.2s, transform 0.35s',
+              opacity: menuOpen ? 0 : 1,
+              transform: menuOpen ? 'scaleX(0)' : 'scaleX(1)'
+            }} />
+            {/* Bar 3 */}
+            <span style={{
+              display: 'block', width: 22, height: 2, borderRadius: 2,
+              background: isDarkText ? '#1A1410' : '#ffffff',
+              transformOrigin: 'center',
+              transition: 'transform 0.35s cubic-bezier(0.23,1,0.32,1)',
+              transform: menuOpen ? 'translateY(-7px) rotate(-45deg)' : 'none'
+            }} />
           </button>
         </div>
 
-        {/* Full-Screen Iron-Clad Frosted Glass Overlay */}
+        {/* Full-Screen Frosted Glass Drawer */}
         <div 
           className="pub-drawer"
           style={{
             position: 'fixed', top: 0, right: 0, bottom: 0, left: 0,
-            width: '100vw', height: '100vh', minHeight: '100vh',
-            background: 'linear-gradient(165deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0.92) 100%)',
-            backdropFilter: 'blur(80px) saturate(210%) brightness(1.05)',
-            WebkitBackdropFilter: 'blur(80px) saturate(210%) brightness(1.05)',
+            width: '100vw', height: '100vh',
+            background: 'linear-gradient(165deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.88) 50%, rgba(255,255,255,0.94) 100%)',
+            backdropFilter: 'blur(60px) saturate(200%)',
+            WebkitBackdropFilter: 'blur(60px) saturate(200%)',
             zIndex: 5000, 
             transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
-            transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
             display: 'flex', flexDirection: 'column',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            padding: '80px 32px 48px'
           }}
         >
-          <div style={{ position: 'absolute', top: 44, right: 40 }} onClick={() => setMenuOpen(false)}>
-            <div style={{ padding: 12, borderRadius: '50%', background: 'rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <X size={32} style={{ color: '#121212', cursor: 'pointer' }} />
-            </div>
-          </div>
+          {/* Drawer close button */}
+          <button
+            onClick={() => setMenuOpen(false)}
+            style={{
+              position: 'absolute', top: 20, right: 20,
+              width: 44, height: 44, borderRadius: '50%',
+              background: 'rgba(0,0,0,0.06)', border: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', zIndex: 1
+            }}
+          >
+            <X size={20} style={{ color: '#121212' }} />
+          </button>
           
-          <div className="lxf eyebrow" style={{ color: ac, marginBottom: 48, fontSize: 10, letterSpacing: '.3em', fontWeight: 800 }}>MAPPING THE HUB</div>
+          <div className="lxf eyebrow" style={{ color: ac, marginBottom: 40, fontSize: 10, letterSpacing: '.3em', fontWeight: 800 }}>NAVIGATION</div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
             {links.map((l, i) => {
               const isActive = activePage === l.id;
               return (
                 <button 
                   key={l.id} 
                   onClick={() => { setPage(l.id); setMenuOpen(false); }} 
-                  className="lxfh fade-in" 
+                  className="lxfh" 
                   style={{
-                    background: 'none', border: 'none', cursor: 'pointer', 
-                    fontSize: 36, letterSpacing: '-0.02em',
+                    background: isActive ? `${ac}10` : 'none',
+                    border: 'none', cursor: 'pointer', 
+                    fontSize: 28, letterSpacing: '-0.02em',
                     color: isActive ? ac : '#121212', 
-                    fontWeight: isActive ? 700 : 300, 
-                    textAlign: 'left', padding: 0,
+                    fontWeight: isActive ? 700 : 400, 
+                    textAlign: 'left',
+                    padding: '14px 16px',
+                    borderRadius: 12,
+                    width: '100%',
                     opacity: menuOpen ? 1 : 0,
-                    transform: menuOpen ? 'none' : 'translateY(20px)',
-                    transition: `all 0.6s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + i * 0.05}s`
+                    transform: menuOpen ? 'none' : 'translateX(-16px)',
+                    transition: `all 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${0.05 + i * 0.04}s`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                   }}
                 >
-                  {l.n}
-                  {isActive && <div style={{ width: 44, height: 4, background: ac, marginTop: 8, borderRadius: 2 }} />}
+                  <span>{l.n}</span>
+                  {isActive && <div style={{ width: 8, height: 8, borderRadius: '50%', background: ac, flexShrink: 0 }} />}
                 </button>
               );
             })}
           </div>
           
-          <div style={{ marginTop: 'auto', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: 48 }}>
-            <div className="lxf" style={{ fontSize: 9, color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', letterSpacing: '.2em', marginBottom: 16, fontWeight: 700 }}>Direct Terminal Access</div>
-            <div className="lxfh" style={{ fontSize: 24, color: '#121212', fontWeight: 300, marginBottom: 32 }}>{brand.phone}</div>
+          <div style={{ borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: 32, marginTop: 16 }}>
+            <div className="lxf" style={{ fontSize: 10, color: 'rgba(0,0,0,0.4)', textTransform: 'uppercase', letterSpacing: '.2em', marginBottom: 12, fontWeight: 700 }}>Direct Contact</div>
+            <div className="lxfh" style={{ fontSize: 20, color: '#121212', fontWeight: 400, marginBottom: 24 }}>{brand.phone}</div>
             <button 
               onClick={() => { setMenuOpen(false); onPortal('client'); }} 
-              className="p-btn-dark"
-              style={{ width: '100%', padding: '18px', borderRadius: 14, fontSize: 13, fontWeight: 800, background: '#1A1410' }}
+              style={{
+                width: '100%', padding: '16px', borderRadius: 14,
+                fontSize: 12, fontWeight: 800, background: '#1A1410',
+                color: '#fff', border: 'none', cursor: 'pointer',
+                textTransform: 'uppercase', letterSpacing: '0.1em'
+              }}
             >
               Enter Partner Portal
             </button>
           </div>
         </div>
 
-        {/* Backdrop (High-Contrast for glass isolation) */}
+        {/* Backdrop */}
         {menuOpen && (
           <div 
             onClick={() => setMenuOpen(false)} 
-            className="fade-in"
             style={{ 
               position: 'fixed', inset: 0, 
-              background: 'rgba(18, 18, 18, 0.25)', 
-              backdropFilter: 'blur(15px)', 
+              background: 'rgba(18,18,18,0.2)', 
+              backdropFilter: 'blur(8px)', 
               zIndex: 4999 
             }} 
           />
@@ -935,7 +999,7 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
   const render = () => {
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
-    if (p === 'catalog' || p === 'marketplace') return <CatalogPage brand={brand} setPage={setPage} content={content} submitMarketplaceInquiry={props.submitMarketplaceInquiry} />;
+    if (p === 'catalog' || p === 'marketplace') return <CatalogPage brand={brand} setPage={setPage} content={content} submitMarketplaceInquiry={props.submitMarketplaceInquiry} formatPrice={props.formatPrice} currency={props.currency} />;
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
     if (p === 'contact') return <ContactPage brand={brand} />;
     if (p.startsWith('project-')) return <ProjectDetailPage projectId={p.split('-')[1]} brand={brand} setPage={setPage} content={content} />;

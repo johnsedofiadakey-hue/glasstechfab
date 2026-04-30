@@ -732,28 +732,28 @@ body {
 .dt-flex { display: flex !important; }
 .mob-only { display: none !important; }
 
-/* Global Frosted Overlay (Applied to all devices for safety) */
+/* Global Frosted Overlay */
 .pub-drawer {
   width: 100% !important;
   max-width: none !important;
   height: 100vh !important;
   min-height: 100vh !important;
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0.92) 100%) !important;
-  backdrop-filter: blur(80px) saturate(210%) brightness(1.05) !important;
-  -webkit-backdrop-filter: blur(80px) saturate(210%) brightness(1.05) !important;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.88) 50%, rgba(255, 255, 255, 0.94) 100%) !important;
+  backdrop-filter: blur(60px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(60px) saturate(200%) !important;
   border: none !important;
-  padding: 140px 48px 48px !important;
+  /* padding is handled via inline style on the element */
   box-shadow: none !important;
   transform: translateZ(0); 
-  z-index: 9999 !important; /* Force to top */
+  z-index: 9999 !important;
 }
 
 @media (max-width: 900px) {
   .dt-flex { display: none !important; }
-  .mob-only { display: flex !important; }
+  .mob-only { display: flex !important; align-items: center; }
   
   .pub-page {
-    padding-bottom: calc(120px + var(--safe-bottom)) !important;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 20px)) !important;
   }
 
   .pub-service-grid, .pub-project-grid {
