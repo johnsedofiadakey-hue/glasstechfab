@@ -85,6 +85,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
 
   const tabs = [
     { id: 'hub', label: 'Dashboard', icon: <Target size={18} /> }, 
+    { id: 'orders', label: 'Order Tracker', icon: <ShoppingCart size={18} /> },
     { id: 'timeline', label: 'Milestones', icon: <Calendar size={18} /> }, 
     { id: 'documents', label: 'Document Safe', icon: <FileText size={18} /> },
     { id: 'materials', label: 'Material Center', icon: <Sparkles size={18} /> },
@@ -99,6 +100,61 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
 
   const renderContent = () => {
     switch (tab) {
+      case 'orders': {
+        const myOrders = (props.emails || []).filter(e => e.type === 'Marketplace Order' && (e.fromEmail === client.email || e.toName === client.name));
+        const stages = ['pending', 'Quote Provided', 'Payment Verified', 'In Production', 'Shipped', 'Delivered'];
+        
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+            <div className="p-card" style={{ padding: 32 }}>
+               <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Marketplace Order Tracker</h2>
+               <p style={{ color: 'var(--dim)', marginBottom: 32 }}>Real-time status of your structural asset procurements.</p>
+               
+               {myOrders.length > 0 ? myOrders.map(order => {
+                  const currentIdx = stages.indexOf(order.status) === -1 ? 0 : stages.indexOf(order.status);
+                  return (
+                    <div key={order.id} style={{ background: 'var(--bg)', borderRadius: 24, padding: 32, marginBottom: 24, border: '1px solid var(--border)' }}>
+                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+                          <div>
+                             <div className="lxf" style={{ fontSize: 11, color: ac, fontWeight: 800, textTransform: 'uppercase' }}>ORDER #{order.id}</div>
+                             <div className="lxfh" style={{ fontSize: 20 }}>{order.subject}</div>
+                          </div>
+                          <PSBadge s={order.status} />
+                       </div>
+
+                       {/* TIMELINE VISUAL */}
+                       <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 20px' }}>
+                          <div style={{ position: 'absolute', top: 12, left: 40, right: 40, height: 2, background: 'var(--border)', zIndex: 0 }} />
+                          <div style={{ position: 'absolute', top: 12, left: 40, width: `${(currentIdx / (stages.length - 1)) * (100 - (80 / stages.length * stages.length))}%`, height: 2, background: ac, zIndex: 1, transition: 'width 1s ease' }} />
+                          
+                          {stages.map((s, idx) => (
+                             <div key={s} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 60 }}>
+                                <div style={{ 
+                                   width: 24, height: 24, borderRadius: '50%', 
+                                   background: idx <= currentIdx ? ac : 'var(--bg)', 
+                                   border: `2px solid ${idx <= currentIdx ? ac : 'var(--border)'}`,
+                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                   transition: 'all 0.4s ease'
+                                }}>
+                                   {idx < currentIdx ? <Check size={12} color="#fff" /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: idx === currentIdx ? '#fff' : 'var(--border)' }} />}
+                                </div>
+                                <div style={{ fontSize: 9, fontWeight: 700, color: idx <= currentIdx ? 'var(--fg)' : 'var(--dim)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.05em' }}>{s}</div>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                  );
+               }) : (
+                 <div style={{ padding: 64, textAlign: 'center', background: 'var(--bg)', borderRadius: 24 }}>
+                    <ShoppingCart size={48} color="var(--border)" style={{ marginBottom: 16 }} />
+                    <div className="lxf" style={{ color: 'var(--dim)' }}>No active marketplace orders found.</div>
+                    <button onClick={() => window.location.href = '/'} className="p-btn-gold" style={{ marginTop: 24, padding: '12px 24px' }}>Browse Marketplace</button>
+                 </div>
+               )}
+            </div>
+          </div>
+        );
+      }
       case 'hub': {
         const myProj = activeProject;
         const pendingMat = (myMaterials || []).filter(m => m.status === 'pending');

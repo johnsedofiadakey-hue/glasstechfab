@@ -113,6 +113,8 @@ export default function App() {
   const [assets, setAssets] = useState([]);
   const [magicCode, setMagicCode] = useState(null);
   const [otp, setOtp] = useState('');
+  const [currency, setCurrency] = useState('USD');
+  const rates = { USD: 1, GHS: 15.2, EUR: 0.93 };
 
   const notify = (type, msg) => {
     setNotification({ type, msg });
@@ -481,6 +483,13 @@ export default function App() {
       const fullUser = { id: uDoc.id, ...uData };
       delete fullUser.password;
       setUser(fullUser);
+
+      // Onboarding Check
+      if (uData.onboarded === false) {
+        logAction(uDoc.id, 'Auth', 'Client completed first-time onboarding.');
+        await updateDoc(doc(db, 'users', uDoc.id), { onboarded: true });
+      }
+
       navigate('/portal');
       notify('success', `Welcome back, ${uData.name}`);
     } catch (e) {
@@ -488,6 +497,16 @@ export default function App() {
       throw e;
     } finally {
       setAuthLoading(false);
+    }
+  };
+
+  const updateEmailStatus = async (id, newStatus) => {
+    setEmails(prev => prev.map(e => e.id === id ? { ...e, status: newStatus } : e));
+    if (db) {
+      try {
+        await updateDoc(doc(db, 'emails', id), { status: newStatus });
+        notify('success', `Status updated to ${newStatus}`);
+      } catch (e) { console.error(e); }
     }
   };
 
@@ -1017,12 +1036,33 @@ export default function App() {
         role: 'client', 
         status: 'Active', 
         joined: new Date().toISOString(),
-        password: '[SECURED]' // Don't store raw password
+        password: '[SECURED]',
+        onboarded: false
       };
       
       await setDoc(doc(db, 'users', id), payload);
-      notify('success', 'Client account secured and created.');
-      logAction(null, 'CRM', `Created Secure Client Account: ${data.username}`);
+
+      // MOCK EMAIL SEND
+      const welcomeEmail = {
+        to: payload.email,
+        subject: 'Welcome to the Glasstech Hub – Your Project Command Center is Ready',
+        body: `
+          Hi ${data.name},
+          Welcome to Glasstech Fabrications. We are thrilled to partner with you!
+          Your Project Command Center is ready:
+          - URL: glasstechfab.com/login
+          - Username: ${data.username}
+          - Password: ${data.password} (Please change this after login)
+        `
+      };
+      console.log("ONBOARDING EMAIL SENT:", welcomeEmail);
+      
+      notify('success', 'Client secured. Welcome email dispatched.');
+      logAction(null, 'CRM', `Onboarded Client: ${data.username}`);
+      
+      // Send a system notification for the client
+      await createNotification(id, "Welcome to Glasstech! Your Project Command Center is now active.", "success", "/portal");
+
     } catch (e) {
       console.error("[CRM] Registration Error:", e);
       notify('error', e.message.includes('email-already-in-use') ? 'Username already exists.' : 'Failed to register client.');
@@ -1201,7 +1241,17 @@ export default function App() {
     activeMagicCode, 
     userNotifications, markNotificationRead,
     submitMarketplaceInquiry,
-    migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
+    migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES,
+    updateEmailStatus,
+    currency, setCurrency, rates,
+    formatPrice: (priceStr) => {
+      if (!priceStr) return '-';
+      const num = typeof priceStr === 'number' ? priceStr : parseFloat(String(priceStr).replace(/[^0-9.]/g, ''));
+      if (isNaN(num)) return priceStr;
+      const converted = num * (rates[currency] || 1);
+      const symbol = currency === 'GHS' ? 'GH₵' : currency === 'EUR' ? '€' : '$';
+      return `${symbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
   };
   const logoUpload = async (file) => {
     const localUrl = URL.createObjectURL(file);

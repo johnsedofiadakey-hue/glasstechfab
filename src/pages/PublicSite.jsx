@@ -53,7 +53,7 @@ const BA = ({ before, after, h = 300 }) => {
   );
 };
 
-export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, setMenuOpen }) {
+export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, setMenuOpen, currency, setCurrency }) {
   const [scrolled, setScrolled] = useState(false);
   const ac = brand.color || '#B08D57';
 
@@ -108,6 +108,19 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
                 opacity: activePage === l.id ? 1 : 0.7
               }}>{l.n}</button>
             ))}
+            <select 
+              value={currency} 
+              onChange={(e) => setCurrency(e.target.value)}
+              className="lxf"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 800,
+                color: isDarkText ? '#1A1410' : '#ffffff', opacity: 0.8, outline: 'none'
+              }}
+            >
+              <option value="USD">USD ($)</option>
+              <option value="GHS">GHS (₵)</option>
+              <option value="EUR">EUR (€)</option>
+            </select>
           </div>
           {onPortal && (
             <button onClick={() => onPortal('client')} className="lxf p-btn-dark" style={{ 
@@ -745,7 +758,7 @@ function MarketplaceInquiryModal({ product, onClose, onSubmit, brand }) {
   );
 }
 
-export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry }) {
+export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry, formatPrice }) {
   const ac = brand.color || '#C8A96E';
   const products = content.products || [];
   const [filter, setFilter] = useState('All');
@@ -802,10 +815,10 @@ export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry 
                   }}>
                     <div style={{ 
                       width: 8, height: 8, borderRadius: '50%', 
-                      background: p.status === 'Pre-order' ? '#D97706' : '#059669',
-                      boxShadow: `0 0 8px ${p.status === 'Pre-order' ? '#D97706' : '#059669'}`
-                    }} className={p.status === 'Pre-order' ? '' : 'pulse'} />
-                    {p.status || 'Available'}
+                      background: p.stock <= 0 ? '#EF4444' : (p.stock <= p.threshold ? '#F59E0B' : '#059669'),
+                      boxShadow: `0 0 8px ${p.stock <= 0 ? '#EF4444' : (p.stock <= p.threshold ? '#F59E0B' : '#059669')}`
+                    }} className={p.stock > 0 ? 'pulse' : ''} />
+                    {p.stock <= 0 ? 'Sold Out' : (p.stock <= p.threshold ? 'Low Stock' : (p.status || 'Available'))}
                   </div>
                   
                   {/* Category Label */}
@@ -825,11 +838,11 @@ export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry 
                   }}>
                     <div>
                       <div className="lxf" style={{ fontSize: 10, color: '#888', textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, marginBottom: 4 }}>FOB Price</div>
-                      <div className="lxfh" style={{ fontSize: 24, color: '#1A1410' }}>{p.fobPrice || 'POA'}</div>
+                      <div className="lxfh" style={{ fontSize: 24, color: '#1A1410' }}>{formatPrice(p.fobPrice)}</div>
                     </div>
                     <div>
                       <div className="lxf" style={{ fontSize: 10, color: '#888', textTransform: 'uppercase', letterSpacing: '.1em', fontWeight: 700, marginBottom: 4 }}>Landed Cost</div>
-                      <div className="lxfh" style={{ fontSize: 24, color: ac }}>{p.landedCost || 'POA'}</div>
+                      <div className="lxfh" style={{ fontSize: 24, color: ac }}>{formatPrice(p.landedCost)}</div>
                     </div>
                   </div>
 

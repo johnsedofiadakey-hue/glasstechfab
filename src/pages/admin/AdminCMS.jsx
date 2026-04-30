@@ -164,7 +164,7 @@ function CMSServices({ services, onSave, ac }) {
 function CMSProducts({ products, onSave, ac }) {
   const [list, setList] = useState(products || []);
   const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass Systems', specs: '', fobPrice: '', landedCost: '', status: 'Available' });
+  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass Systems', specs: '', fobPrice: '', landedCost: '', status: 'Available', stock: 10, threshold: 2 });
   const [uploading, setUploading] = useState(false);
 
   const handleImageUpload = async (e) => {
@@ -249,8 +249,20 @@ function CMSProducts({ products, onSave, ac }) {
                    <select className="p-inp" value={newItem.status} onChange={e => setNewItem({...newItem, status: e.target.value})} style={{ width: '100%' }}>
                      <option value="Available">Available</option>
                      <option value="Pre-order">Pre-order</option>
+                     <option value="Sold Out">Sold Out</option>
                    </select>
                  </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <div>
+                    <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Stock Quantity</div>
+                    <input type="number" className="p-inp" value={newItem.stock} onChange={e => setNewItem({...newItem, stock: parseInt(e.target.value)})} style={{ width: '100%' }} />
+                  </div>
+                  <div>
+                    <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Low Stock Threshold</div>
+                    <input type="number" className="p-inp" value={newItem.threshold} onChange={e => setNewItem({...newItem, threshold: parseInt(e.target.value)})} style={{ width: '100%' }} />
+                  </div>
+                </div>
                </div>
 
                <div>

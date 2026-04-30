@@ -159,38 +159,63 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
           </div>
         </div>
 
-        {/* OPERATIONS FEED */}
-        <div className="p-card" style={{ padding: 40, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 32, border: '1px solid rgba(255,255,255,0.5)' }}>
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
-              <h3 className="lxfh" style={{ fontSize: 24, letterSpacing: '-0.02em' }}>Live Throughput</h3>
-              <div className="luxe-pulse" style={{ background: '#16A34A', width: 10, height: 10, borderRadius: '50%' }}></div>
-           </div>
-           
-           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {(props.logs || []).slice(0, 5).map(l => (
-                <div key={l.id} style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '12px', borderRadius: 16, border: '1px solid #F9F7F4' }}>
-                   <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Activity size={18} color={ac} />
-                   </div>
-                   <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 800 }}>{l.action}</div>
-                      <div style={{ fontSize: 11, color: '#B5AFA9' }}>{l.project_title || 'System Core'} • {new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-                   </div>
-                </div>
-              ))}
-              {(!props.logs || props.logs.length === 0) && (
-                <div style={{ textAlign: 'center', padding: 40, border: '1px dashed #F0EBE5', borderRadius: 20, color: '#B5AFA9', fontSize: 13 }}>
-                   No recent telemetry data available.
-                </div>
-              )}
-           </div>
-           
-            <button 
-              onClick={() => typeof props.setMod === 'function' && props.setMod('AuditLog')}
-              style={{ width: '100%', marginTop: 24, padding: 14, borderRadius: 12, background: '#F9F7F4', border: '1px solid #F0EBE5', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
-            >
-              Full Operations Audit
-            </button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          {/* OPERATIONS FEED */}
+          <div className="p-card" style={{ padding: 40, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 32, border: '1px solid rgba(255,255,255,0.5)' }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+                <h3 className="lxfh" style={{ fontSize: 24, letterSpacing: '-0.02em' }}>Live Throughput</h3>
+                <div className="luxe-pulse" style={{ background: '#16A34A', width: 10, height: 10, borderRadius: '50%' }}></div>
+             </div>
+             
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {(props.logs || []).slice(0, 5).map(l => (
+                  <div key={l.id} style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '12px', borderRadius: 16, border: '1px solid #F9F7F4' }}>
+                     <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Activity size={18} color={ac} />
+                     </div>
+                     <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 800 }}>{l.action}</div>
+                        <div style={{ fontSize: 11, color: '#B5AFA9' }}>{l.project_title || 'System Core'} • {new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                     </div>
+                  </div>
+                ))}
+             </div>
+             
+              <button 
+                onClick={() => typeof props.setMod === 'function' && props.setMod('AuditLog')}
+                style={{ width: '100%', marginTop: 24, padding: 14, borderRadius: 12, background: '#F9F7F4', border: '1px solid #F0EBE5', fontWeight: 700, fontSize: 12, cursor: 'pointer' }}
+              >
+                Full Operations Audit
+              </button>
+          </div>
+
+          {/* INVENTORY ALERTS */}
+          <div className="p-card" style={{ padding: 40, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 32, border: '1px solid rgba(255,255,255,0.5)' }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+                <h3 className="lxfh" style={{ fontSize: 24, letterSpacing: '-0.02em' }}>Inventory Criticality</h3>
+                <div style={{ background: '#EF4444', color: '#fff', padding: '4px 10px', borderRadius: 100, fontSize: 10, fontWeight: 800 }}>ALERTS</div>
+             </div>
+             
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {(props.content?.products || []).filter(p => p.stock <= p.threshold).map(p => (
+                  <div key={p.id} style={{ display: 'flex', gap: 16, alignItems: 'center', padding: '12px', borderRadius: 16, background: '#FFF7ED', border: '1px solid #FFEDD5' }}>
+                     <div style={{ width: 44, height: 44, borderRadius: 12, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <AlertTriangle size={18} color="#D97706" />
+                     </div>
+                     <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 14, fontWeight: 800 }}>{p.name}</div>
+                        <div style={{ fontSize: 11, color: '#D97706' }}>Stock: {p.stock} units • Threshold: {p.threshold}</div>
+                     </div>
+                  </div>
+                ))}
+                {(props.content?.products || []).filter(p => p.stock <= p.threshold).length === 0 && (
+                  <div style={{ textAlign: 'center', padding: 40, border: '1px dashed #F0EBE5', borderRadius: 20, color: '#16A34A', fontSize: 13, background: 'rgba(22, 163, 74, 0.03)' }}>
+                     <CheckCircle size={24} style={{ marginBottom: 8 }} />
+                     <div>All inventory levels are within nominal parameters.</div>
+                  </div>
+                )}
+             </div>
+          </div>
         </div>
       </div>
     </div>

@@ -23,7 +23,21 @@ export default function AdminEmailCenter({ emails = [], brand }) {
                 </td>
                 <td style={{ padding: '12px 16px' }}><span className="lxf" style={{ fontSize: 13 }}>{e.toName}</span></td>
                 <td style={{ padding: '12px 16px' }}>
-                  <span className="lxf" style={{ fontSize: 13, fontWeight: e.type === 'Marketplace Order' ? 600 : 400, color: e.type === 'Marketplace Order' ? '#1A1410' : 'inherit' }}>{e.subject}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span className="lxf" style={{ fontSize: 13, fontWeight: e.type === 'Marketplace Order' ? 600 : 400, color: e.type === 'Marketplace Order' ? '#1A1410' : 'inherit' }}>{e.subject}</span>
+                    {e.type === 'Marketplace Order' && (
+                      <select 
+                        value={e.status} 
+                        onChange={(val) => props.updateEmailStatus(e.id, val.target.value)}
+                        style={{ marginTop: 8, padding: '4px 8px', borderRadius: 4, border: '1px solid #ddd', fontSize: 11, background: '#fff' }}
+                        className="lxf"
+                      >
+                        {['pending', 'Quote Provided', 'Payment Verified', 'In Production', 'Shipped', 'Delivered', 'Cancelled'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
                 </td>
                 <td style={{ padding: '12px 16px' }}><PSBadge s={e.status} /></td>
                 <td style={{ padding: '12px 16px' }}><span className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>{e.sentAt}</span></td>
