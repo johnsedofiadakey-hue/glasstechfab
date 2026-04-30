@@ -67,7 +67,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
     { n: 'Home', id: 'home' },
     { n: 'Services', id: 'services' },
     { n: 'Portfolio', id: 'portfolio' },
-    { n: 'Catalog', id: 'catalog' },
+    { n: 'Marketplace', id: 'marketplace' },
     { n: 'About', id: 'about' },
     { n: 'Contact', id: 'contact' }
   ];
@@ -221,8 +221,8 @@ export function PubBottomNav({ activePage, setPage, brand }) {
   const items = [
     { n: 'Home', id: 'home', i: <Home size={20} /> },
     { n: 'Services', id: 'services', i: <Layout size={20} /> },
-    { n: 'Projects', id: 'portfolio', i: <Layers size={20} /> },
-    { n: 'Catalog', id: 'catalog', i: <Package size={20} /> },
+    { n: 'Portfolio', id: 'portfolio', i: <Layers size={20} /> },
+    { n: 'Marketplace', id: 'marketplace', i: <Package size={20} /> },
     { n: 'Contact', id: 'contact', i: <Mail size={20} /> }
   ];
 
@@ -260,7 +260,7 @@ export function Footer({ brand, setPage, onPortal }) {
           <div>
             <div className="eyebrow lxf" style={{ color: '#fff', marginBottom: 24 }}>Navigation</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Home', 'Services', 'Portfolio', 'Catalog', 'About', 'Contact'].map(n => (
+              {['Home', 'Services', 'Portfolio', 'Marketplace', 'About', 'Contact'].map(n => (
                 <button key={n} onClick={() => setPage(n.toLowerCase())} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
               ))}
             </div>
@@ -949,7 +949,7 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
     if (p === 'portfolio') return <PortfolioPage brand={brand} setPage={setPage} content={content} />;
-    if (p === 'catalog') return <CatalogPage brand={brand} setPage={setPage} content={content} submitMarketplaceInquiry={props.submitMarketplaceInquiry} />;
+    if (p === 'catalog' || p === 'marketplace') return <CatalogPage brand={brand} setPage={setPage} content={content} submitMarketplaceInquiry={props.submitMarketplaceInquiry} />;
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
     if (p === 'contact') return <ContactPage brand={brand} />;
     if (p.startsWith('project-')) return <ProjectDetailPage projectId={p.split('-')[1]} brand={brand} setPage={setPage} content={content} />;
