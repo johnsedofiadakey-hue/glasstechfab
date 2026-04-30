@@ -37,7 +37,13 @@ const BRAND0 = {
 
 const INITIAL_CONTENT = {
   hero: { slides: HERO_SLIDES },
-  about: ABOUT_DATA,
+  about: {
+    ...ABOUT_DATA,
+    founder: 'John Dakey',
+    storyTitle: 'Crafting the Future of Structural Glass & Interiors',
+    story: 'Under the leadership of John Dakey, Managing Director, Glasstech Fabrications has evolved from a structural glass specialist into Ghana’s premier hub for complete interior finishing. Our mission is to bridge the gap between industrial engineering and luxury design.',
+    bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.'
+  },
   services: SERVICES_DATA,
   process: PROCESS_STEPS,
   portfolio: PORTFOLIO_DATA,
@@ -147,8 +153,21 @@ export default function App() {
     const unsubMsg = onSnapshot(qMsg, (s) => setMessages(s.docs.map(d => ({id: d.id, ...d.data()}))));
     const qTest = query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'));
     const unsubTest = onSnapshot(qTest, (s) => setTestimonials(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    
+    // 🌐 REAL-TIME CMS LISTENER
+    const unsubCMS = onSnapshot(collection(db, 'cms_content'), (s) => {
+      const newContent = { ...INITIAL_CONTENT };
+      s.docs.forEach(doc => {
+        if (doc.data().content) {
+          newContent[doc.id] = doc.data().content;
+        }
+      });
+      setContent(newContent);
+      if (newContent.brand) setBrand(newContent.brand);
+    });
+
     fetchData();
-    return () => { unsubMsg(); unsubTest(); };
+    return () => { unsubMsg(); unsubTest(); unsubCMS(); };
   }, [db]);
 
   useEffect(() => {
