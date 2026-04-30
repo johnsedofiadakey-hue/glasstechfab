@@ -98,6 +98,10 @@ export default function App() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [logs, setLogs] = useState([]);
   const [shipments, setShipments] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [testimonials, setTestimonials] = useState([]);
+  const [lang, setLang] = useState(localStorage.getItem('lx-lang') || 'en');
+  const [showVisualizer, setShowVisualizer] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [changeRequests, setChangeRequests] = useState([]);
@@ -120,6 +124,31 @@ export default function App() {
     setNotification({ type, msg });
     if (type !== 'pending') setTimeout(() => setNotification(null), 4000);
   };
+
+  const sendMessage = async (text, senderId, receiverId, type='chat') => {
+    if (!db) return;
+    await addDoc(collection(db, 'messages'), { text, senderId, receiverId, type, createdAt: serverTimestamp() });
+  };
+
+  const submitTestimonial = async (data) => {
+    if (!db) return;
+    await addDoc(collection(db, 'testimonials'), { ...data, createdAt: serverTimestamp(), status: 'pending' });
+  };
+
+  const dict = {
+    en: { welcome: 'Welcome back', dashboard: 'Dashboard', orders: 'Orders', visualizer: 'AI Visualizer', chat: 'Live Chat', projects: 'Milestones', finance: 'Finance Hub' },
+    fr: { welcome: 'Bienvenue', dashboard: 'Tableau de bord', orders: 'Commandes', visualizer: 'Visualiseur AI', chat: 'Chat en direct', projects: 'Projets', finance: 'Finances' }
+  };
+  const t = (k) => dict[lang][k] || k;
+
+  useEffect(() => {
+    if (!db) return;
+    const qMsg = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
+    const unsubMsg = onSnapshot(qMsg, (s) => setMessages(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    const qTest = query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'));
+    const unsubTest = onSnapshot(qTest, (s) => setTestimonials(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    return () => { unsubMsg(); unsubTest(); };
+  }, [db]);
 
   const migrateToFirebase = async () => {
     if (!db) return;
@@ -1251,7 +1280,8 @@ export default function App() {
       const converted = num * (rates[currency] || 1);
       const symbol = currency === 'GHS' ? 'GH₵' : currency === 'EUR' ? '€' : '$';
       return `${symbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    }
+    },
+    lang, setLang, t, messages, sendMessage, testimonials, submitTestimonial, showVisualizer, setShowVisualizer
   };
   const logoUpload = async (file) => {
     const localUrl = URL.createObjectURL(file);

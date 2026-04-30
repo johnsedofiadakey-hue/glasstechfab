@@ -1,7 +1,7 @@
 import React from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, 
-  Eye, Calendar, Activity, Globe, Truck, Package, Mail
+  Eye, Calendar, Activity, Globe, Truck, Package, Mail, MessageSquare
 } from 'lucide-react';
 import { NotificationBell } from '../../components/Shared';
 
@@ -19,6 +19,8 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
     ...menu,
     { id: 'analytics', label: 'Activity', icon: <Activity size={18} /> },
     { id: 'bookings', label: 'Reservations', icon: <Calendar size={18} /> },
+    { id: 'chat', label: 'Project Chat', icon: <MessageSquare size={18} /> },
+    { id: 'testimonials', label: 'Reviews', icon: <Sparkles size={18} /> },
     { id: 'email', label: 'Email Center', icon: <Mail size={18} /> },
     { id: 'system', label: 'Maintenance', icon: <Settings size={18} /> },
   ];
@@ -98,6 +100,14 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
                 )}
                 
                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <select 
+                    value={props.lang} 
+                    onChange={e => props.setLang(e.target.value)}
+                    style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid #F0EBE5', background: '#fff', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    <option value="en">EN</option>
+                    <option value="fr">FR</option>
+                  </select>
                   <NotificationBell notifications={userNotifications} onMarkRead={markNotificationRead} />
                   <button onClick={onPreview} className="p-btn-light" style={{ padding: '8px 12px', fontSize: 11, borderRadius: 10, display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '1px solid #F0EBE5' }}>
                     <Eye size={14} /> <span className="dt-only">Site Preview</span>

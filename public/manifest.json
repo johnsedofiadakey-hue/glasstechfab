@@ -1,0 +1,15 @@
+{
+  "short_name": "Glasstech",
+  "name": "Glasstech Fabrications Hub",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1A1410",
+  "background_color": "#F9F7F4"
+}

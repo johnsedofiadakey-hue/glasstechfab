@@ -51,8 +51,8 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'portfolio': return <AdminPortfolio {...common} />;
       case 'bookings': return <AdminBookings {...common} />;
       case 'analytics': return <AdminAnalytics {...common} />;
-      case 'email': return <AdminEmailCenter {...common} />;
-      case 'staff': return <AdminStaff team={props.teamMembers} setTeam={props.setTeamMembers} {...common} />;
+      case 'chat': return <AdminChat {...common} />;
+      case 'testimonials': return <AdminTestimonials {...common} />;
       case 'system': return <AdminSystem onReset={props.migrateToFirebase} {...common} />;
       default: return <AdminDashboard {...common} />;
     }
@@ -95,5 +95,101 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
         />
       )}
     </AdminLayout>
+  );
+}
+function AdminChat({ messages, sendMessage, clients, brand }) {
+  const [activeClient, setActiveClient] = useState(null);
+  const ac = brand.color || '#C8A96E';
+  
+  return (
+    <div className="p-card" style={{ height: 'calc(100vh - 120px)', display: 'grid', gridTemplateColumns: '300px 1fr' }}>
+      <div style={{ borderRight: '1px solid var(--border)', overflowY: 'auto' }}>
+        <div style={{ padding: 24, borderBottom: '1px solid var(--border)', fontWeight: 800 }}>Client Discussions</div>
+        {clients.map(c => (
+          <button key={c.id} onClick={() => setActiveClient(c)} style={{ width: '100%', padding: 16, textAlign: 'left', background: activeClient?.id === c.id ? 'rgba(200, 169, 110, 0.05)' : 'none', border: 'none', borderBottom: '1px solid var(--border)', cursor: 'pointer', display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: ac, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>{c.name?.[0]}</div>
+            <div>
+               <div style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</div>
+               <div style={{ fontSize: 11, color: '#888' }}>{c.email}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+      {activeClient ? (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: 24, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
+             <div className="lxfh">{activeClient.name}</div>
+             <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 800 }}>ACTIVE SESSION</div>
+          </div>
+          <div style={{ flex: 1, padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {messages.filter(m => m.senderId === activeClient.id || m.receiverId === activeClient.id).map((m, i) => (
+              <div key={i} style={{ 
+                alignSelf: m.senderId === 'admin' ? 'flex-end' : 'flex-start',
+                background: m.senderId === 'admin' ? ac : 'var(--bg-alt)',
+                color: m.senderId === 'admin' ? '#fff' : 'var(--fg)',
+                padding: '12px 16px', borderRadius: 16, maxWidth: '70%', fontSize: 14
+              }}>
+                {m.text}
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: 24, borderTop: '1px solid var(--border)', display: 'flex', gap: 12 }}>
+            <input 
+              id="adminMsgInp"
+              className="p-inp" 
+              placeholder="Type response..." 
+              style={{ flex: 1 }} 
+              onKeyDown={e => {
+                if (e.key === 'Enter' && e.target.value) {
+                  sendMessage(e.target.value, 'admin', activeClient.id);
+                  e.target.value = '';
+                }
+              }}
+            />
+            <button onClick={() => {
+              const inp = document.getElementById('adminMsgInp');
+              if (inp.value) {
+                sendMessage(inp.value, 'admin', activeClient.id);
+                inp.value = '';
+              }
+            }} className="p-btn-gold" style={{ padding: '0 24px' }}>Reply</button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>Select a client to start chatting</div>
+      )}
+    </div>
+  );
+}
+
+function AdminTestimonials({ testimonials, brand }) {
+  const ac = brand.color || '#C8A96E';
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+       <div className="p-card" style={{ padding: 32 }}>
+          <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Testimonial Moderation</h2>
+          <p style={{ color: '#888', marginBottom: 32 }}>Review and approve client feedback before it goes live on the public site.</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {testimonials.map(t => (
+              <div key={t.id} style={{ padding: 24, border: '1px solid var(--border)', borderRadius: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 <div style={{ display: 'flex', gap: 20 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: '50%', background: ac, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800 }}>{t.author?.[0]}</div>
+                    <div>
+                       <div style={{ fontWeight: 700 }}>{t.author}</div>
+                       <div style={{ fontSize: 13, fontStyle: 'italic', color: '#444', margin: '4px 0' }}>"{t.text}"</div>
+                       <div style={{ fontSize: 11, color: '#888' }}>{t.projectTitle} • Rating: {t.rating}/5</div>
+                    </div>
+                 </div>
+                 <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="p-btn-dark" style={{ padding: '8px 16px', fontSize: 11, background: '#16A34A', border: 'none' }}>Approve</button>
+                    <button className="p-btn-dark" style={{ padding: '8px 16px', fontSize: 11, background: '#EF4444', border: 'none' }}>Reject</button>
+                 </div>
+              </div>
+            ))}
+            {testimonials.length === 0 && <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>No testimonials submitted yet.</div>}
+          </div>
+       </div>
+    </div>
   );
 }

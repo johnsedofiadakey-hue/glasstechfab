@@ -61,7 +61,9 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
   const [tab, setTab] = useState('hub');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const ac = brand.color || '#C8A96E';
-  const { proposals, invoices, procurements } = props;
+  const { proposals, invoices, procurements, lang, t } = props;
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewData, setReviewData] = useState({ text: '', rating: 5, projectTitle: '' });
   
   const myProjects = (props.clients || []).filter(c => c.clientIds?.includes(client.id) || c.id === client.id);
   
@@ -84,15 +86,16 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
   const [paidIds, setPaidIds] = useState([]);
 
   const tabs = [
-    { id: 'hub', label: 'Dashboard', icon: <Target size={18} /> }, 
-    { id: 'orders', label: 'Order Tracker', icon: <ShoppingCart size={18} /> },
-    { id: 'timeline', label: 'Milestones', icon: <Calendar size={18} /> }, 
-    { id: 'documents', label: 'Document Safe', icon: <FileText size={18} /> },
-    { id: 'materials', label: 'Material Center', icon: <Sparkles size={18} /> },
-    { id: 'shipments', label: 'Global Tracker', icon: <Truck size={18} /> },
-    { id: 'gallery', label: 'Site Media', icon: <Image size={18} /> },
-    { id: 'financials', label: 'Finance Hub', icon: <CreditCard size={18} /> }, 
-    { id: 'book', label: 'Support', icon: <MessageSquare size={18} /> },
+    { id: 'hub', label: t('dashboard'), icon: <Target size={18} /> }, 
+    { id: 'orders', label: t('orders'), icon: <ShoppingCart size={18} /> },
+    { id: 'visualizer', label: t('visualizer'), icon: <Sparkles size={18} /> },
+    { id: 'chat', label: t('chat'), icon: <MessageSquare size={18} /> },
+    { id: 'timeline', label: t('projects'), icon: <Calendar size={18} /> }, 
+    { id: 'documents', label: 'Documents', icon: <FileText size={18} /> },
+    { id: 'materials', label: 'Materials', icon: <Sparkles size={18} /> },
+    { id: 'shipments', label: 'Logistics', icon: <Truck size={18} /> },
+    { id: 'gallery', label: 'Media', icon: <Image size={18} /> },
+    { id: 'financials', label: t('finance'), icon: <CreditCard size={18} /> }, 
     { id: 'security', label: 'Security', icon: <ShieldCheck size={18} /> }
   ];
 
@@ -100,6 +103,65 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
 
   const renderContent = () => {
     switch (tab) {
+      case 'chat':
+        return (
+          <div className="p-card" style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: 24, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="lxfh" style={{ fontSize: 18 }}>Project Support Chat</div>
+              <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 800 }}>● ONLINE</div>
+            </div>
+            <div style={{ flex: 1, padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {(props.messages || []).filter(m => m.senderId === client.id || m.receiverId === client.id).map((m, i) => (
+                <div key={i} style={{ 
+                  alignSelf: m.senderId === client.id ? 'flex-end' : 'flex-start',
+                  background: m.senderId === client.id ? ac : 'var(--bg-alt)',
+                  color: m.senderId === client.id ? '#fff' : 'var(--fg)',
+                  padding: '12px 16px', borderRadius: 16, maxWidth: '70%', fontSize: 14
+                }}>
+                  {m.text}
+                </div>
+              ))}
+            </div>
+            <div style={{ padding: 24, borderTop: '1px solid var(--border)', display: 'flex', gap: 12 }}>
+              <input 
+                id="msgInput"
+                className="p-inp" 
+                placeholder="Type your message..." 
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && e.target.value) {
+                    props.sendMessage(e.target.value, client.id, 'admin');
+                    e.target.value = '';
+                  }
+                }}
+                style={{ flex: 1 }} 
+              />
+              <button onClick={() => {
+                const inp = document.getElementById('msgInput');
+                if (inp.value) {
+                  props.sendMessage(inp.value, client.id, 'admin');
+                  inp.value = '';
+                }
+              }} className="p-btn-gold" style={{ padding: '0 24px' }}><Send size={18} /></button>
+            </div>
+          </div>
+        );
+      case 'visualizer':
+        return (
+          <div className="p-card" style={{ padding: 40, textAlign: 'center' }}>
+            <Sparkles size={48} color={ac} style={{ marginBottom: 24 }} />
+            <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 16 }}>AI Space Visualizer</h2>
+            <p className="lxf" style={{ color: 'var(--dim)', marginBottom: 40, maxWidth: 600, margin: '0 auto 40px' }}>
+              Upload a photo of your site to see how our premium glass systems and interior finishes will transform your space.
+            </p>
+            <div style={{ border: '2px dashed var(--border)', padding: 60, borderRadius: 24, background: 'var(--bg)' }}>
+               <input type="file" id="vizUpload" style={{ display: 'none' }} />
+               <label htmlFor="vizUpload" className="p-btn-dark lxf" style={{ cursor: 'pointer', padding: '16px 32px' }}>
+                 Upload Site Photo
+               </label>
+               <div style={{ marginTop: 20, fontSize: 12, color: 'var(--dim)' }}>Supported: JPG, PNG, HEIC (Max 10MB)</div>
+            </div>
+          </div>
+        );
       case 'orders': {
         const myOrders = (props.emails || []).filter(e => e.type === 'Marketplace Order' && (e.fromEmail === client.email || e.toName === client.name));
         const stages = ['pending', 'Quote Provided', 'Payment Verified', 'In Production', 'Shipped', 'Delivered'];
@@ -185,8 +247,16 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
                </div>
             </div>
 
-            <div className="hub-grid">
-               {/* MAIN COLUMN */}
+               <div className="p-card" style={{ padding: 32, background: 'var(--bg-alt)', border: '1px solid var(--border)', borderRadius: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
+                     <div>
+                        <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 4 }}>{lang === 'fr' ? 'Satisfait de nos services?' : 'Happy with our service?'}</h3>
+                        <p className="lxf" style={{ fontSize: 13, color: 'var(--dim)' }}>{lang === 'fr' ? 'Partagez votre expérience sur notre site public.' : 'Submit a verified review to our public portal.'}</p>
+                     </div>
+                     <button onClick={() => setShowReviewModal(true)} className="p-btn-gold" style={{ padding: '12px 24px' }}><Sparkles size={16} /> {lang === 'fr' ? 'Soumettre' : 'Leave Review'}</button>
+                  </div>
+               </div>
+               
                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                   {/* LIVE OPERATIONS STATUS */}
                   <div className="p-card" style={{ padding: 24 }}>
@@ -598,9 +668,10 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
   const isMobile = window.innerWidth <= 768;
   const mobileTabs = [
     { id: 'hub', label: 'Home', icon: <Target size={20} /> },
-    { id: 'timeline', label: 'Roadmap', icon: <Calendar size={20} /> },
+    { id: 'orders', label: 'Orders', icon: <ShoppingCart size={20} /> },
+    { id: 'visualizer', label: 'AI', icon: <Sparkles size={20} /> },
+    { id: 'chat', label: 'Chat', icon: <MessageSquare size={20} /> },
     { id: 'financials', label: 'Finance', icon: <CreditCard size={20} /> },
-    { id: 'book', label: 'Support', icon: <MessageSquare size={20} /> },
   ];
 
   return (
@@ -650,7 +721,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         }}>
           <div>
             <h1 className="lxfh" style={{ fontSize: isMobile ? 24 : 32, margin: 0 }}>Project Hub</h1>
-            {!isMobile && <p style={{ color: 'var(--dim)', margin: 0 }}>Welcome back, {client?.name}</p>}
+            {!isMobile && <p style={{ color: 'var(--dim)', margin: 0 }}>{t('welcome')}, {client?.name}</p>}
           </div>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 20 }}>
@@ -659,6 +730,14 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
                 {myProjects.map(p => <option key={p.id} value={p.id}>{p.title || p.project}</option>)}
               </select>
             )}
+            <select 
+              value={props.lang} 
+              onChange={e => props.setLang(e.target.value)}
+              style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--card-bg)', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}
+            >
+              <option value="en">EN</option>
+              <option value="fr">FR</option>
+            </select>
             <NotificationBell notifications={props.notifications} onMarkRead={props.markNotificationRead} />
             <div onClick={() => setTab('security')} style={{ cursor: 'pointer' }}>
                <PAv i={client?.av} s={isMobile ? 32 : 40} c={ac} />
@@ -692,6 +771,40 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
       )}
 
       {payModal && <PaystackPayModal invoice={payModal} brand={brand} onClose={() => setPayModal(null)} onSuccess={(id) => { setPaidIds([...paidIds, id]); props.payInvoice(id, selectedProjectId, 'Paystack'); }} />}
+      
+      {showReviewModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div className="p-card fade-in" style={{ maxWidth: 500, width: '100%', padding: 40, background: 'var(--card-bg)' }}>
+             <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>{lang === 'fr' ? 'Avis Client' : 'Client Feedback'}</h2>
+             <p className="lxf" style={{ color: 'var(--dim)', marginBottom: 32 }}>{lang === 'fr' ? 'Votre avis nous aide à maintenir nos standards.' : 'Your feedback helps us maintain million-dollar standards.'}</p>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                   <label className="eyebrow lxf" style={{ fontSize: 10, display: 'block', marginBottom: 8 }}>RATING</label>
+                   <div style={{ display: 'flex', gap: 8 }}>
+                      {[1,2,3,4,5].map(r => (
+                        <button key={r} onClick={() => setReviewData({...reviewData, rating: r})} style={{ background: reviewData.rating >= r ? ac : 'none', border: `1px solid ${ac}`, color: reviewData.rating >= r ? '#fff' : ac, padding: '8px 16px', borderRadius: 8, cursor: 'pointer' }}>{r}★</button>
+                      ))}
+                   </div>
+                </div>
+                <textarea 
+                  className="p-inp" 
+                  rows={4} 
+                  placeholder={lang === 'fr' ? 'Parlez-nous de votre expérience...' : 'Tell us about your experience...'} 
+                  value={reviewData.text}
+                  onChange={e => setReviewData({...reviewData, text: e.target.value})}
+                />
+                <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                   <button onClick={() => {
+                     props.submitTestimonial({ ...reviewData, author: client.name, userId: client.id });
+                     setShowReviewModal(false);
+                     alert(lang === 'fr' ? "Merci! Votre avis a été soumis." : "Thank you! Your review has been submitted for approval.");
+                   }} className="p-btn-gold" style={{ flex: 1, padding: 16 }}>{lang === 'fr' ? 'Envoyer' : 'Submit Review'}</button>
+                   <button onClick={() => setShowReviewModal(false)} className="p-btn-light" style={{ padding: '0 24px' }}>{lang === 'fr' ? 'Annuler' : 'Cancel'}</button>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
