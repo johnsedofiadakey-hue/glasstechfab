@@ -33,7 +33,7 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
       {!isMobile && (
         <aside className="p-sidebar-narrow" style={{ background: 'rgba(26, 20, 16, 0.9)', backdropFilter: 'blur(20px)', borderRight: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <div style={{ padding: '32px 24px', display: 'flex', justifyContent: 'center' }}>
-            {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 24, width: 24, objectFit: 'contain' }} /> : <div className="lxfh" style={{ fontSize: 20, color: ac }}>G</div>}
+            {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 40, objectFit: 'contain' }} /> : <div className="lxfh" style={{ fontSize: 20, color: ac }}>G</div>}
           </div>
           <nav style={{ flex: 1, padding: '0 12px' }}>
             {fullMenu.map(m => (

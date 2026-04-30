@@ -702,7 +702,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
       {!isMobile && (
         <div className="portal-sidebar">
           <div style={{ padding: '32px 24px', marginBottom: 20 }}>
-             {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700 }}>{brand.name}</div>}
+             {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 44, objectFit: 'contain' }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700 }}>{brand.name}</div>}
           </div>
 
           <nav style={{ flex: 1 }}>

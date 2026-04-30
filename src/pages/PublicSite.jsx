@@ -91,7 +91,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         {/* LOGO */}
         <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
-            <img src={brand.logo} alt={brand.name} style={{ height: 32, objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
+            <img src={brand.logo} alt={brand.name} style={{ height: 48, objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
           ) : (
             <div className="lxfh" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff', whiteSpace: 'nowrap' }}>
               {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
@@ -327,7 +327,7 @@ export function Footer({ brand, setPage, onPortal }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 60, marginBottom: 80 }}>
           <div>
             {brand.logo ? (
-              <img src={brand.logo} alt={brand.name} style={{ height: 40, objectFit: 'contain', marginBottom: 20 }} />
+              <img src={brand.logo} alt={brand.name} style={{ height: 60, objectFit: 'contain', marginBottom: 20 }} />
             ) : (
               <div className="lxfh" style={{ fontSize: 32, fontWeight: 700, marginBottom: 20 }}>{brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span></div>
             )}
@@ -402,6 +402,9 @@ export function Hero({ slides, brand, setPage }) {
             display: 'flex', alignItems: 'center', padding: '0 5vw'
           }}>
             <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto' }}>
+              <div className="afu d1" style={{ marginBottom: 32 }}>
+                 {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 100, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} /> : null}
+              </div>
               <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontSize: 12, letterSpacing: '0.4em', fontWeight: 800 }}>ESTABLISHED PRECISION</div>
               <h1 className="lxfh afu d2" style={{ 
                 fontSize: 'clamp(48px, 10vw, 120px)', 

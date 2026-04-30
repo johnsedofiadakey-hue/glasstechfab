@@ -89,7 +89,7 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
         }}></div>
 
         <div style={{ textAlign: 'center', marginBottom: 48, position: 'relative', zIndex: 1 }}>
-           {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 32, marginBottom: 24, filter: isAdminLogin && 'brightness(0) invert(1)' }} />
+           {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 60, marginBottom: 24, filter: isAdminLogin && 'brightness(0) invert(1)' }} />
              : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: isAdminLogin ? '#fff' : '#1A1410', marginBottom: 24 }}>{brand.name}</div>}
            
           <h1 className="lxfh" style={{ fontSize: isAdminLogin ? 28 : 32, fontWeight: 300, color: isAdminLogin ? '#fff' : '#1A1410', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
