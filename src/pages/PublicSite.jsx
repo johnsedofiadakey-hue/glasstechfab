@@ -311,13 +311,13 @@ export function Hero({ slides, brand, setPage }) {
         }}>
           <img src={s.img} alt="" style={{ 
             width: '100%', height: '100%', objectFit: 'cover', 
-            opacity: 0.6, 
+            opacity: 0.85, 
             transform: active === i ? 'scale(1.1)' : 'scale(1)', 
             transition: 'transform 10s ease-out' 
           }} />
           <div style={{
             position: 'absolute', inset: 0, 
-            background: 'linear-gradient(to bottom, rgba(13,11,9,0.4) 0%, rgba(13,11,9,0.8) 100%)',
+            background: 'linear-gradient(to bottom, rgba(13,11,9,0.1) 0%, rgba(13,11,9,0.6) 100%)',
             display: 'flex', alignItems: 'center', padding: '0 5vw'
           }}>
             <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto' }}>
@@ -539,7 +539,7 @@ export function ServicesPage({ brand, setPage, content }) {
 export function PortfolioPage({ brand, setPage, content }) {
   const ac = brand.color || '#C8A96E';
   const portfolio = content.portfolio || [];
-  const cats = ['All', 'Full Interior', 'Kitchen Installation', 'Office Fit-out', 'Residential Finishing', 'Glass & Aluminum'];
+  const cats = ['All', ...new Set(portfolio.map(p => p.cat).filter(Boolean))];
   const [filter, setFilter] = useState('All');
 
   const shown = filter === 'All' ? portfolio : portfolio.filter(p => p.cat === filter);

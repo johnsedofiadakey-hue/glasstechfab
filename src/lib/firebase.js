@@ -38,6 +38,14 @@ export { auth, db, storage, isFirebaseEnabled };
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export const uploadFile = async (bucket, path, file) => {
+  if (!storage) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
   const storageRef = ref(storage, `${bucket}/${path}`);
   await uploadBytes(storageRef, file);
   return await getDownloadURL(storageRef);
