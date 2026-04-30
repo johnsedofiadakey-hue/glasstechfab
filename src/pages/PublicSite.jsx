@@ -40,13 +40,11 @@ const BA = ({ before, after, h = 300 }) => {
   const [p, setP] = useState(50);
   return (
     <div style={{ position: 'relative', height: h, width: '100%', overflow: 'hidden', borderRadius: 2 }}>
-      <img src={after} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="After" />
-      <div style={{ position: 'absolute', inset: 0, width: `${p}%`, overflow: 'hidden', borderRight: '2px solid #fff' }}>
-        <img src={before} style={{ width: '100vw', height: h, objectFit: 'cover' }} alt="Before" />
-      </div>
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${after})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+      <div style={{ position: 'absolute', inset: 0, width: `${p}%`, overflow: 'hidden', borderRight: '2px solid #fff', backgroundImage: `url(${before})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
       <input type="range" min="0" max="100" value={p} onChange={e => setP(e.target.value)}
-        style={{ position: 'absolute', top: '50%', left: 0, width: '100%', transform: 'translateY(-50%)', opacity: 0, cursor: 'ew-resize', zIndex: 10 }} />
-      <div style={{ position: 'absolute', top: '50%', left: `${p}%`, transform: 'translate(calc(-50% - 1px), -50%)', width: 36, height: 36, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', pointerEvents: 'none' }}>
+        style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '100%', opacity: 0, cursor: 'ew-resize', zIndex: 10, margin: 0 }} />
+      <div style={{ position: 'absolute', top: '50%', left: `${p}%`, transform: 'translate(calc(-50% - 1px), -50%)', width: 36, height: 36, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', pointerEvents: 'none', zIndex: 5 }}>
         <SplitSquareHorizontal size={18} color="#121212" />
       </div>
     </div>
@@ -83,7 +81,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
       WebkitBackdropFilter: isDarkText ? 'blur(24px) saturate(180%)' : 'none',
       borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.06)' : 'none',
       transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-      height: scrolled ? 80 : 120, display: 'flex', alignItems: 'center',
+      height: window.innerWidth <= 900 ? (scrolled ? 60 : 80) : (scrolled ? 80 : 120), display: 'flex', alignItems: 'center',
       padding: '0 5vw'
     }}>
       <div style={{ maxWidth: 1800, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -91,7 +89,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         {/* LOGO */}
         <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
-            <img src={brand.logo} alt={brand.name} style={{ height: scrolled ? 60 : 84, objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
+            <img src={brand.logo} alt={brand.name} style={{ height: window.innerWidth <= 900 ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
           ) : (
             <div className="lxfh" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff', whiteSpace: 'nowrap' }}>
               {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
@@ -471,7 +469,7 @@ export function ServicesPreview({ brand, setPage }) {
     { n: 'Building Fit-outs', i: <Layout size={32} />, d: 'Full-scale commercial fit-outs, kitchen setups, and modular wardrobe systems tailored to your site.' }
   ];
   return (
-    <section style={{ padding: '160px 5vw', background: 'transparent', position: 'relative' }}>
+    <section className="m-py m-px" style={{ background: 'transparent', position: 'relative' }}>
       <div style={{ maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ textAlign: 'left', marginBottom: 100 }}>
           <div className="eyebrow lxf afu d1" style={{ marginBottom: 24 }}>CORE CAPABILITIES</div>
@@ -479,9 +477,9 @@ export function ServicesPreview({ brand, setPage }) {
             Comprehensive <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Interior</em> Finishing.
           </h2>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: 32 }}>
+        <div className="res-grid-3">
           {services.map((s, i) => (
-            <div key={i} className="p-card rev d1" style={{ padding: '80px 48px', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.6)' }}>
+            <div key={i} className="p-card rev d1" style={{ padding: window.innerWidth <= 900 ? '48px 24px' : '80px 48px', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.6)' }}>
               <div style={{ color: ac, marginBottom: 40, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.i}</div>
               <h3 className="lxfh" style={{ fontSize: 28, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.n}</h3>
               <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.d}</p>
@@ -509,10 +507,10 @@ export function HomePage({ brand, setPage, content }) {
     <div className="pub-page" style={{ background: 'transparent' }}>
       <Hero slides={slides} brand={brand} setPage={setPage} />
       
-      <section style={{ background: '#0D0B09', padding: '0 5vw' }}>
+      <section className="m-px" style={{ background: '#0D0B09' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           {[['250+', 'Projects Delivered'], ['8', 'Years Experience'], ['15', 'Finishing Specialists'], ['$12M+', 'Ecosystem Value']].map(([n, l], i) => (
-            <div key={l} style={{ flex: 1, minWidth: 200, textAlign: 'left', padding: '80px 40px', borderRight: (i < 3) ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+            <div key={l} style={{ flex: 1, minWidth: window.innerWidth <= 900 ? '50%' : 200, textAlign: 'left', padding: window.innerWidth <= 900 ? '40px 20px' : '80px 40px', borderRight: (i % 2 !== 1 || window.innerWidth > 900) && i < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none', borderBottom: window.innerWidth <= 900 && i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
               <div className="lxfh" style={{ fontSize: 64, color: brand.color || '#C8A96E', fontWeight: 300, letterSpacing: '-0.04em' }}>{n}</div>
               <div className="lxf" style={{ fontSize: 12, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(249,247,244,0.4)', marginTop: 12, fontWeight: 700 }}>{l}</div>
             </div>
@@ -603,7 +601,7 @@ export function ServicesPage({ brand, setPage, content }) {
 
   return (
     <div className="pub-page" style={{ background: 'transparent', paddingTop: 100 }}>
-      <section style={{ padding: '120px 5vw', background: '#0D0B09' }}>
+      <section className="m-py m-px" style={{ background: '#0D0B09' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontWeight: 800 }}>OUR CAPABILITIES</div>
           <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 8vw, 100px)', color: '#fff', fontWeight: 300, lineHeight: 0.9, letterSpacing: '-0.04em' }}>
@@ -612,15 +610,15 @@ export function ServicesPage({ brand, setPage, content }) {
         </div>
       </section>
 
-      <section style={{ padding: '100px 5vw' }}>
+      <section className="m-py m-px">
         <div style={{ maxWidth: 1600, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(600px, 1fr))', gap: 48 }}>
+          <div className="res-grid">
             {services.map((s, i) => (
-              <div key={i} className="p-card magnetic-card" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 32, overflow: 'hidden' }}>
-                <div style={{ height: '100%', minHeight: 450 }}>
+              <div key={i} className="p-card magnetic-card" style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1fr 1fr', gap: 0, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 32, overflow: 'hidden' }}>
+                <div style={{ height: window.innerWidth <= 900 ? 300 : '100%', minHeight: window.innerWidth <= 900 ? 300 : 450 }}>
                   <img src={s.img} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <div style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ padding: window.innerWidth <= 900 ? '32px 24px' : '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ color: ac, marginBottom: 32, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.icon}</div>
                   <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.title}</h3>
                   <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.desc}</p>
@@ -643,15 +641,15 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   if (!p) return <div style={{ color: '#888', padding: 80, textAlign: 'center', paddingTop: 180 }}>Project not found</div>;
 
   return (
-    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
-      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '60px 24px' }}>
+    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: window.innerWidth <= 900 ? 60 : 90 }}>
+      <div className="m-px" style={{ maxWidth: 1400, margin: '0 auto', paddingBottom: 60, paddingTop: 60 }}>
         <button onClick={() => setPage('marketplace')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40, padding: 0 }} className="hover-ac">
           <ArrowLeft size={16} /> Back to Marketplace
         </button>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 80, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1.5fr 1fr', gap: window.innerWidth <= 900 ? 40 : 80, alignItems: 'start' }}>
           <div>
             <div style={{ marginBottom: 12 }}>
-              {p.hasBA ? <BA before={p.before} after={p.after} h={600} /> : <div style={{ height: 600, overflow: 'hidden', borderRadius: 2 }}><img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
+              {p.hasBA ? <BA before={p.before} after={p.after} h={window.innerWidth <= 900 ? 300 : 600} /> : <div style={{ height: window.innerWidth <= 900 ? 300 : 600, overflow: 'hidden', borderRadius: 2 }}><img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 12 }}>
               {p.imgs && p.imgs.map((img, i) => (
@@ -799,15 +797,15 @@ export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry,
   const shown = filter === 'All' ? products : products.filter(p => p.cat === filter);
 
   return (
-    <div className="pub-page" style={{ background: '#F9F7F4', paddingTop: 90, minHeight: '100vh' }}>
-      <section style={{ padding: '100px 5vw', background: '#0D0B09', position: 'relative', overflow: 'hidden' }}>
+    <div className="pub-page" style={{ background: '#F9F7F4', paddingTop: window.innerWidth <= 900 ? 60 : 90, minHeight: '100vh' }}>
+      <section className="m-py m-px" style={{ background: '#0D0B09', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-50%', left: '-10%', width: '50vw', height: '50vw', background: `radial-gradient(circle, ${ac}20 0%, transparent 70%)`, filter: 'blur(80px)' }} />
         <div style={{ maxWidth: 1600, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, letterSpacing: '0.4em' }}>EXCLUSIVE MARKETPLACE</div>
           <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 8vw, 120px)', color: '#fff', fontWeight: 300, lineHeight: 0.9, letterSpacing: '-0.04em' }}>
             Industrial & <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Structural</em> Assets
           </h1>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 64 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: window.innerWidth <= 900 ? 32 : 64 }}>
             {cats.map(c => (
               <button key={c} onClick={() => setFilter(c)} className="lxf glass-panel" style={{
                 padding: '12px 24px', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase',
@@ -820,9 +818,9 @@ export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry,
         </div>
       </section>
 
-      <section style={{ padding: '80px 5vw' }}>
+      <section className="m-py m-px">
         <div style={{ maxWidth: 1600, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 48 }}>
+          <div className="res-grid">
             {shown.map((p, i) => (
               <div key={p.id} className="magnetic-card rev d1" style={{ 
                 background: '#fff', 

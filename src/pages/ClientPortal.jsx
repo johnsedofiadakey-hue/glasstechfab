@@ -228,10 +228,10 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             {/* KPI GRID */}
-            <div className="kpi-grid">
+            <div className="res-grid-3">
                <div className="p-card pulse-card kpi-card" style={{ padding: 24, background: '#fff', border: '1px solid #F0EBE5' }}>
                   <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', marginBottom: 12 }}>Production Velocity</div>
-                  <div className="lxfh" style={{ fontSize: 32, fontWeight: 300, color: '#121212' }}>{pulse}% <span style={{ fontSize: 13, color: '#B5AFA9', fontWeight: 500 }}>COMPLETE</span></div>
+                  <div className="lxfh" style={{ fontSize: window.innerWidth <= 900 ? 24 : 32, fontWeight: 300, color: '#121212' }}>{pulse}% <span style={{ fontSize: 13, color: '#B5AFA9', fontWeight: 500 }}>COMPLETE</span></div>
                   <div style={{ height: 4, background: '#F9F7F4', borderRadius: 10, marginTop: 20, overflow: 'hidden' }}>
                      <div style={{ width: `${pulse}%`, height: '100%', background: ac, borderRadius: 10 }} />
                   </div>
@@ -258,7 +258,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
                   </div>
                </div>
                
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+               <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1fr 1fr', gap: 24 }}>
                   {/* LIVE OPERATIONS STATUS */}
                   <div className="p-card" style={{ padding: 24 }}>
                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -336,7 +336,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
                </div>
 
                {/* SIDE COLUMN */}
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+               <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1fr 1fr', gap: 24 }}>
                   {/* RECENT ACTIVITY FEED */}
                   <div className="p-card" style={{ padding: 24, background: 'var(--bg-alt)' }}>
                      <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
