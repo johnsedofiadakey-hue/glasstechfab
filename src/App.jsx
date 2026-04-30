@@ -11,7 +11,7 @@ import {
   PORTFOLIO_DATA, TEAM_MEMBERS, PROJECT_STAGES, WHY_US, PRODUCTS_DATA
 } from './data.jsx';
 import { auth, db, storage, isFirebaseEnabled } from './lib/firebase';
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { 
   collection, query, onSnapshot, getDocs, getDoc, doc, 
   updateDoc, addDoc, setDoc, deleteDoc, orderBy, collectionGroup, limit, where, serverTimestamp
@@ -1200,8 +1200,18 @@ export default function App() {
           }
           throw new Error("Database offline. Use demo credentials.");
         }
-        const res = await signInWithEmailAndPassword(auth, e, p);
-        return res;
+        try {
+          const res = await signInWithEmailAndPassword(auth, e, p);
+          return res;
+        } catch (signInErr) {
+          if ((signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') && isAdminEmail) {
+            console.log("Admin account not found in Firebase. Auto-provisioning as official credentials...");
+            notify('pending', 'Provisioning official admin account...');
+            const res = await createUserWithEmailAndPassword(auth, e, p);
+            return res;
+          }
+          throw signInErr;
+        }
       } else {
         // CLIENT LOGIN (Username/Password)
         return await loginWithCredentials(e, p);
