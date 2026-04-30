@@ -227,12 +227,13 @@ export function PubBottomNav({ activePage, setPage, brand }) {
   ];
 
   return (
-    <div className="pub-bottom-nav mob-only">
+    <div className="pub-bottom-nav mob-only" style={{ overflowX: 'auto', flexWrap: 'nowrap', justifyContent: 'flex-start', WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(16px + env(safe-area-inset-bottom))' }}>
       {items.map(m => (
         <button 
           key={m.id} 
           onClick={() => setPage(m.id)} 
           className={`pub-bottom-item ${activePage === m.id ? 'active' : ''}`}
+          style={{ minWidth: 80, flexShrink: 0 }}
         >
           <div className="pub-bottom-indicator" />
           {m.i}
@@ -343,7 +344,7 @@ export function Hero({ slides, brand, setPage }) {
                 ))}
               </h1>
               <div className="afu d3" style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-                <button onClick={() => setPage('portfolio')} className="p-btn-dark lxf" style={{ padding: '20px 48px', fontSize: 13, background: '#fff', color: '#0D0B09', borderRadius: 16 }}>Explore Portfolio</button>
+                <button onClick={() => setPage('marketplace')} className="p-btn-dark lxf" style={{ padding: '20px 48px', fontSize: 13, background: '#fff', color: '#0D0B09', borderRadius: 16 }}>Explore Marketplace</button>
                 <button onClick={() => setPage('contact')} className="lxf glass-panel" style={{ padding: '20px 48px', color: '#fff', fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Project Consultation</button>
               </div>
             </div>
