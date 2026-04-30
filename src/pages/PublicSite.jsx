@@ -18,7 +18,12 @@ import {
   Hammer,
   Palette,
   Package,
-  Mail
+  Mail,
+  Truck,
+  CreditCard,
+  Building,
+  CheckCircle,
+  Send
 } from 'lucide-react';
 
 // --- SHARED COMPONENTS ---
@@ -630,10 +635,120 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   );
 }
 
-export function CatalogPage({ brand, setPage, content }) {
+function MarketplaceInquiryModal({ product, onClose, onSubmit, brand }) {
+  const [step, setStep] = useState(1);
+  const [data, setData] = useState({ quantity: 1, destination: '', timeline: 'Standard', name: '', email: '', phone: '', notes: '' });
+  const [loading, setLoading] = useState(false);
+  const ac = brand.color || '#C8A96E';
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    await onSubmit({ ...data, productId: product.id, productName: product.name });
+    setLoading(false);
+    setStep(4);
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,11,9,0.8)', backdropFilter: 'blur(8px)' }} onClick={onClose} />
+      <div className="fade-in" style={{ position: 'relative', width: '100%', maxWidth: 600, background: '#fff', borderRadius: 24, overflow: 'hidden', boxShadow: '0 32px 64px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
+        
+        {/* Header */}
+        <div style={{ padding: '32px 40px', background: '#F9F7F4', borderBottom: '1px solid #F0EBE5', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div>
+            <div className="lxf" style={{ fontSize: 10, color: ac, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', marginBottom: 8 }}>{product.status === 'Pre-order' ? 'Pre-order Request' : 'Availability Inquiry'}</div>
+            <h3 className="lxfh" style={{ fontSize: 24, color: '#1A1410', marginBottom: 8 }}>{product.name}</h3>
+            <div className="lxf" style={{ fontSize: 13, color: '#666' }}>FOB: {product.fobPrice} | Landed: {product.landedCost}</div>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', padding: 4 }}><X size={20} /></button>
+        </div>
+
+        {/* Body */}
+        <div style={{ padding: 40 }}>
+          {step === 1 && (
+            <div className="fade-in">
+              <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}><Package size={18} color={ac} /> 1. Configuration</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                  <label className="lxf" style={{ fontSize: 12, fontWeight: 600, color: '#1A1410', marginBottom: 8, display: 'block' }}>Required Quantity</label>
+                  <input type="number" min="1" className="pub-inp" style={{ width: '100%', padding: 16, borderRadius: 12, background: '#FDFCFB' }} value={data.quantity} onChange={e => setData({...data, quantity: e.target.value})} />
+                </div>
+                <div>
+                  <label className="lxf" style={{ fontSize: 12, fontWeight: 600, color: '#1A1410', marginBottom: 8, display: 'block' }}>Special Specifications or Notes</label>
+                  <textarea className="pub-inp" rows={3} style={{ width: '100%', padding: 16, borderRadius: 12, background: '#FDFCFB' }} placeholder="e.g. Specific dimensions, tint color..." value={data.notes} onChange={e => setData({...data, notes: e.target.value})} />
+                </div>
+                <button onClick={() => setStep(2)} className="pub-btn-dark lxf" style={{ width: '100%', padding: 18, borderRadius: 12, marginTop: 12 }}>Continue to Logistics</button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="fade-in">
+              <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={18} color={ac} /> 2. Logistics</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                  <label className="lxf" style={{ fontSize: 12, fontWeight: 600, color: '#1A1410', marginBottom: 8, display: 'block' }}>Shipping Destination (Port or Site)</label>
+                  <input type="text" placeholder="e.g. Tema Port, Ghana" className="pub-inp" style={{ width: '100%', padding: 16, borderRadius: 12, background: '#FDFCFB' }} value={data.destination} onChange={e => setData({...data, destination: e.target.value})} />
+                </div>
+                <div>
+                  <label className="lxf" style={{ fontSize: 12, fontWeight: 600, color: '#1A1410', marginBottom: 8, display: 'block' }}>Required Timeline</label>
+                  <select className="pub-inp" style={{ width: '100%', padding: 16, borderRadius: 12, background: '#FDFCFB' }} value={data.timeline} onChange={e => setData({...data, timeline: e.target.value})}>
+                    <option value="Standard">Standard (8-12 weeks)</option>
+                    <option value="Expedited">Expedited (4-6 weeks) - Requires Premium</option>
+                    <option value="Flexible">Flexible / Stocking Order</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                  <button onClick={() => setStep(1)} className="pub-btn-outline lxf" style={{ flex: 1, padding: 18, borderRadius: 12, border: '1px solid #E5E5E5', color: '#1A1410' }}>Back</button>
+                  <button onClick={() => setStep(3)} className="pub-btn-dark lxf" style={{ flex: 2, padding: 18, borderRadius: 12 }} disabled={!data.destination}>Continue to Contact</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="fade-in">
+              <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}><Building size={18} color={ac} /> 3. Contact Details</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <input type="text" placeholder="Full Name / Company" className="pub-inp" style={{ width: '100%', padding: 16, borderRadius: 12, background: '#FDFCFB' }} value={data.name} onChange={e => setData({...data, name: e.target.value})} />
+                <input type="email" placeholder="Business Email" className="pub-inp" style={{ width: '100%', padding: 16, borderRadius: 12, background: '#FDFCFB' }} value={data.email} onChange={e => setData({...data, email: e.target.value})} />
+                <input type="tel" placeholder="Phone Number" className="pub-inp" style={{ width: '100%', padding: 16, borderRadius: 12, background: '#FDFCFB' }} value={data.phone} onChange={e => setData({...data, phone: e.target.value})} />
+                
+                <div style={{ padding: 16, background: '#F9F7F4', borderRadius: 8, fontSize: 11, color: '#6A635C', lineHeight: 1.6, marginTop: 8 }}>
+                  <strong>Note:</strong> Due to fluctuating international freight and material costs, you are not committing to a purchase. A dedicated account manager will follow up with a finalized proforma invoice factoring in current rates.
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                  <button onClick={() => setStep(2)} className="pub-btn-outline lxf" style={{ flex: 1, padding: 18, borderRadius: 12, border: '1px solid #E5E5E5', color: '#1A1410' }}>Back</button>
+                  <button onClick={handleSubmit} className="pub-btn-dark lxf" style={{ flex: 2, padding: 18, borderRadius: 12, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8 }} disabled={!data.name || !data.email || loading}>
+                    {loading ? <Spinner /> : <><Send size={16} /> Submit Inquiry</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="fade-in" style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                <CheckCircle size={32} />
+              </div>
+              <h4 className="lxfh" style={{ fontSize: 24, marginBottom: 12 }}>Inquiry Received</h4>
+              <p className="lxf" style={{ fontSize: 15, color: '#6A635C', lineHeight: 1.6, marginBottom: 32 }}>Your request has been routed to our procurement desk. An account manager will contact you within 24 hours with a finalized quote.</p>
+              <button onClick={onClose} className="pub-btn-dark lxf" style={{ width: '100%', padding: 18, borderRadius: 12 }}>Close Window</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry }) {
   const ac = brand.color || '#C8A96E';
   const products = content.products || [];
   const [filter, setFilter] = useState('All');
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const cats = ['All', ...new Set(products.map(p => p.cat).filter(Boolean))];
   const shown = filter === 'All' ? products : products.filter(p => p.cat === filter);
 
@@ -718,7 +833,7 @@ export function CatalogPage({ brand, setPage, content }) {
                   </div>
 
                   <div style={{ marginTop: 'auto', display: 'flex', gap: 12 }}>
-                    <button onClick={() => setPage('contact')} className="pub-btn-dark lxf" style={{ flex: 2, padding: '18px', fontSize: 13, borderRadius: 12 }}>
+                    <button onClick={() => setSelectedProduct(p)} className="pub-btn-dark lxf" style={{ flex: 2, padding: '18px', fontSize: 13, borderRadius: 12 }}>
                       {p.status === 'Pre-order' ? 'Request Pre-order' : 'Inquire Availability'}
                     </button>
                     <button onClick={() => alert(`Downloading Technical Specs for ${p.name}`)} className="lxf" style={{ flex: 1, padding: '18px', fontSize: 13, borderRadius: 12, border: '1px solid #E5E5E5', background: '#fff', cursor: 'pointer', fontWeight: 600 }}>
@@ -732,6 +847,15 @@ export function CatalogPage({ brand, setPage, content }) {
           {shown.length === 0 && <div style={{ textAlign: 'center', padding: 120, color: '#B5AFA9', fontSize: 16, letterSpacing: '.1em', textTransform: 'uppercase' }}>No assets found in this category.</div>}
         </div>
       </section>
+      
+      {selectedProduct && (
+        <MarketplaceInquiryModal 
+          product={selectedProduct} 
+          onClose={() => setSelectedProduct(null)} 
+          onSubmit={submitMarketplaceInquiry}
+          brand={brand}
+        />
+      )}
     </div>
   );
 }
@@ -825,7 +949,7 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
     if (p === 'portfolio') return <PortfolioPage brand={brand} setPage={setPage} content={content} />;
-    if (p === 'catalog') return <CatalogPage brand={brand} setPage={setPage} content={content} />;
+    if (p === 'catalog') return <CatalogPage brand={brand} setPage={setPage} content={content} submitMarketplaceInquiry={props.submitMarketplaceInquiry} />;
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
     if (p === 'contact') return <ContactPage brand={brand} />;
     if (p.startsWith('project-')) return <ProjectDetailPage projectId={p.split('-')[1]} brand={brand} setPage={setPage} content={content} />;

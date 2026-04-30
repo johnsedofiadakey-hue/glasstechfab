@@ -941,6 +941,27 @@ export default function App() {
       notify('error', 'Failed to save changes');
     }
   };
+
+  const submitMarketplaceInquiry = async (data) => {
+    const payload = {
+      id: `MKT-${Math.floor(1000 + Math.random() * 9000)}`,
+      toName: data.name,
+      subject: `Marketplace Inquiry: ${data.productName} (Qty: ${data.quantity})`,
+      status: 'pending',
+      type: 'Marketplace Order',
+      sentAt: new Date().toLocaleDateString(),
+      details: data
+    };
+    setEmails(prev => [payload, ...prev]);
+    if (db) {
+      try {
+        await setDoc(doc(db, 'emails', payload.id), payload);
+      } catch (e) {
+        console.error("Failed to sync marketplace inquiry:", e);
+      }
+    }
+    notify('success', 'Inquiry sent successfully to our procurement team.');
+  };
   
   const createClient = async (data) => {
     try {
@@ -1138,6 +1159,7 @@ export default function App() {
     deleteClient, 
     activeMagicCode, 
     userNotifications, markNotificationRead,
+    submitMarketplaceInquiry,
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES
   };
   const logoUpload = async (file) => {
