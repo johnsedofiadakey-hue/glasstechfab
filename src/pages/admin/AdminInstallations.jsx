@@ -83,7 +83,11 @@ export default function AdminInstallations({ clients = [], updateProject, dbClie
                       <div style={{ flex: 1, paddingTop: 4 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                           <div>
-                            <div className="lxf" style={{ fontSize: 15, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : isPast ? '#7A6E62' : '#B5AFA9' }}>{s.name}</div>
+                            <div className="lxf" style={{ fontSize: 15, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? '#1A1410' : isPast ? '#7A6E62' : '#B5AFA9', display: 'flex', alignItems: 'center', gap: 8 }}>
+                               {s.name}
+                               {s.requiresPayment && <span style={{ fontSize: 9, background: 'rgba(239,68,68,0.1)', color: '#EF4444', padding: '2px 6px', borderRadius: 4, fontWeight: 800 }}>PAYMENT GATE</span>}
+                               {s.requiresApproval && <span style={{ fontSize: 9, background: 'rgba(33,150,243,0.1)', color: '#2196F3', padding: '2px 6px', borderRadius: 4, fontWeight: 800 }}>APPROVAL GATE</span>}
+                            </div>
                             {isCurrent && <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginTop: 4 }}>Active stage • Estimated {s.days} days remaining</div>}
                           </div>
                           {isCurrent && (

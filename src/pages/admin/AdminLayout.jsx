@@ -1,11 +1,11 @@
 import React from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, 
-  Eye, Calendar, Activity, Globe, Truck, Package, Mail, MessageSquare
+  Eye, Calendar, Activity, Globe, Truck, Package, Mail, MessageSquare, Sparkles
 } from 'lucide-react';
 import { NotificationBell } from '../../components/Shared';
 
-export default function AdminLayout({ user, onLogout, onPreview, brand, view, setView, userNotifications, markNotificationRead, children }) {
+export default function AdminLayout({ user, onLogout, onPreview, brand, view, setView, userNotifications, markNotificationRead, children, ...props }) {
   const ac = brand.color || '#C8A96E';
 
   const menu = [

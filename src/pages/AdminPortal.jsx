@@ -16,6 +16,7 @@ import ClientHub from './admin/ClientHub';
 import FabricationKanban from './admin/FabricationKanban';
 import ProjectProcurement from './admin/ProjectProcurement';
 import { PROJECT_STAGES } from '../data.jsx';
+import { Sparkles, MessageSquare } from 'lucide-react';
 
 export default function AdminPortal({ user, onLogout, onPreview, content, setContent, ...props }) {
   const [view, setView] = useState('dash');
@@ -54,6 +55,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'chat': return <AdminChat {...common} />;
       case 'testimonials': return <AdminTestimonials {...common} />;
       case 'system': return <AdminSystem onReset={props.migrateToFirebase} {...common} />;
+      case 'email': return <AdminEmailCenter {...common} convertInquiry={props.convertInquiryToProject} updateEmailStatus={props.updateEmailStatus} />;
       default: return <AdminDashboard {...common} />;
     }
   };
@@ -68,6 +70,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       setView={setView}
       userNotifications={props.userNotifications || props.notifications}
       markNotificationRead={props.markNotificationRead}
+      {...props}
     >
       {renderView()}
       <AIProposalGenerator 

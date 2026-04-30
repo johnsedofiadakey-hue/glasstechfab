@@ -3,18 +3,19 @@ import { DollarSign, Eye, MessageSquare, CheckCircle, Users } from 'lucide-react
 
 export const PROJECT_STAGES = [
   { id: 1, name: 'Order Confirmed', days: 1, color: '#4CAF50' },
-  { id: 2, name: 'Materials Selection', days: 7, color: '#FF9800' },
-  { id: 3, name: 'Client Approval', days: 3, color: '#2196F3' },
-  { id: 4, name: 'Payment (Deposit / Partial)', days: 2, color: '#00BCD4' },
+  { id: 2, name: 'Materials Selection', days: 7, color: '#FF9800', requiresApproval: true },
+  { id: 3, name: 'Technical Drawings', days: 3, color: '#2196F3', requiresApproval: true },
+  { id: 4, name: 'Payment (Initial Deposit)', days: 2, color: '#00BCD4', requiresPayment: true, paymentPct: 50 },
   { id: 5, name: 'Procurement (Local / China)', days: 14, color: '#9C27B0' },
-  { id: 6, name: 'Production', days: 21, color: '#1A1410' },
-  { id: 7, name: 'Inspection', days: 3, color: '#3F51B5' },
+  { id: 6, name: 'Production', days: 21, color: '#1A1410', requiresPayment: true, paymentPct: 20 },
+  { id: 7, name: 'Inspection', days: 3, color: '#3F51B5', requiresApproval: true },
   { id: 8, name: 'Shipping', days: 30, color: '#607D8B' },
-  { id: 9, name: 'Arrival in Ghana', days: 5, color: '#795548' },
+  { id: 9, name: 'Arrival in Ghana', days: 5, color: '#795548', requiresPayment: true, paymentPct: 20 },
   { id: 10, name: 'Delivery to Site', days: 2, color: '#FF5722' },
   { id: 11, name: 'Installation', days: 10, color: '#C8A96E' },
-  { id: 12, name: 'Handover', days: 2, color: '#16A34A' }
+  { id: 12, name: 'Final Handover', days: 2, color: '#16A34A', requiresPayment: true, paymentPct: 10 }
 ];
+
 
 export const PROCUREMENT_STAGES = [
   { id: 'to-buy', name: 'To Buy', icon: '🛒', color: '#DFD9D1' },

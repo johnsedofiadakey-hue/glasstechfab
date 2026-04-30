@@ -147,7 +147,14 @@ export default function App() {
     const unsubMsg = onSnapshot(qMsg, (s) => setMessages(s.docs.map(d => ({id: d.id, ...d.data()}))));
     const qTest = query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'));
     const unsubTest = onSnapshot(qTest, (s) => setTestimonials(s.docs.map(d => ({id: d.id, ...d.data()}))));
+    fetchData();
     return () => { unsubMsg(); unsubTest(); };
+  }, [db]);
+
+  useEffect(() => {
+    if (!db && !isFirebaseEnabled) {
+      fetchData();
+    }
   }, [db]);
 
   const migrateToFirebase = async () => {
@@ -762,6 +769,25 @@ export default function App() {
 
   const updateStage = async (projectId, stageId) => {
     try {
+      const stageObj = PROJECT_STAGES.find(s => s.id === stageId);
+      if (stageObj) {
+         if (stageObj.requiresPayment) {
+            const projectInvoices = invoices.filter(i => i.parentId === projectId);
+            const unpaid = projectInvoices.filter(i => i.status !== 'Paid');
+            if (unpaid.length > 0) {
+               notify('error', 'Stage locked: Outstanding payments required.');
+               return;
+            }
+         }
+         if (stageObj.requiresApproval) {
+            const projectApprovals = approvals.filter(a => a.parentId === projectId);
+            const pending = projectApprovals.filter(a => a.status === 'pending');
+            if (pending.length > 0) {
+               notify('error', 'Stage locked: Client technical approval required.');
+               return;
+            }
+         }
+      }
       await updateDoc(doc(db, 'projects', projectId), { stage: stageId, progress: Math.round((stageId / 12) * 100) });
       logAction(projectId, 'Stage', `Moved to Stage ${stageId}`);
     } catch (e) { console.error(e); }
@@ -1107,7 +1133,68 @@ export default function App() {
       logAction(null, 'CRM', `Updated Client: ${id}`);
     } catch (e) {
       console.error(e);
-      notify('error', 'Update failed');
+      notify('error', 'Client setup failed. ' + e.message);
+    }
+  };
+
+  const convertInquiryToProject = async (inquiry, projectTitle) => {
+    if (!db) return;
+    try {
+       // 1. Create client if doesn't exist (basic)
+       let clientId = inquiry.fromEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+       const uq = query(collection(db, 'users'), where('email', '==', inquiry.fromEmail));
+       const usnap = await getDocs(uq);
+       if (usnap.empty) {
+          await setDoc(doc(db, 'users', clientId), {
+             id: clientId, name: inquiry.fromName || 'Client', email: inquiry.fromEmail,
+             phone: inquiry.phone || '', role: 'client', status: 'Active', joined: new Date().toISOString()
+          });
+       } else {
+          clientId = usnap.docs[0].id;
+       }
+       
+       // 2. Create Project
+       const newProjRef = await addDoc(collection(db, 'projects'), {
+          clientId: clientId,
+          project: projectTitle || 'New Converted Project',
+          name: inquiry.fromName || 'Client',
+          stage: 1,
+          progress: 0,
+          createdAt: new Date().toISOString(),
+          budget: '$0',
+          cat: 'Marketplace Inquiry'
+       });
+
+       // 3. Update Email Status
+       await updateEmailStatus(inquiry.id, 'Converted to Project');
+       
+       notify('success', `Project ${projectTitle} provisioned for ${inquiry.fromName}.`);
+    } catch(e) {
+       console.error(e);
+       notify('error', 'Conversion failed.');
+    }
+  };
+
+  const sendToProcurement = async (emailData, projectId) => {
+    if (!db) return;
+    try {
+      const details = emailData.details || {};
+      const payload = {
+         itemName: `${details.productName || 'Marketplace Item'} (x${details.quantity || 1})`,
+         source: 'Glasstech Marketplace',
+         estimatedCost: details.price || 0,
+         actualCost: details.price || 0,
+         status: 'to-buy',
+         type: 'Marketplace',
+         isShipment: false,
+         createdAt: new Date().toISOString()
+      };
+      await addDoc(collection(db, 'projects', projectId, 'procurements'), payload);
+      await updateEmailStatus(emailData.id, 'In Production');
+      notify('success', 'Marketplace order linked to project procurement.');
+    } catch(e) {
+      console.error(e);
+      notify('error', 'Failed to link order to project.');
     }
   };
 
@@ -1271,7 +1358,7 @@ export default function App() {
     userNotifications, markNotificationRead,
     submitMarketplaceInquiry,
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES,
-    updateEmailStatus,
+    updateEmailStatus, convertInquiryToProject, sendToProcurement,
     currency, setCurrency, rates,
     formatPrice: (priceStr) => {
       if (!priceStr) return '-';

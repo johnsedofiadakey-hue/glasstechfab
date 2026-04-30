@@ -413,8 +413,8 @@ function CMSGallery({ portfolio, onSave, ac }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-       <h3 className="lxfh" style={{ fontSize: 20 }}>Project Portfolio Settings</h3>
-       <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginBottom: -10 }}>You can also manage these projects comprehensively in the main Portfolio tab on the left menu.</div>
+       <h3 className="lxfh" style={{ fontSize: 20 }}>Showcase Project Settings</h3>
+       <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginBottom: -10 }}>Manage the technical projects displayed on your architectural profile.</div>
        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
          {list.map((p, i) => (
            <div key={p.id} className="p-card" style={{ padding: 20 }}>
@@ -448,7 +448,7 @@ function CMSGallery({ portfolio, onSave, ac }) {
          ))}
          <button onClick={() => setList([...list, { id: Date.now(), title: 'New Project', cat: 'Full Interior', year: new Date().getFullYear().toString(), loc: '', desc: '', before: '', after: '' }])} className="p-btn-gold lxf" style={{ alignSelf: 'flex-start', padding: '8px 24px', borderRadius: 8 }}>+ Add Project</button>
        </div>
-       <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Portfolio</button>
+       <button onClick={() => onSave(list)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save Showcase</button>
     </div>
   );
 }

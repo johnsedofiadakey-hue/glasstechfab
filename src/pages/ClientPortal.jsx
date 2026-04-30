@@ -220,6 +220,7 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
       case 'hub': {
         const myProj = activeProject;
         const pendingMat = (myMaterials || []).filter(m => m.status === 'pending');
+        const pendingApp = (props.approvals || []).filter(a => a.parentId === myProj?.id && a.status === 'pending');
         const activeShip = (myProcurements || []).filter(p => p.isShipment || p.status === 'Shipped').slice(0, 1);
         const nextInv = (myInvs || []).filter(i => i.status !== 'Paid' && !paidIds.includes(i.id))[0];
         const pulse = calculateProjectPulse(selectedProjectId || myProj?.id);
@@ -302,8 +303,30 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
                               </div>
                               <button onClick={() => setTab('materials')} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 8 }}>Review Specs</button>
                            </div>
-                        )) : (
-                           <div style={{ background: 'var(--bg)', padding: 32, borderRadius: 16, textAlign: 'center', color: '#16A34A', fontSize: 14 }}>
+                        )) : null}
+                         
+                         {pendingApp.length > 0 ? pendingApp.map(a => (
+                            <div key={a.id} className="glass-matrix" style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                                  <div style={{ width: 48, height: 48, borderRadius: 8, background: 'rgba(33,150,243,0.1)', color: '#2196F3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                     <CheckSquare size={24} />
+                                  </div>
+                                  <div>
+                                     <div style={{ fontSize: 14, fontWeight: 700 }}>{a.title || 'Technical Document'} Sign-Off</div>
+                                     <div style={{ fontSize: 11, color: 'var(--dim)' }}>{a.desc || 'Requires your approval to proceed'}</div>
+                                  </div>
+                               </div>
+                               <div style={{ display: 'flex', gap: 8 }}>
+                                  {a.fileUrl && <a href={a.fileUrl} target="_blank" className="p-btn-light" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 8, textDecoration: 'none' }}>View Doc</a>}
+                                  <button onClick={() => {
+                                     if(confirm('Are you sure you want to approve this?')) props.updateApproval(a.id, { status: 'Approved', approvedAt: new Date().toISOString() }, myProj.id);
+                                  }} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 8 }}>Sign-off</button>
+                               </div>
+                            </div>
+                         )) : null}
+
+                         {(pendingMat.length === 0 && pendingApp.length === 0) && (
+                            <div style={{ background: 'var(--bg)', padding: 32, borderRadius: 16, textAlign: 'center', color: '#16A34A', fontSize: 14 }}>
                               <CheckCircle size={24} style={{ marginBottom: 8 }} />
                               <div>All item specifications are currently approved.</div>
                            </div>
@@ -369,7 +392,6 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
                   </div>
                </div>
             </div>
-          </div>
         );
       }
       case 'documents': {
@@ -808,5 +830,4 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
     </div>
   );
 }
-
 

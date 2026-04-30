@@ -66,7 +66,6 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
   const links = [
     { n: 'Home', id: 'home' },
     { n: 'Services', id: 'services' },
-    { n: 'Portfolio', id: 'portfolio' },
     { n: 'Marketplace', id: 'marketplace' },
     { n: 'About', id: 'about' },
     { n: 'Contact', id: 'contact' }
@@ -234,7 +233,6 @@ export function PubBottomNav({ activePage, setPage, brand }) {
   const items = [
     { n: 'Home', id: 'home', i: <Home size={20} /> },
     { n: 'Services', id: 'services', i: <Layout size={20} /> },
-    { n: 'Portfolio', id: 'portfolio', i: <Layers size={20} /> },
     { n: 'Marketplace', id: 'marketplace', i: <Package size={20} /> },
     { n: 'Contact', id: 'contact', i: <Mail size={20} /> }
   ];
@@ -274,7 +272,7 @@ export function Footer({ brand, setPage, onPortal }) {
           <div>
             <div className="eyebrow lxf" style={{ color: '#fff', marginBottom: 24 }}>Navigation</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Home', 'Services', 'Portfolio', 'Marketplace', 'About', 'Contact'].map(n => (
+              {['Home', 'Services', 'Marketplace', 'About', 'Contact'].map(n => (
                 <button key={n} onClick={() => setPage(n.toLowerCase())} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
               ))}
             </div>
@@ -570,54 +568,6 @@ export function ServicesPage({ brand, setPage, content }) {
   );
 }
 
-export function PortfolioPage({ brand, setPage, content }) {
-  const ac = brand.color || '#C8A96E';
-  const portfolio = content.portfolio || [];
-  const cats = ['All', ...new Set(portfolio.map(p => p.cat).filter(Boolean))];
-  const [filter, setFilter] = useState('All');
-
-  const shown = filter === 'All' ? portfolio : portfolio.filter(p => p.cat === filter);
-
-  return (
-    <div className="pub-page" style={{ background: 'transparent', paddingTop: 100 }}>
-      <section style={{ padding: '120px 5vw', background: '#0D0B09' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-          <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontWeight: 800 }}>CRAFTED LEGACY</div>
-          <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 8vw, 100px)', color: '#fff', fontWeight: 300, lineHeight: 0.9, letterSpacing: '-0.04em' }}>
-            Explore Our <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Works</em>
-          </h1>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 56 }}>
-            {cats.map(c => (
-              <button key={c} onClick={() => setFilter(c)} className="lxf glass-panel" style={{
-                padding: '12px 24px', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase',
-                background: filter === c ? ac : 'rgba(255,255,255,0.05)',
-                color: filter === c ? '#1A1410' : '#fff', border: 'none', cursor: 'pointer',
-                transition: '0.4s', fontWeight: 800, borderRadius: 12
-              }}>{c}</button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section style={{ padding: '100px 5vw' }}>
-        <div style={{ maxWidth: 1600, margin: '0 auto' }}>
-          <div className="pub-project-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(450px, 1fr))', gap: 48 }}>
-            {shown.map((p, i) => (
-              <div key={p.id} className="magnetic-card rev d1" onClick={() => setPage(`project-${p.id}`)} style={{ cursor: 'pointer' }}>
-                <div style={{ height: 540, overflow: 'hidden', marginBottom: 32, borderRadius: 32, position: 'relative' }} className="hover-img">
-                  <img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} className="hover-scale" />
-                  <div style={{ position: 'absolute', top: 32, left: 32, background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(10px)', color: '#1A1410', padding: '10px 20px', fontSize: 10, fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', borderRadius: 100 }}>{p.cat}</div>
-                </div>
-                <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 12, letterSpacing: '-0.02em' }}>{p.title}</h3>
-                <div className="lxf" style={{ color: '#7A6E62', fontSize: 15, fontWeight: 600 }}>{p.loc} · {p.year}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    </div>
-  );
-}
 
 export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   const ac = brand.color || '#B08D57';
@@ -628,8 +578,8 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   return (
     <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 90 }}>
       <div style={{ maxWidth: 1400, margin: '0 auto', padding: '60px 24px' }}>
-        <button onClick={() => setPage('portfolio')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40, padding: 0 }} className="hover-ac">
-          <ArrowLeft size={16} /> Back to Portfolio
+        <button onClick={() => setPage('marketplace')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40, padding: 0 }} className="hover-ac">
+          <ArrowLeft size={16} /> Back to Marketplace
         </button>
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 80, alignItems: 'start' }}>
           <div>
@@ -985,7 +935,6 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
   const render = () => {
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
-    if (p === 'portfolio') return <PortfolioPage brand={brand} setPage={setPage} content={content} />;
     if (p === 'catalog' || p === 'marketplace') return <CatalogPage brand={brand} setPage={setPage} content={content} submitMarketplaceInquiry={props.submitMarketplaceInquiry} />;
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
     if (p === 'contact') return <ContactPage brand={brand} />;
