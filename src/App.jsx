@@ -415,13 +415,13 @@ export default function App() {
   const loginWithCredentials = async (username, password) => {
     if (!db || !isFirebaseEnabled) {
       // Mock Login
-      const uMatch = CLIENTS_DATA.find(c => c.username === username && c.password === password);
-      if (uMatch) {
+      if ((username === 'elite_finish' || username === 'demo_user' || username === 'client@demo.com' || username === 'client@glasstechfab.com') && password === 'Glasstech2026') {
+        const uMatch = CLIENTS_DATA.find(c => c.email === username) || CLIENTS_DATA[0] || { id: 1, name: 'Demo Client', email: username };
         const fullUser = { ...uMatch, role: 'client' };
         setUser(fullUser);
-        localStorage.setItem('glasstech_session', JSON.stringify({ id: uMatch.id, expiry: Date.now() + 86400000 }));
+        localStorage.setItem('glasstech_session', JSON.stringify({ id: fullUser.id, expiry: Date.now() + 86400000 }));
         navigate('/portal');
-        notify('success', `Welcome back, ${uMatch.name}`);
+        notify('success', `Welcome back, ${fullUser.name}`);
         return;
       }
       throw new Error("Invalid mock credentials.");
@@ -1158,7 +1158,7 @@ export default function App() {
       
       if (mode === 'admin') {
         if (!isFirebaseEnabled || !auth) {
-          if (e === 'admin@stormglide.com' && p === 'admin123') {
+          if ((e === 'admin@stormglide.com' || e === 'admin@glasstechfab.com') && (p === 'admin123' || p === 'Glasstech2026')) {
             const mockUser = { email: e, role: 'admin', uid: 'mock-admin' };
             setUser(mockUser);
             localStorage.setItem('lxf_session', JSON.stringify(mockUser));
