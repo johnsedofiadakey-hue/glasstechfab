@@ -398,12 +398,12 @@ export function Hero({ slides, brand, setPage }) {
 export function ServicesPreview({ brand, setPage }) {
   const ac = brand.color || '#C8A96E';
   const services = [
-    { n: 'Interior Design', i: <Palette size={32} />, d: 'Full space planning and aesthetic curation.' },
-    { n: 'Kitchen Setup', i: <Layout size={32} />, d: 'Custom cabinetry and high-end installations.' },
-    { n: 'Wardrobes', i: <Home size={32} />, d: 'Bespoke storage solutions for modern living.' },
-    { n: 'Finishings', i: <Layers size={32} />, d: 'Expert tiling, flooring, and ceiling works.' },
-    { n: 'Technical', i: <Zap size={32} />, d: 'Professional plumbing and electrical systems.' },
-    { n: 'Glass Systems', i: <Droplet size={32} />, d: 'Structural glass and aluminum engineering.' }
+    { n: 'Glass Systems', i: <Droplet size={32} />, d: 'Premier structural glass installation, custom balustrades, and washroom glass engineering for modern spaces.' },
+    { n: 'Interior Deco', i: <Palette size={32} />, d: 'Sophisticated space planning and aesthetic curation for luxury homes and corporate offices in Ghana.' },
+    { n: 'Technical Works', i: <Zap size={32} />, d: 'Certified electrical works, precision plumbing, and integrated mechanical systems for turnkey delivery.' },
+    { n: 'Premium Finishings', i: <Layers size={32} />, d: 'Expert floor tiling, bespoke cabinetry, and modern ceiling works using premium materials sourced globally.' },
+    { n: 'China Sourcing', i: <Package size={32} />, d: 'Direct furniture purchase and logistics from China. We handle the curation, procurement, and shipping for you.' },
+    { n: 'Building Fit-outs', i: <Layout size={32} />, d: 'Full-scale commercial fit-outs, kitchen setups, and modular wardrobe systems tailored to your site.' }
   ];
   return (
     <section style={{ padding: '160px 5vw', background: 'transparent', position: 'relative' }}>
@@ -498,6 +498,20 @@ export function HomePage({ brand, setPage, content }) {
               </div>
             </div>
             <div className="rev in d3" style={{ position: 'relative' }}>
+              <div style={{ padding: 40, background: 'rgba(255,255,255,0.05)', borderRadius: 32, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="lxfh" style={{ fontSize: 28, marginBottom: 24, color: brand.color || '#C8A96E' }}>Our Regional Footprint</div>
+                <p className="lxf" style={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1.8, marginBottom: 32 }}>
+                  We provide specialized glass and interior solutions across all major hubs in Ghana. Our mobile logistics team ensures the same "million-dollar" quality in every region.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  {['Accra', 'Kumasi', 'Koforidua', 'Takoradi', 'Cape Coast', 'Tarkwa'].map(city => (
+                    <div key={city} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13, color: '#fff', fontWeight: 600 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: brand.color || '#C8A96E' }} />
+                      {city}, Ghana
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div style={{ position: 'absolute', inset: -40, background: brand.color || '#C8A96E', opacity: 0.1, borderRadius: '50%', filter: 'blur(100px)' }} />
               <img src="https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=1200&q=80" style={{ width: '100%', height: 600, objectFit: 'cover', borderRadius: 32, position: 'relative', zIndex: 1 }} />
             </div>
@@ -517,8 +531,9 @@ export function ServicesPage({ brand, setPage, content }) {
     { title: 'Washroom Finishing', icon: <Droplet size={40} />, desc: 'Luxury sanitary installations, expert waterproofing, and premium tiling.', img: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80' },
     { title: 'Tiling & Flooring', icon: <Layers size={40} />, desc: 'Precision porcelain, marble, and hardwood installations for high-traffic zones.', img: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&q=80' },
     { title: 'Ceiling & Lighting', icon: <Zap size={40} />, desc: 'Suspended ceilings, recessed lighting, and integrated home automation.', img: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80' },
-    { title: 'Plumbing & Electrical', icon: <Settings size={40} />, desc: 'Industrial-grade MEP engineering for reliable residential and commercial infrastructure.', img: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80' },
-    { title: 'Glass & Aluminum Works', icon: <Hammer size={40} />, desc: 'Curtain walls, minimalist windows, and structural glass partitions.', img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80' }
+    { title: 'Plumbing & Electrical', icon: <Settings size={40} />, desc: 'Industrial-grade MEP engineering, electrical works, and plumbing for reliable residential and commercial infrastructure.', img: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80' },
+    { title: 'Glass & Aluminum Works', icon: <Hammer size={40} />, desc: 'Structural glass balustrades, curtain walls, minimalist windows, and precision aluminum partitions.', img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80' },
+    { title: 'China Sourcing & Logistics', icon: <Package size={40} />, desc: 'Direct furniture purchase and freight from China. We manage curation, procurement, and shipping to Ghana.', img: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80' }
   ];
 
   return (
@@ -932,6 +947,14 @@ export function ContactPage({ brand }) {
               <div>
                 <div className="eyebrow lxf" style={{ color: '#666', marginBottom: 8 }}>Email</div>
                 <div className="lxf" style={{ fontSize: 18, color: '#121212' }}>{brand.email}</div>
+              </div>
+              <div style={{ marginTop: 20, borderTop: '1px solid #eee', paddingTop: 20 }}>
+                <div className="eyebrow lxf" style={{ color: '#666', marginBottom: 12 }}>Service Areas</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                   {['Accra', 'Kumasi', 'Takoradi', 'Koforidua', 'Cape Coast', 'Tarkwa'].map(c => (
+                     <span key={c} style={{ fontSize: 10, background: '#F5F5F5', padding: '4px 10px', borderRadius: 4, fontWeight: 700, color: '#1A1410' }}>{c.toUpperCase()}</span>
+                   ))}
+                </div>
               </div>
             </div>
           </div>
