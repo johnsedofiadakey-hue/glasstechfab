@@ -458,15 +458,30 @@ export function Hero({ slides, brand, setPage }) {
   );
 }
 
-export function ServicesPreview({ brand, setPage }) {
+export function ServicesPreview({ brand, setPage, content }) {
   const ac = brand.color || '#C8A96E';
-  const services = [
-    { n: 'Glass Systems', i: <Droplet size={32} />, d: 'Premier structural glass installation, custom balustrades, and washroom glass engineering for modern spaces.' },
-    { n: 'Interior Deco', i: <Palette size={32} />, d: 'Sophisticated space planning and aesthetic curation for luxury homes and corporate offices in Ghana.' },
-    { n: 'Technical Works', i: <Zap size={32} />, d: 'Certified electrical works, precision plumbing, and integrated mechanical systems for turnkey delivery.' },
-    { n: 'Premium Finishings', i: <Layers size={32} />, d: 'Expert floor tiling, bespoke cabinetry, and modern ceiling works using premium materials sourced globally.' },
-    { n: 'China Sourcing', i: <Package size={32} />, d: 'Direct furniture purchase and logistics from China. We handle the curation, procurement, and shipping for you.' },
-    { n: 'Building Fit-outs', i: <Layout size={32} />, d: 'Full-scale commercial fit-outs, kitchen setups, and modular wardrobe systems tailored to your site.' }
+  
+  const getIcon = (name, size = 32) => {
+    const n = name.toLowerCase();
+    if (n.includes('glass')) return <Droplet size={size} />;
+    if (n.includes('interior')) return <Palette size={size} />;
+    if (n.includes('kitchen')) return <Layout size={size} />;
+    if (n.includes('wardrobe')) return <Home size={size} />;
+    if (n.includes('tiling')) return <Layers size={size} />;
+    if (n.includes('ceiling')) return <Zap size={size} />;
+    if (n.includes('mep') || n.includes('technical')) return <Settings size={size} />;
+    if (n.includes('china') || n.includes('sourcing')) return <Package size={size} />;
+    if (n.includes('fit-out')) return <Building size={size} />;
+    return <Sparkles size={size} />;
+  };
+
+  const services = content?.services?.length > 0 ? content.services : [
+    { name: 'Glass Systems', desc: 'Premier structural glass installation, custom balustrades, and washroom glass engineering for modern spaces.' },
+    { name: 'Interior Deco', desc: 'Sophisticated space planning and aesthetic curation for luxury homes and corporate offices in Ghana.' },
+    { name: 'Technical Works', desc: 'Certified electrical works, precision plumbing, and integrated mechanical systems for turnkey delivery.' },
+    { name: 'Premium Finishings', desc: 'Expert floor tiling, bespoke cabinetry, and modern ceiling works using premium materials sourced globally.' },
+    { name: 'China Sourcing', desc: 'Direct furniture purchase and logistics from China. We handle the curation, procurement, and shipping for you.' },
+    { name: 'Building Fit-outs', desc: 'Full-scale commercial fit-outs, kitchen setups, and modular wardrobe systems tailored to your site.' }
   ];
   return (
     <section className="m-py m-px" style={{ background: 'transparent', position: 'relative' }}>
@@ -478,11 +493,11 @@ export function ServicesPreview({ brand, setPage }) {
           </h2>
         </div>
         <div className="res-grid-3">
-          {services.map((s, i) => (
+          {services.slice(0, 6).map((s, i) => (
             <div key={i} className="p-card rev d1" style={{ padding: window.innerWidth <= 900 ? '48px 24px' : '80px 48px', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.6)' }}>
-              <div style={{ color: ac, marginBottom: 40, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.i}</div>
-              <h3 className="lxfh" style={{ fontSize: 28, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.n}</h3>
-              <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.d}</p>
+              <div style={{ color: ac, marginBottom: 40, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{getIcon(s.name, 32)}</div>
+              <h3 className="lxfh" style={{ fontSize: 28, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.name}</h3>
+              <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.desc}</p>
               <button onClick={() => setPage('services')} style={{ border: 'none', background: 'none', color: ac, fontWeight: 800, fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                 Learn more <ChevronRight size={14} />
               </button>
@@ -518,7 +533,7 @@ export function HomePage({ brand, setPage, content }) {
         </div>
       </section>
 
-      <ServicesPreview brand={brand} setPage={setPage} />
+      <ServicesPreview brand={brand} setPage={setPage} content={content} />
 
       <section style={{ padding: '160px 5vw', background: '#fff', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'left' }}>
@@ -587,17 +602,22 @@ export function HomePage({ brand, setPage, content }) {
 
 export function ServicesPage({ brand, setPage, content }) {
   const ac = brand.color || '#C8A96E';
-  const services = [
-    { title: 'Interior Design & Planning', icon: <Palette size={40} />, desc: 'Creative concept development, luxury spatial planning, and aesthetic curation for residential and commercial interiors in Ghana.', img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=800&q=80' },
-    { title: 'Modern Kitchen Systems', icon: <Layout size={40} />, desc: 'Bespoke kitchen cabinets, smart appliance integration, and ergonomic kitchen islands with premium quartz or granite finishes.', img: 'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=800&q=80' },
-    { title: 'Wardrobes & Closets', icon: <Home size={40} />, desc: 'Custom walk-in closets, modular wardrobe systems, and smart storage solutions for high-end homes and hotels.', img: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=800&q=80' },
-    { title: 'Shower Cubicles & Baths', icon: <Droplet size={40} />, desc: 'Frameless shower cubicles, tempered glass enclosures, luxury sanitary installations, and expert bathroom waterproofing.', img: 'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=800&q=80' },
-    { title: 'Premium Tiling & Flooring', icon: <Layers size={40} />, desc: 'Precision porcelain tiling, marble flooring, and luxury vinyl installations for residential and high-traffic commercial zones.', img: 'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&q=80' },
-    { title: 'Ceilings & Smart Lighting', icon: <Zap size={40} />, desc: 'Suspended POP ceilings, recessed LED lighting, and integrated home automation systems for modern smart homes.', img: 'https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&q=80' },
-    { title: 'MEP & Technical Works', icon: <Settings size={40} />, desc: 'Industrial-grade electrical works, precision plumbing, and mechanical engineering for turnkey building infrastructure.', img: 'https://images.unsplash.com/photo-1581094380920-0966f38fe841?w=800&q=80' },
-    { title: 'Aluminum & Glass Works', icon: <Hammer size={40} />, desc: 'Structural glass balustrades, office glass partitions, frameless glass doors, skylights, and curtain wall engineering.', img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80' },
-    { title: 'China Sourcing & Logistics', icon: <Package size={40} />, desc: 'Direct furniture purchase and freight from China. We handle curation, procurement, and shipping for Ghana-based projects.', img: 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&q=80' }
-  ];
+  
+  const getIcon = (name, size = 40) => {
+    const n = name.toLowerCase();
+    if (n.includes('interior')) return <Palette size={size} />;
+    if (n.includes('kitchen')) return <Layout size={size} />;
+    if (n.includes('wardrobe')) return <Home size={size} />;
+    if (n.includes('shower')) return <Droplet size={size} />;
+    if (n.includes('tiling')) return <Layers size={size} />;
+    if (n.includes('ceiling')) return <Zap size={size} />;
+    if (n.includes('mep') || n.includes('technical')) return <Settings size={size} />;
+    if (n.includes('glass')) return <Hammer size={size} />;
+    if (n.includes('china') || n.includes('sourcing')) return <Package size={size} />;
+    return <Sparkles size={size} />;
+  };
+
+  const services = content?.services || [];
 
   return (
     <div className="pub-page" style={{ background: 'transparent', paddingTop: 100 }}>
@@ -619,8 +639,8 @@ export function ServicesPage({ brand, setPage, content }) {
                   <img src={s.img} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ padding: window.innerWidth <= 900 ? '32px 24px' : '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <div style={{ color: ac, marginBottom: 32, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{s.icon}</div>
-                  <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.title}</h3>
+                  <div style={{ color: ac, marginBottom: 32, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{getIcon(s.name, 40)}</div>
+                  <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.name}</h3>
                   <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.desc}</p>
                   <button onClick={() => setPage('contact')} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '16px 32px', borderRadius: 14 }}>Request Consultation</button>
                 </div>
