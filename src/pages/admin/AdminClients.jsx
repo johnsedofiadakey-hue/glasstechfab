@@ -11,7 +11,9 @@ import {
   Info,
   ChevronRight,
   ShieldCheck,
-  Building
+  Building,
+  Shield,
+  Command
 } from 'lucide-react';
 import { PAv } from '../../components/Shared';
 
@@ -196,7 +198,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
                     {!editingClient ? (
                       <div className="p-form-group">
                         <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Initial Password</label>
-                        <input type="text" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.password} onChange={e => setNewC({ ...newC, password: e.target.value })} placeholder="Create secure password" />
+                        <input type="password" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.password} onChange={e => setNewC({ ...newC, password: e.target.value })} placeholder="Create secure password" />
                       </div>
                     ) : (
                       <div className="p-form-group">

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import PublicSite from './pages/PublicSite';
 import LoginPage from './pages/LoginPage';
-import AdminPortal from './pages/AdminPortal';
-import ClientPortal from './pages/ClientPortal';
-import AccountManagerPortal from './pages/AccountManagerPortal';
+const AdminPortal = lazy(() => import('./pages/AdminPortal'));
+const ClientPortal = lazy(() => import('./pages/ClientPortal'));
+const AccountManagerPortal = lazy(() => import('./pages/AccountManagerPortal'));
 import { 
   CLIENTS_DATA, PROPOSALS_DATA, INVOICES_DATA, 
   BOOKINGS_DATA, EMAIL_QUEUE, HERO_SLIDES,
@@ -457,17 +457,30 @@ export default function App() {
       
       const uDoc = snap.docs[0];
       const uData = uDoc.data();
-      
-      if (uData.password !== password) throw new Error("Incorrect access credentials.");
+      const proxyEmail = `${username}@clients.glasstechfab.com`;
+
+      try {
+        await signInWithEmailAndPassword(auth, proxyEmail, password);
+      } catch (authErr) {
+        if ((authErr.code === 'auth/user-not-found' || authErr.code === 'auth/invalid-credential')) {
+           // Fallback for legacy plain-text passwords or first-time migration
+           if (uData.password === password) {
+             console.log("Migrating client to secure Firebase Auth...");
+             notify('pending', 'Securing account access...');
+             await createUserWithEmailAndPassword(auth, proxyEmail, password);
+             // Update Firestore (don't delete password yet for safety, but we could)
+             await updateDoc(doc(db, 'users', uDoc.id), { password: '[SECURED]' });
+           } else {
+             throw new Error("Invalid access identifier or password.");
+           }
+        } else {
+          throw authErr;
+        }
+      }
       
       const fullUser = { id: uDoc.id, ...uData };
+      delete fullUser.password;
       setUser(fullUser);
-      
-      localStorage.setItem('glasstech_session', JSON.stringify({
-        id: uDoc.id,
-        expiry: Date.now() + (7 * 24 * 60 * 60 * 1000)
-      }));
-      
       navigate('/portal');
       notify('success', `Welcome back, ${uData.name}`);
     } catch (e) {
@@ -520,68 +533,60 @@ export default function App() {
         const sessionRestored = await checkManualSession();
         
         if (sessionUser && !sessionRestored) {
-          // Firebase Auth User found - Check if they are Admin
+          // Firebase Auth User found
           const userRef = doc(db, 'users', sessionUser.uid);
           const userSnap = await getDoc(userRef);
           
           if (userSnap.exists()) {
             const profile = userSnap.data();
-            if (profile.role === 'admin' || sessionUser.email === 'admin@glasstechfab.com') {
+            const isMasterAdmin = sessionUser.email === 'admin@glasstechfab.com' || sessionUser.email === 'admin@stormglide.com';
+            
+            if (profile.role === 'admin' || isMasterAdmin) {
               if (profile.role !== 'admin') {
-                 // Force promote master email
                  await updateDoc(doc(db, 'users', sessionUser.uid), { role: 'admin' });
                  profile.role = 'admin';
               }
               setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
               if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
+            } else if (profile.role === 'client') {
+              setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
+              if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
             } else {
-              // Not an admin - Sign out to prevent session limbo
               if (auth && isFirebaseEnabled) await signOut(auth);
               setUser(null);
-              setNotification({ msg: "Unauthorized: Administrator access required.", type: 'error' });
+              setNotification({ msg: "Unauthorized access.", type: 'error' });
             }
           } else {
-            // Check by email in case of manual doc creation OR First-Time Admin Promotion
+            // Check by email in case of manual doc creation OR proxy emails
             const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
             const snap = await getDocs(q);
             
             if (!snap.empty) {
-              const profile = snap.docs[0].data();
+              const uDoc = snap.docs[0];
+              const profile = uDoc.data();
               if (profile.role === 'admin' || sessionUser.email === 'admin@glasstechfab.com') {
-                if (profile.role !== 'admin') profile.role = 'admin';
-                setUser({ ...sessionUser, ...profile, id: snap.docs[0].id });
-                // Link the Firebase UID to this email-based profile and ensure admin role
+                setUser({ ...sessionUser, ...profile, id: uDoc.id });
                 await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, role: 'admin', id: sessionUser.uid }, { merge: true });
                 if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
+              } else if (profile.role === 'client') {
+                setUser({ ...sessionUser, ...profile, id: uDoc.id });
+                await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
+                if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
               } else {
                 await signOut(auth);
                 setUser(null);
-                setNotification({ msg: "Unauthorized: Administrator access required.", type: 'error' });
+                setNotification({ msg: "Unauthorized access.", type: 'error' });
               }
-            } else {
-              // NO PROFILE FOUND AT ALL - Check if this is the First Admin
-              const adminQuery = query(collection(db, 'users'), where('role', '==', 'admin'));
-              const adminSnap = await getDocs(adminQuery);
-              
-              if (adminSnap.empty) {
-                // FIRST USER AUTOMATIC PROMOTION
-                const newAdmin = {
-                  id: sessionUser.uid,
-                  email: sessionUser.email,
-                  name: sessionUser.displayName || 'Head Admin',
-                  role: 'admin',
-                  createdAt: serverTimestamp()
-                };
-                await setDoc(doc(db, 'users', sessionUser.uid), newAdmin);
-                setUser({ ...sessionUser, ...newAdmin });
-                setNotification({ msg: "LuxeSpace Hub Initialized. Welcome, Admin.", type: 'success' });
-                if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
-              } else {
-                // System already has admins, and this user is not one of them
-                if (auth && isFirebaseEnabled) await signOut(auth);
-                setUser(null);
-                setNotification({ msg: "Access Denied: Account not registered in Staff Terminal.", type: 'error' });
-              }
+            } else if (sessionUser.email?.endsWith('@clients.glasstechfab.com')) {
+               const username = sessionUser.email.split('@')[0];
+               const uq = query(collection(db, 'users'), where('username', '==', username));
+               const usnap = await getDocs(uq);
+               if (!usnap.empty) {
+                 const profile = usnap.docs[0].data();
+                 setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
+                 await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
+                 if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
+               }
             }
           }
         }
@@ -994,26 +999,33 @@ export default function App() {
   
   const createClient = async (data) => {
     try {
-      if (!db) {
-         notify('error', 'Backend Disconnected: No Persistence');
+      if (!db || !auth) {
+         notify('error', 'Authentication service unavailable');
          return;
       }
       
-      const id = data.username || data.phone.replace(/\D/g, ''); 
+      const id = data.username || data.phone.replace(/\D/g, '');
+      const proxyEmail = `${data.username}@clients.glasstechfab.com`;
+      
+      // Create Firebase Auth user
+      await createUserWithEmailAndPassword(auth, proxyEmail, data.password);
+      
       const payload = { 
         ...data, 
         id, 
+        email: data.email || proxyEmail,
         role: 'client', 
         status: 'Active', 
-        joined: new Date().toISOString() 
+        joined: new Date().toISOString(),
+        password: '[SECURED]' // Don't store raw password
       };
       
       await setDoc(doc(db, 'users', id), payload);
-      notify('success', 'Stakeholder profile initialized with secure access.');
-      logAction(null, 'CRM', `Created Client Account: ${data.username} (${data.name})`);
+      notify('success', 'Client account secured and created.');
+      logAction(null, 'CRM', `Created Secure Client Account: ${data.username}`);
     } catch (e) {
       console.error("[CRM] Registration Error:", e);
-      notify('error', 'Failed to register client. Identifier might be in use.');
+      notify('error', e.message.includes('email-already-in-use') ? 'Username already exists.' : 'Failed to register client.');
     }
   };
 
@@ -1262,52 +1274,58 @@ export default function App() {
   return (
     <div className="lxf-platform">
       <div className="mesh-bg" />
-      <Routes>
-        <Route path="/" element={
-          <PublicSite 
-            {...commonProps} 
-            onPortal={(type) => { setLoginType(type); navigate('/login'); }} 
-            onLogoUpload={logoUpload}
-          />
-        } />
-
-        <Route path="/login" element={
-          <LoginPage 
-            brand={brand} 
-            type={loginType} 
-            onBack={() => navigate('/')}
-            onLogin={loginHandler}
-            {...commonProps}
-          />
-        } />
-
-        <Route path="/admin/*" element={
-          user?.role === 'admin' ? (
-            <AdminPortal 
-              user={user} 
-              onLogout={handleLogout} 
-              onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+      <Suspense fallback={
+        <div style={{ background: '#1A1410', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#C8A96E', fontFamily: 'Inter' }}>
+          <div className="pulse" style={{ fontSize: '1.2rem', letterSpacing: '4px', textTransform: 'uppercase' }}>Loading Portal</div>
+        </div>
+      }>
+        <Routes>
+          <Route path="/" element={
+            <PublicSite 
+              {...commonProps} 
+              onPortal={(type) => { setLoginType(type); navigate('/login'); }} 
               onLogoUpload={logoUpload}
-              onThemeChange={async (t) => {
-                setBrand(prev => ({ ...prev, theme: t }));
-                if (db) await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
-              }}
-              {...commonProps} 
             />
-          ) : <Navigate to="/login" />
-        } />
+          } />
 
-        <Route path="/portal/*" element={
-          user?.role === 'client' ? (
-            <ClientPortal 
-              client={clients.find(c => c.email === user.email) || user} 
-              onLogout={handleLogout} 
-              onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
-              {...commonProps} 
+          <Route path="/login" element={
+            <LoginPage 
+              brand={brand} 
+              type={loginType} 
+              onBack={() => navigate('/')}
+              onLogin={loginHandler}
+              {...commonProps}
             />
-          ) : <Navigate to="/login" />
-        } />
-      </Routes>
+          } />
+
+          <Route path="/admin/*" element={
+            user?.role === 'admin' ? (
+              <AdminPortal 
+                user={user} 
+                onLogout={handleLogout} 
+                onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+                onLogoUpload={logoUpload}
+                onThemeChange={async (t) => {
+                  setBrand(prev => ({ ...prev, theme: t }));
+                  if (db) await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
+                }}
+                {...commonProps} 
+              />
+            ) : <Navigate to="/login" />
+          } />
+
+          <Route path="/portal/*" element={
+            user?.role === 'client' ? (
+              <ClientPortal 
+                client={clients.find(c => c.email === user.email) || user} 
+                onLogout={handleLogout} 
+                onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+                {...commonProps} 
+              />
+            ) : <Navigate to="/login" />
+          } />
+        </Routes>
+      </Suspense>
 
       {notification && (
         <div style={{ position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', zIndex: 10000, padding: '12px 24px', borderRadius: 100, background: notification.type === 'error' ? '#EF4444' : '#1A1410', color: '#fff', fontSize: 13, boxShadow: '0 8px 32px rgba(0,0,0,.15)' }}>

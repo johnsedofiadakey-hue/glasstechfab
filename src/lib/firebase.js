@@ -45,7 +45,7 @@ export const uploadFile = async (bucket, path, file) => {
     reader.readAsDataURL(f);
   });
 
-  if (!storage) {
+  if (!storage || !isFirebaseEnabled) {
     return await fileToBase64(file);
   }
   
@@ -54,7 +54,11 @@ export const uploadFile = async (bucket, path, file) => {
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);
   } catch (error) {
-    console.warn("Firebase upload failed (likely due to mock credentials). Falling back to local data encoding.", error);
+    console.error("Firebase Storage Upload Error:", error);
+    // Only fallback if absolutely necessary for demo, but alert the user
+    if (file.size > 500000) { // 500KB limit for Base64 to prevent DB bloat
+       throw new Error("Cloud storage failed and file is too large for local fallback. Please check Firebase permissions.");
+    }
     return await fileToBase64(file);
   }
 };
