@@ -83,7 +83,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
       WebkitBackdropFilter: isDarkText ? 'blur(24px) saturate(180%)' : 'none',
       borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.06)' : 'none',
       transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-      height: scrolled ? 64 : 80, display: 'flex', alignItems: 'center',
+      height: scrolled ? 80 : 120, display: 'flex', alignItems: 'center',
       padding: '0 5vw'
     }}>
       <div style={{ maxWidth: 1800, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -91,7 +91,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         {/* LOGO */}
         <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
-            <img src={brand.logo} alt={brand.name} style={{ height: 48, objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
+            <img src={brand.logo} alt={brand.name} style={{ height: scrolled ? 60 : 84, objectFit: 'contain', filter: isDarkText ? 'none' : 'brightness(0) invert(1)' }} />
           ) : (
             <div className="lxfh" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff', whiteSpace: 'nowrap' }}>
               {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
@@ -403,7 +403,7 @@ export function Hero({ slides, brand, setPage }) {
           }}>
             <div style={{ maxWidth: 1400, width: '100%', margin: '0 auto' }}>
               <div className="afu d1" style={{ marginBottom: 32 }}>
-                 {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 100, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} /> : null}
+                 {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 140, objectFit: 'contain', filter: 'brightness(0) invert(1)' }} /> : null}
               </div>
               <div className="eyebrow lxf afu d1" style={{ color: ac, marginBottom: 24, fontSize: 12, letterSpacing: '0.4em', fontWeight: 800 }}>ESTABLISHED PRECISION</div>
               <h1 className="lxfh afu d2" style={{ 
