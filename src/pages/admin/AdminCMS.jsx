@@ -8,7 +8,7 @@ import { uploadFile } from '../../lib/firebase';
 import { compressImage } from '../../lib/image-utils';
 
 function CMSBranding({ brand, onSave, ac }) {
-  const [f, setF] = useState(brand || {});
+  const [f, setF] = useState({ ...brand });
 
   const handleImageUpload = async (e, field) => {
     const file = e.target.files[0];
@@ -54,7 +54,7 @@ function CMSBranding({ brand, onSave, ac }) {
             ))}
           </div>
         </PFormField>
-        <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '12px 32px', marginTop: 12 }}>Save Branding Identity</button>
+        <button onClick={() => onSave({ ...brand, ...f })} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '12px 32px', marginTop: 12 }}>Save Branding Identity</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <h3 className="lxfh" style={{ fontSize: 20 }}>Logo & Contact</h3>

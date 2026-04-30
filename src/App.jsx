@@ -408,9 +408,8 @@ export default function App() {
     }
     try {
       setLoading(true);
-      const [uSnap, cmsSnap, pSnap, iSnap] = await Promise.all([
+      const [uSnap, pSnap, iSnap] = await Promise.all([
         getDocs(collection(db, 'users')),
-        getDocs(collection(db, 'cms_content')),
         getDocs(collection(db, 'proposals')),
         getDocs(collection(db, 'invoices'))
       ]);
@@ -418,15 +417,6 @@ export default function App() {
       const allUsers = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
       setClients(allUsers.filter(u => u.role === 'client'));
       setTeamMembers(allUsers.filter(u => u.role !== 'client'));
-
-      const newContent = { ...content };
-      cmsSnap.docs.forEach(doc => {
-        if (doc.data().content) {
-          newContent[doc.id] = doc.data().content;
-        }
-      });
-      setContent(newContent);
-      if (newContent.brand) setBrand(newContent.brand);
 
       setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
