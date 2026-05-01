@@ -478,6 +478,8 @@ export function Hero({ slides, brand, setPage }) {
 }
 
 export function ServicesPreview({ brand, setPage, content }) {
+  const winW = useWindowWidth();
+  const mob = isMob(winW);
   const ac = brand.color || '#C8A96E';
   
   const getIcon = (name, size = 32) => {
