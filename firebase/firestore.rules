@@ -8,10 +8,13 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isAuthenticated() && (
+        request.auth.token.email.matches(".*@glasstechfab.com") ||
+        request.auth.token.email == "contact@glasstech.com.gh" ||
+        request.auth.token.email == "admin@glasstechfab.com"
+      );
     }
-    
+
     function isOwner(clientId) {
       return isAuthenticated() && request.auth.uid == clientId;
     }
@@ -53,13 +56,14 @@ service cloud.firestore {
     
     match /proposals/{proposalId} {
       allow read, write: if isAdmin();
-    }
-
+    }    
     match /cms_content/{docId} {
-      allow read: if true; // Public can read site content
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
+    match /settings/{docId} {
+       allow read, write: if true;
+    }
     match /notifications/{notifId} {
       allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
       allow create: if true; // System-wide notifications

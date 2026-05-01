@@ -181,6 +181,12 @@ export default function App() {
           } else {
             newContent[doc.id] = c;
           }
+          // 🖼️ AUTO-REPAIR: If logo is missing in DB, force the official one
+          if (doc.id === 'brand' && !c.logo) {
+            const upgraded = { ...c, logo: '/logo.png' };
+            syncCMS('brand', upgraded);
+            newContent[doc.id] = upgraded;
+          }
         }
       });
       setContent(newContent);

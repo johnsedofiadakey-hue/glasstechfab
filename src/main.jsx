@@ -15,10 +15,22 @@ class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 40, fontFamily: 'monospace', color: 'red', background: '#fff' }}>
-          <h1>Something went wrong.</h1>
-          <pre>{this.state.error?.toString()}</pre>
-          <button onClick={() => window.location.reload()}>Reload</button>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F8F6F3', fontFamily: 'sans-serif', padding: 40 }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: '#1A1410', marginBottom: 8 }}>Something went wrong</h1>
+          <p style={{ color: '#888', fontSize: 13, marginBottom: 24, textAlign: 'center', maxWidth: 400 }}>
+            An unexpected error occurred. Please reload the page. If this keeps happening, contact support.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ padding: '12px 28px', background: '#1A1410', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.05em' }}>
+            Reload Page
+          </button>
+          {process.env.NODE_ENV === 'development' && (
+            <pre style={{ marginTop: 24, fontSize: 11, color: '#cc0000', background: '#fff', padding: 16, borderRadius: 8, maxWidth: 600, overflow: 'auto', textAlign: 'left' }}>
+              {this.state.error?.toString()}
+            </pre>
+          )}
         </div>
       );
     }

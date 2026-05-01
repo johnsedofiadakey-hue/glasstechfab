@@ -1,4 +1,16 @@
 import React, { useState, useEffect } from 'react';
+
+// ── useWindowWidth: safe reactive window width hook ──────────────────────────
+function useWindowWidth() {
+  const [width, setWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler, { passive: true });
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return width;
+}
+const isMob = (w) => w <= 900;
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -53,6 +65,8 @@ const BA = ({ before, after, h = 300 }) => {
 
 export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, setMenuOpen, currency, setCurrency }) {
   const [scrolled, setScrolled] = useState(false);
+  const winW = useWindowWidth();
+  const mob = isMob(winW);
   const ac = brand.color || '#B08D57';
 
   useEffect(() => {
@@ -63,8 +77,9 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
 
   const links = [
     { n: 'Home', id: 'home' },
-    { n: 'Services', id: 'services' },
-    { n: 'Marketplace', id: 'marketplace' },
+    { n: 'What We Do', id: 'services' },
+    { n: 'Products', id: 'products', badge: 'NEW' },
+    { n: 'Projects', id: 'portfolio' },
     { n: 'About', id: 'about' },
     { n: 'Contact', id: 'contact' }
   ];
@@ -81,7 +96,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
       WebkitBackdropFilter: isDarkText ? 'blur(24px) saturate(180%)' : 'none',
       borderBottom: scrolled || forceSolid ? '1px solid rgba(0,0,0,0.06)' : 'none',
       transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-      height: window.innerWidth <= 900 ? (scrolled ? 60 : 80) : (scrolled ? 80 : 120), display: 'flex', alignItems: 'center',
+      height: mob ? (scrolled ? 60 : 80) : (scrolled ? 80 : 120), display: 'flex', alignItems: 'center',
       padding: '0 5vw'
     }}>
       <div style={{ maxWidth: 1800, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -89,7 +104,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         {/* LOGO */}
         <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
-            <img src={brand.logo} alt={brand.name} style={{ height: window.innerWidth <= 900 ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain' }} />
+            <img src={brand.logo} alt={brand.name} style={{ height: mob ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain' }} />
           ) : (
             <div className="lxfh" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff', whiteSpace: 'nowrap' }}>
               {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
@@ -106,8 +121,12 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
                 color: activePage === l.id ? ac : (isDarkText ? '#1A1410' : '#ffffff'),
                 textTransform: 'uppercase', letterSpacing: '0.22em', transition: 'all 0.3s',
                 opacity: activePage === l.id ? 1 : 0.65, whiteSpace: 'nowrap', padding: '4px 0',
-                borderBottom: activePage === l.id ? `2px solid ${ac}` : '2px solid transparent'
-              }}>{l.n}</button>
+                borderBottom: activePage === l.id ? `2px solid ${ac}` : '2px solid transparent',
+                position: 'relative'
+              }}>
+                {l.n}
+                {l.badge && <span style={{ position: 'absolute', top: -6, right: -10, fontSize: 7, background: ac, color: '#fff', borderRadius: 100, padding: '1px 5px', fontWeight: 800 }}>{l.badge}</span>}
+              </button>
             ))}
             <select 
               value={currency} 
@@ -295,7 +314,7 @@ export function PubBottomNav({ activePage, setPage, brand }) {
   const items = [
     { n: 'Home', id: 'home', i: <Home size={20} /> },
     { n: 'Services', id: 'services', i: <Layout size={20} /> },
-    { n: 'Marketplace', id: 'marketplace', i: <Package size={20} /> },
+    { n: 'Products', id: 'products', i: <Package size={20} /> },
     { n: 'Contact', id: 'contact', i: <Mail size={20} /> }
   ];
 
@@ -334,8 +353,8 @@ export function Footer({ brand, setPage, onPortal }) {
           <div>
             <div className="eyebrow lxf" style={{ color: '#fff', marginBottom: 24 }}>Navigation</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Home', 'Services', 'Marketplace', 'About', 'Contact'].map(n => (
-                <button key={n} onClick={() => setPage(n.toLowerCase())} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
+              {['Home', 'Services', 'Products', 'About', 'Contact'].map(n => (
+                <button key={n} onClick={() => setPage(n.toLowerCase().replace(' ', '-'))} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
               ))}
             </div>
           </div>
@@ -420,7 +439,7 @@ export function Hero({ slides, brand, setPage }) {
                 ))}
               </h1>
               <div className="afu d3" style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-                <button onClick={() => setPage('marketplace')} className="p-btn-dark lxf" style={{ padding: '20px 48px', fontSize: 13, background: '#fff', color: '#0D0B09', borderRadius: 16 }}>Explore Marketplace</button>
+                <button onClick={() => setPage('products')} className="p-btn-dark lxf" style={{ padding: '20px 48px', fontSize: 13, background: '#fff', color: '#0D0B09', borderRadius: 16 }}>Browse Products</button>
                 <button onClick={() => setPage('contact')} className="lxf glass-panel" style={{ padding: '20px 48px', color: '#fff', fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer' }}>Project Consultation</button>
               </div>
             </div>
@@ -494,7 +513,7 @@ export function ServicesPreview({ brand, setPage, content }) {
         </div>
         <div className="res-grid-3">
           {services.slice(0, 6).map((s, i) => (
-            <div key={i} className="p-card rev d1" style={{ padding: window.innerWidth <= 900 ? '48px 24px' : '80px 48px', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.6)' }}>
+            <div key={i} className="p-card rev d1" style={{ padding: mob ? '48px 24px' : '80px 48px', background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.6)' }}>
               <div style={{ color: ac, marginBottom: 40, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{getIcon(s.name, 32)}</div>
               <h3 className="lxfh" style={{ fontSize: 28, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.name}</h3>
               <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.desc}</p>
@@ -511,6 +530,8 @@ export function ServicesPreview({ brand, setPage, content }) {
 
 export function HomePage({ brand, setPage, content }) {
   const slides = content.hero.slides || [];
+  const winW = useWindowWidth();
+  const mob = isMob(winW);
   
   useEffect(() => {
     const ob = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle('in', e.isIntersecting)), { threshold: .08 });
@@ -525,7 +546,7 @@ export function HomePage({ brand, setPage, content }) {
       <section className="m-px" style={{ background: '#0D0B09' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', display: 'flex', flexWrap: 'wrap', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           {[['250+', 'Projects Delivered'], ['8', 'Years Experience'], ['15', 'Finishing Specialists'], ['$12M+', 'Ecosystem Value']].map(([n, l], i) => (
-            <div key={l} style={{ flex: 1, minWidth: window.innerWidth <= 900 ? '50%' : 200, textAlign: 'left', padding: window.innerWidth <= 900 ? '40px 20px' : '80px 40px', borderRight: (i % 2 !== 1 || window.innerWidth > 900) && i < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none', borderBottom: window.innerWidth <= 900 && i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+            <div key={l} style={{ flex: 1, minWidth: mob ? '50%' : 200, textAlign: 'left', padding: mob ? '40px 20px' : '80px 40px', borderRight: (i % 2 !== 1 || !mob) && i < 3 ? '1px solid rgba(255,255,255,0.05)' : 'none', borderBottom: mob && i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
               <div className="lxfh" style={{ fontSize: 64, color: brand.color || '#C8A96E', fontWeight: 300, letterSpacing: '-0.04em' }}>{n}</div>
               <div className="lxf" style={{ fontSize: 12, letterSpacing: '.25em', textTransform: 'uppercase', color: 'rgba(249,247,244,0.4)', marginTop: 12, fontWeight: 700 }}>{l}</div>
             </div>
@@ -534,6 +555,45 @@ export function HomePage({ brand, setPage, content }) {
       </section>
 
       <ServicesPreview brand={brand} setPage={setPage} content={content} />
+
+      {/* ── GLASS CATALOG TEASER ── */}
+      <section style={{ padding: mob ? '80px 5vw' : '120px 5vw', background: '#0D0B09', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/glass/thumbs/Q3_sliding_door.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.18 }} />
+        <div style={{ maxWidth: 1200, margin: '0 auto', position: 'relative', display: 'grid', gridTemplateColumns: mob ? '1fr' : '1fr 1fr', gap: mob ? 40 : 80, alignItems: 'center' }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 800, color: brand.color || '#C8A96E', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 16 }}>Now Available</div>
+            <h2 style={{ fontSize: mob ? 32 : 48, fontWeight: 900, color: '#fff', margin: '0 0 20px', lineHeight: 1.1, letterSpacing: '-0.03em' }}>
+              Premium Glass &<br /><span style={{ color: brand.color || '#C8A96E' }}>Aluminum Systems</span>
+            </h2>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.8, margin: '0 0 40px', maxWidth: 440 }}>
+              Browse our full catalog of 35+ thermalbreak windows, sliding doors, folding systems, 
+              pivot entries, sunrooms, and shower enclosures — directly sourced from ISO9001-certified manufacturing.
+            </p>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <button onClick={() => setPage('products')} style={{ padding: mob ? '14px 28px' : '18px 40px', background: brand.color || '#C8A96E', color: '#1A1410', border: 'none', borderRadius: 12, fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}>
+                Browse Glass Catalog →
+              </button>
+              <button onClick={() => setPage('contact')} style={{ padding: mob ? '14px 28px' : '18px 40px', background: 'transparent', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', cursor: 'pointer' }}>
+                Request Quote
+              </button>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {[
+              { img: '/glass/thumbs/S6_casement.jpg', label: 'Casement Windows' },
+              { img: '/glass/thumbs/Q3_sliding_door.jpg', label: 'Sliding Doors' },
+              { img: '/glass/thumbs/93_folding_door.jpg', label: 'Folding Systems' },
+              { img: '/glass/thumbs/138_sunroom.jpg', label: 'Sunrooms' },
+            ].map(({ img, label }) => (
+              <div key={label} onClick={() => setPage('products')} style={{ borderRadius: 12, overflow: 'hidden', cursor: 'pointer', position: 'relative', height: 120 }}>
+                <img src={img} alt={label} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%)' }} />
+                <div style={{ position: 'absolute', bottom: 10, left: 12, fontSize: 10, fontWeight: 700, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section style={{ padding: '160px 5vw', background: '#fff', borderTop: '1px solid rgba(0,0,0,0.05)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'left' }}>
@@ -601,6 +661,7 @@ export function HomePage({ brand, setPage, content }) {
 }
 
 export function ServicesPage({ brand, setPage, content }) {
+  const winW = useWindowWidth(); const mob = isMob(winW);
   const ac = brand.color || '#C8A96E';
   
   const getIcon = (name, size = 40) => {
@@ -634,11 +695,11 @@ export function ServicesPage({ brand, setPage, content }) {
         <div style={{ maxWidth: 1600, margin: '0 auto' }}>
           <div className="res-grid">
             {services.map((s, i) => (
-              <div key={i} className="p-card magnetic-card" style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1fr 1fr', gap: 0, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 32, overflow: 'hidden' }}>
-                <div style={{ height: window.innerWidth <= 900 ? 300 : '100%', minHeight: window.innerWidth <= 900 ? 300 : 450 }}>
+              <div key={i} className="p-card magnetic-card" style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : '1fr 1fr', gap: 0, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(30px)', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 32, overflow: 'hidden' }}>
+                <div style={{ height: mob ? 300 : '100%', minHeight: mob ? 300 : 450 }}>
                   <img src={s.img} alt={s.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
-                <div style={{ padding: window.innerWidth <= 900 ? '32px 24px' : '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ padding: mob ? '32px 24px' : '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ color: ac, marginBottom: 32, width: 64, height: 64, borderRadius: 20, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{getIcon(s.name, 40)}</div>
                   <h3 className="lxfh" style={{ fontSize: 32, marginBottom: 20, letterSpacing: '-0.02em' }}>{s.name}</h3>
                   <p className="lxf" style={{ fontSize: 16, color: '#6A635C', lineHeight: 1.8, marginBottom: 40 }}>{s.desc}</p>
@@ -655,21 +716,22 @@ export function ServicesPage({ brand, setPage, content }) {
 
 
 export function ProjectDetailPage({ projectId, brand, setPage, content }) {
+  const winW = useWindowWidth(); const mob = isMob(winW);
   const ac = brand.color || '#B08D57';
   const portfolio = content.portfolio || [];
   const p = portfolio.find(x => x.id === parseInt(projectId));
   if (!p) return <div style={{ color: '#888', padding: 80, textAlign: 'center', paddingTop: 180 }}>Project not found</div>;
 
   return (
-    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: window.innerWidth <= 900 ? 60 : 90 }}>
+    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: mob ? 60 : 90 }}>
       <div className="m-px" style={{ maxWidth: 1400, margin: '0 auto', paddingBottom: 60, paddingTop: 60 }}>
-        <button onClick={() => setPage('marketplace')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40, padding: 0 }} className="hover-ac">
-          <ArrowLeft size={16} /> Back to Marketplace
+        <button onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40, padding: 0 }} className="hover-ac">
+          <ArrowLeft size={16} /> Back to Products
         </button>
-        <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1.5fr 1fr', gap: window.innerWidth <= 900 ? 40 : 80, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : '1.5fr 1fr', gap: mob ? 40 : 80, alignItems: 'start' }}>
           <div>
             <div style={{ marginBottom: 12 }}>
-              {p.hasBA ? <BA before={p.before} after={p.after} h={window.innerWidth <= 900 ? 300 : 600} /> : <div style={{ height: window.innerWidth <= 900 ? 300 : 600, overflow: 'hidden', borderRadius: 2 }}><img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
+              {p.hasBA ? <BA before={p.before} after={p.after} h={mob ? 300 : 600} /> : <div style={{ height: mob ? 300 : 600, overflow: 'hidden', borderRadius: 2 }}><img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 12 }}>
               {p.imgs && p.imgs.map((img, i) => (
@@ -809,6 +871,7 @@ function MarketplaceInquiryModal({ product, onClose, onSubmit, brand }) {
 }
 
 export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry, formatPrice }) {
+  const winW = useWindowWidth(); const mob = isMob(winW);
   const ac = brand.color || '#C8A96E';
   const products = content.products || [];
   const [filter, setFilter] = useState('All');
@@ -817,7 +880,7 @@ export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry,
   const shown = filter === 'All' ? products : products.filter(p => p.cat === filter);
 
   return (
-    <div className="pub-page" style={{ background: '#F9F7F4', paddingTop: window.innerWidth <= 900 ? 60 : 90, minHeight: '100vh' }}>
+    <div className="pub-page" style={{ background: '#F9F7F4', paddingTop: mob ? 60 : 90, minHeight: '100vh' }}>
       <section className="m-py m-px" style={{ background: '#0D0B09', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: '-50%', left: '-10%', width: '50vw', height: '50vw', background: `radial-gradient(circle, ${ac}20 0%, transparent 70%)`, filter: 'blur(80px)' }} />
         <div style={{ maxWidth: 1600, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -825,7 +888,7 @@ export function CatalogPage({ brand, setPage, content, submitMarketplaceInquiry,
           <h1 className="lxfh afu d2" style={{ fontSize: 'clamp(48px, 8vw, 120px)', color: '#fff', fontWeight: 300, lineHeight: 0.9, letterSpacing: '-0.04em' }}>
             Industrial & <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Structural</em> Assets
           </h1>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: window.innerWidth <= 900 ? 32 : 64 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: mob ? 32 : 64 }}>
             {cats.map(c => (
               <button key={c} onClick={() => setFilter(c)} className="lxf glass-panel" style={{
                 padding: '12px 24px', fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase',
@@ -1020,7 +1083,7 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
   const render = () => {
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
-    if (p === 'catalog' || p === 'marketplace') return <CatalogPage brand={brand} setPage={setPage} content={content} submitMarketplaceInquiry={props.submitMarketplaceInquiry} formatPrice={props.formatPrice} currency={props.currency} />;
+    if (p === 'products' || p === 'catalog' || p === 'marketplace') { setPage('products'); return null; }  // handled by router
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
     if (p === 'contact') return <ContactPage brand={brand} />;
     if (p.startsWith('project-')) return <ProjectDetailPage projectId={p.split('-')[1]} brand={brand} setPage={setPage} content={content} />;
