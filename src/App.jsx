@@ -4,6 +4,8 @@ import LoginPage from './pages/LoginPage';
 const AdminPortal = lazy(() => import('./pages/AdminPortal'));
 const ClientPortal = lazy(() => import('./pages/ClientPortal'));
 const AccountManagerPortal = lazy(() => import('./pages/AccountManagerPortal'));
+const ProductsHub = lazy(() => import('./pages/ProductsHub'));
+const GlassCatalog = lazy(() => import('./pages/GlassCatalog'));
 import { 
   CLIENTS_DATA, PROPOSALS_DATA, INVOICES_DATA, 
   BOOKINGS_DATA, EMAIL_QUEUE, HERO_SLIDES,
@@ -1498,6 +1500,9 @@ export default function App() {
               onLogoUpload={logoUpload}
             />
           } />
+
+          <Route path="/products" element={<ProductsHub {...commonProps} />} />
+          <Route path="/catalog" element={<GlassCatalog {...commonProps} />} />
 
           <Route path="/login" element={
             <LoginPage 

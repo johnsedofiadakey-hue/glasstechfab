@@ -77,7 +77,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
 
   const links = [
     { n: 'Home', id: 'home' },
-    { n: 'What We Do', id: 'services' },
+    { n: 'Services', id: 'services' },
     { n: 'Products', id: 'products', badge: 'NEW' },
     { n: 'Projects', id: 'portfolio' },
     { n: 'About', id: 'about' },
@@ -116,7 +116,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         <div style={{ display: 'flex', alignItems: 'center', gap: 48 }} className="dt-flex">
           <div style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
             {links.map(l => (
-              <button key={l.id} onClick={() => setPage(l.id)} className="lxf" style={{
+              <button key={l.id} onClick={() => l.id === 'products' ? navigate('/products') : setPage(l.id)} className="lxf" style={{
                 background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
                 color: activePage === l.id ? ac : (isDarkText ? '#1A1410' : '#ffffff'),
                 textTransform: 'uppercase', letterSpacing: '0.22em', transition: 'all 0.3s',
@@ -344,7 +344,7 @@ export function Footer({ brand, setPage, onPortal }) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 60, marginBottom: 80 }}>
           <div>
             {brand.logo ? (
-              <img src={brand.logo} alt={brand.name} style={{ height: 60, objectFit: 'contain', marginBottom: 20 }} />
+              <img src={brand.logo} alt={brand.name} style={{ height: 60, objectFit: 'contain', marginBottom: 20, filter: 'brightness(0) invert(1)' }} />
             ) : (
               <div className="lxfh" style={{ fontSize: 32, fontWeight: 700, marginBottom: 20 }}>{brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span></div>
             )}
@@ -353,8 +353,8 @@ export function Footer({ brand, setPage, onPortal }) {
           <div>
             <div className="eyebrow lxf" style={{ color: '#fff', marginBottom: 24 }}>Navigation</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Home', 'Services', 'Products', 'About', 'Contact'].map(n => (
-                <button key={n} onClick={() => setPage(n.toLowerCase().replace(' ', '-'))} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
+              {['Home', 'Services', 'Products', 'Projects', 'About', 'Contact'].map(n => (
+                <button key={n} onClick={() => n === 'Products' ? navigate('/products') : setPage(n.toLowerCase())} style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
               ))}
             </div>
           </div>
