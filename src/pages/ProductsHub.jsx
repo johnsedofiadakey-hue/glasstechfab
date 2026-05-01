@@ -600,6 +600,9 @@ export default function ProductsHub({ brand, setPage, submitInquiry, formatPrice
       <div style={{ background: DARK, paddingTop: mob ? 80 : 120, paddingBottom: mob ? 40 : 56, position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, opacity: 0.03, backgroundImage: 'repeating-linear-gradient(45deg, #C8A96E 0, #C8A96E 1px, transparent 0, transparent 50%)', backgroundSize: '20px 20px' }} />
         <div style={{ maxWidth: 1300, margin: '0 auto', padding: '0 5vw', position: 'relative' }}>
+          <button onClick={() => setPage('home')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, padding: 0, marginBottom: 32 }}>
+            <ArrowRight size={14} style={{ transform: 'rotate(180deg)' }} /> Back to Home
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
             <div>
               <div style={{ fontSize: 10, fontWeight: 800, color: ac, textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: 10 }}>

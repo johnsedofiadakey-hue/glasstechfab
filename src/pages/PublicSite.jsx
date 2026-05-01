@@ -63,7 +63,7 @@ const BA = ({ before, after, h = 300 }) => {
   );
 };
 
-export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, setMenuOpen, currency, setCurrency }) {
+export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, setMenuOpen, currency, setCurrency, navigate }) {
   const [scrolled, setScrolled] = useState(false);
   const winW = useWindowWidth();
   const mob = isMob(winW);
@@ -104,7 +104,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         {/* LOGO */}
         <div onClick={() => { navigate('/'); setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
-            <img src={brand.logo} alt={brand.name} style={{ height: mob ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain' }} />
+            <img src={brand.logo} alt={brand.name} style={{ height: mob ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain', mixBlendMode: 'multiply' }} />
           ) : (
             <div className="lxfh" style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.04em', color: isDarkText ? '#1A1410' : '#ffffff', whiteSpace: 'nowrap' }}>
               {brand.name || 'GLASSTECH'}<span style={{ color: ac }}>.</span>
@@ -343,7 +343,7 @@ export function PubBottomNav({ activePage, setPage, brand }) {
   );
 }
 
-export function Footer({ brand, setPage, onPortal }) {
+export function Footer({ brand, setPage, onPortal, navigate }) {
   const ac = brand.color || '#B08D57';
   return (
     <footer style={{ background: '#121212', color: '#ffffff', padding: '100px 24px 60px' }}>
@@ -723,6 +723,41 @@ export function ServicesPage({ brand, setPage, content }) {
   );
 }
 
+export function PortfolioPage({ brand, setPage, content }) {
+  const winW = useWindowWidth(); const mob = isMob(winW);
+  const ac = brand.color || '#C8A96E';
+  const portfolio = content.portfolio || [];
+
+  return (
+    <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: 120, minHeight: '100vh' }}>
+      <div className="m-px" style={{ maxWidth: 1400, margin: '0 auto' }}>
+        <div className="eyebrow lxf" style={{ color: ac, marginBottom: 24, fontWeight: 800 }}>SHOWCASE</div>
+        <h1 className="lxfh" style={{ fontSize: 'clamp(40px, 6vw, 80px)', color: '#1A1410', fontWeight: 300, lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 60 }}>
+          Recent <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Projects</em>.
+        </h1>
+
+        <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(auto-fill, minmax(400px, 1fr))', gap: 32 }}>
+          {portfolio.map((p, i) => (
+            <div key={i} className="p-card rev d1" onClick={() => setPage(`project-${p.id}`)} style={{ cursor: 'pointer', borderRadius: 24, overflow: 'hidden', background: '#fff', border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ height: 300, overflow: 'hidden' }}>
+                <img src={p.after} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <div style={{ padding: 32 }}>
+                <div style={{ fontSize: 10, color: ac, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.2em', marginBottom: 12 }}>{p.cat}</div>
+                <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 12 }}>{p.title}</h3>
+                <p className="lxf" style={{ fontSize: 14, color: '#666', lineHeight: 1.6, marginBottom: 24 }}>{p.desc}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="lxf" style={{ fontSize: 12, fontWeight: 600 }}>View Case Study</span>
+                  <ArrowRight size={16} color={ac} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   const winW = useWindowWidth(); const mob = isMob(winW);
@@ -734,8 +769,8 @@ export function ProjectDetailPage({ projectId, brand, setPage, content }) {
   return (
     <div className="pub-page" style={{ background: '#FDFCFB', paddingTop: mob ? 60 : 90 }}>
       <div className="m-px" style={{ maxWidth: 1400, margin: '0 auto', paddingBottom: 60, paddingTop: 60 }}>
-        <button onClick={() => setPage('products')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40, padding: 0 }} className="hover-ac">
-          <ArrowLeft size={16} /> Back to Products
+        <button onClick={() => setPage('portfolio')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 40, padding: 0 }} className="hover-ac">
+          <ArrowLeft size={16} /> Back to Projects
         </button>
         <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : '1.5fr 1fr', gap: mob ? 40 : 80, alignItems: 'start' }}>
           <div>
@@ -1092,7 +1127,8 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
   const render = () => {
     if (p === 'home') return <HomePage brand={brand} setPage={setPage} content={content} />;
     if (p === 'services') return <ServicesPage brand={brand} setPage={setPage} content={content} />;
-    if (p === 'products' || p === 'catalog' || p === 'marketplace') { setPage('products'); return null; }  // handled by router
+    if (p === 'portfolio' || p === 'projects') return <PortfolioPage brand={brand} setPage={setPage} content={content} />;
+    if (p === 'products' || p === 'catalog' || p === 'marketplace') { navigate('/products'); return null; } 
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
     if (p === 'contact') return <ContactPage brand={brand} />;
     if (p.startsWith('project-')) return <ProjectDetailPage projectId={p.split('-')[1]} brand={brand} setPage={setPage} content={content} />;
@@ -1101,10 +1137,10 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
 
   return (
     <div style={{ background: '#FDFCFB' }}>
-      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} user={user} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <PubNav brand={brand} setPage={setPage} activePage={p} onPortal={onPortal} user={user} menuOpen={menuOpen} setMenuOpen={setMenuOpen} navigate={props.navigate} />
       {render()}
       {!menuOpen && <PubBottomNav brand={brand} setPage={setPage} activePage={p} />}
-      <Footer brand={brand} setPage={setPage} onPortal={onPortal} />
+      <Footer brand={brand} setPage={setPage} onPortal={onPortal} navigate={props.navigate} />
     </div>
   );
 }
