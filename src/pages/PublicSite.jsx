@@ -102,7 +102,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
       <div style={{ maxWidth: 1800, width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         
         {/* LOGO */}
-        <div onClick={() => { setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
+        <div onClick={() => { navigate('/'); setPage('home'); setMenuOpen(false); }} style={{ cursor: 'pointer', zIndex: 1001, flexShrink: 0 }}>
           {brand.logo ? (
             <img src={brand.logo} alt={brand.name} style={{ height: mob ? (scrolled ? 40 : 56) : (scrolled ? 60 : 84), objectFit: 'contain' }} />
           ) : (
@@ -111,6 +111,13 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
             </div>
           )}
         </div>
+
+        {/* MOBILE TOGGLE */}
+        {mob && (
+          <button onClick={() => setMenuOpen(!menuOpen)} style={{ background: 'none', border: 'none', color: isDarkText ? '#1A1410' : '#ffffff', cursor: 'pointer', zIndex: 1001 }}>
+            {menuOpen ? <X size={28} /> : <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end' }}><div style={{ width: 28, height: 2, background: 'currentColor' }} /><div style={{ width: 20, height: 2, background: 'currentColor' }} /></div>}
+          </button>
+        )}
 
         {/* DESKTOP NAV */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 48 }} className="dt-flex">
@@ -250,7 +257,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
               return (
                 <button 
                   key={l.id} 
-                  onClick={() => { setPage(l.id); setMenuOpen(false); }} 
+                  onClick={() => { l.id === 'products' ? navigate('/products') : setPage(l.id); setMenuOpen(false); }} 
                   className="lxfh" 
                   style={{
                     background: isActive ? `${ac}10` : 'none',

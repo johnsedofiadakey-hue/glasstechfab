@@ -1373,7 +1373,7 @@ export default function App() {
 
   const commonProps = {
     handleLogout,
-    page, setPage,
+    page, setPage, navigate,
     brand, setBrand, content, setContent,
     clients, updateProject: syncProjects,
     dbClients, setDbClients,
