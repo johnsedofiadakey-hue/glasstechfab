@@ -7,8 +7,9 @@ import {
   Mail, MessageSquare, ExternalLink, QrCode, Globe, Settings,
   CreditCard, Layout, Eye, Save, X, Layers, Briefcase, Package
 } from 'lucide-react';
-import { PAv, PSBadge, SBadge, FF as PFormField, Modal } from '../../components/Shared';
+import { PAv, PSBadge, SBadge, FF as PFormField, Modal, Av } from '../../components/Shared';
 import PulseTargetCard from '../../components/PulseTargetCard';
+import { GLASS_CATALOG_DATA } from '../../data.jsx';
 
 /**
  * GLASSTECH FINANCIAL ENGINE v3.0 - DUAL CURRENCY & UNIT INVOICING
@@ -210,8 +211,13 @@ export default function AdminFinancials({ invoices = [], transactions = [], clie
               {inv.items.map((it, idx) => (
                 <tr key={it.id} style={{ borderBottom: '1px solid #F0EBE5' }}>
                    <td style={{ padding: '18px 20px' }}>
-                      <div style={{ fontSize: 14, fontWeight: 700 }}>{it.desc || 'Standard Glazing Work'}</div>
-                      <div style={{ fontSize: 11, opacity: 0.5, marginTop: 4 }}>Precision manufacturing & site installation</div>
+                      <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                        {it.img && <img src={it.img} style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'contain', background: '#f9f7f4' }} alt="it" />}
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 700 }}>{it.desc || 'Standard Glazing Work'}</div>
+                          <div style={{ fontSize: 11, opacity: 0.5, marginTop: 4 }}>Precision manufacturing & site installation</div>
+                        </div>
+                      </div>
                    </td>
                    <td style={{ padding: '18px 20px', textAlign: 'center', fontSize: 14, fontWeight: 600 }}>{it.qty} {inv.invoiceType === 'unit' ? (it.unit || 'pcs') : ''}</td>
                    <td style={{ padding: '18px 20px', textAlign: 'right', fontSize: 14 }}>{formatMoney(it.rate, inv.currency)}</td>
@@ -588,8 +594,47 @@ export default function AdminFinancials({ invoices = [], transactions = [], clie
                   <div style={{ border: '1px solid #F0EBE5', borderRadius: 20, padding: 24, background: '#FDFCFB' }}>
                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
                         <h4 className="lxf" style={{ fontSize: 11, textTransform: 'uppercase', color: '#B5AFA9', letterSpacing: 1 }}>Line Item Breakdown</h4>
-                        <button onClick={() => setDraft({...draft, items: [...draft.items, {id: Date.now(), desc:'', qty:1, rate:0, unit: draft.invoiceType === 'unit' ? 'pcs' : 'job'}]})} style={{ background: ac, border: 'none', color: '#fff', fontSize: 10, fontWeight: 800, cursor: 'pointer', padding: '6px 14px', borderRadius: 20 }}>+ ADD LINE</button>
+                        <button onClick={() => setDraft({...draft, items: [...draft.items, {id: Date.now(), desc:'', qty:1, rate:0, unit: draft.invoiceType === 'unit' ? 'pcs' : 'job'}]})} style={{ background: ac, border: 'none', color: '#fff', fontSize: 10, fontWeight: 800, cursor: 'pointer', padding: '6px 14px', borderRadius: 20 }}>+ ADD BLANK</button>
                      </div>
+                     
+                     {draft.invoiceType === 'unit' && (
+                       <div style={{ marginBottom: 20, padding: 12, background: '#fff', borderRadius: 12, border: '1px solid #eee' }}>
+                          <div style={{ fontSize: 10, fontWeight: 900, color: ac, marginBottom: 12, letterSpacing: 1 }}>SMART COMPONENT SELECTOR</div>
+                          <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 10 }} className="no-scrollbar">
+                             {GLASS_CATALOG_DATA.slice(0, 12).map(p => (
+                               <button 
+                                 key={p.id} 
+                                 onClick={() => {
+                                   const newItem = {
+                                      id: Date.now(),
+                                      desc: p.name,
+                                      img: p.img,
+                                      qty: 1,
+                                      rate: p.price || 0,
+                                      unit: 'pcs'
+                                   };
+                                   // If first item is empty, replace it
+                                   if (draft.items.length === 1 && !draft.items[0].desc) {
+                                      setDraft({...draft, items: [newItem]});
+                                   } else {
+                                      setDraft({...draft, items: [...draft.items, newItem]});
+                                   }
+                                 }}
+                                 style={{ 
+                                   flex: '0 0 120px', height: 140, background: '#F9F7F4', borderRadius: 12, border: 'none', 
+                                   display: 'flex', flexDirection: 'column', padding: 10, cursor: 'pointer', transition: 'all 0.3s'
+                                 }}
+                                 className="hover-lift"
+                               >
+                                  <img src={p.img} style={{ width: '100%', height: 60, objectFit: 'contain', marginBottom: 8 }} alt={p.name} />
+                                  <div style={{ fontSize: 9, fontWeight: 800, textAlign: 'left', lineHeight: 1.2, height: 22, overflow: 'hidden' }}>{p.name}</div>
+                                  <div style={{ fontSize: 10, fontWeight: 900, color: ac, marginTop: 'auto', textAlign: 'left' }}>${p.price}</div>
+                               </button>
+                             ))}
+                          </div>
+                       </div>
+                     )}
+
                      {draft.items.map((it, idx) => (
                        <div key={it.id} style={{ display: 'grid', gridTemplateColumns: `1fr 70px ${draft.invoiceType === 'unit' ? '70px' : ''} 120px 40px`, gap: 12, marginBottom: 12 }}>
                           <input className="p-inp" placeholder="Description" value={it.desc} onChange={e => { const ni = [...draft.items]; ni[idx].desc = e.target.value; setDraft({...draft, items: ni}); }} />

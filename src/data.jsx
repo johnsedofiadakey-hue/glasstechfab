@@ -32,7 +32,7 @@ export const ABOUT_DATA = {
   storyTitle: 'Crafting the Future of Structural Glass & Interiors',
   story: 'Under the leadership of John Dakey, Managing Director, Glasstech Fabrications has evolved from a structural glass specialist into Ghana’s premier hub for complete interior finishing. Our mission is to bridge the gap between industrial engineering and luxury design.',
   bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.',
-  image: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/luxury_interior_glass_partitions_1777731505732.png'
+  image: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop'
 };
 
 export const BOOKING_SLOTS = ['9:00 AM','10:00 AM','11:00 AM','2:00 PM','3:00 PM','4:00 PM'];
@@ -100,7 +100,7 @@ export const PORTFOLIO_DATA = [
   {id:1,title:'The Volta Suite',cat:'Full Interior',after:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80',before:'',year:'2024',loc:'East Legon, Accra',area:'4,200 sq ft',duration:'5 months',budget:'$195,000',style:'Modern Industrial',hasBA:false,desc:'Total interior finishing including kitchens, tiling, and lighting.',imgs:['https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80']},
   {id:2,title:'Airport Hills Kitchen',cat:'Kitchen Installation',after:'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=1600&q=80',before:'',year:'2024',loc:'Airport Hills',area:'1,100 sq ft',duration:'2 months',budget:'$72,000',style:'Minimalist',hasBA:false,desc:'Bespoke smart kitchen installation with high-gloss finish.',imgs:['https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=1600&q=80']},
   {id:3,title:'Corporate HQ Fit-out',cat:'Office Fit-out',after:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80',before:'',year:'2025',loc:'Ridge, Accra',area:'8,500 sq ft',duration:'8 months',budget:'$450,000',style:'Contemporary',hasBA:false,desc:'Full office interior finishing with structural glass partitions.',imgs:['https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80']},
-  {id:4,title:'Marina Bay Skylight',cat:'Glass & Aluminum',after:'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_skylight_facade_detail_1777731521501.png',before:'',year:'2025',loc:'Tema Waterfront',area:'2,400 sq ft',duration:'3 months',budget:'$120,000',style:'Structural',hasBA:false,desc:'High-performance reflective glass skylight with structural aluminum support.',imgs:['file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_skylight_facade_detail_1777731521501.png']},
+  {id:4,title:'Marina Bay Skylight',cat:'Glass & Aluminum',after:'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',before:'',year:'2025',loc:'Tema Waterfront',area:'2,400 sq ft',duration:'3 months',budget:'$120,000',style:'Structural',hasBA:false,desc:'High-performance reflective glass skylight with structural aluminum support.',imgs:['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop']},
 ];
 
 export const PRODUCTS_DATA = [
@@ -153,27 +153,27 @@ export const NOTIFS_DATA = [
 
 export const HERO_SLIDES = [
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/modern_glass_facade_hero_1777731475517.png',
+    img: 'https://images.unsplash.com/photo-1519302959554-a75be0afc82a?q=80&w=2084&auto=format&fit=crop',
     title: 'Complete Interior\nSolutions.',
     sub: 'Total finishing for luxury residential and commercial developments.'
   },
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_fabrication_facility_1777731490604.png',
+    img: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2070&auto=format&fit=crop',
     title: 'Precision\nFabrication.',
     sub: 'Advanced glass and aluminum processing in our high-tech facility.'
   },
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/luxury_interior_glass_partitions_1777731505732.png',
+    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop',
     title: 'Structural\nLuxe.',
     sub: 'Where advanced glass engineering meets full-scale interior transformation.'
   },
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_skylight_facade_detail_1777731521501.png',
+    img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',
     title: 'Reflective\nExcellence.',
     sub: 'High-performance skylights and facades engineered for the future.'
   },
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/professional_glass_engineers_1777731539303.png',
+    img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop',
     title: 'Expert\nLeadership.',
     sub: 'Led by John Dakey, our team ensures sub-millimeter precision on every project.'
   }
@@ -217,8 +217,8 @@ export const WHY_US = [
 export const PROCESS_STEPS = [
   {n:'01',title:'Technical Survey',body:'Our site supervisors perform high-precision measurements and structural site audits to define the fabrication scope.',img:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&q=80'},
   {n:'02',title:'Engineering Design',body:'Our CAD engineers develop detailed shop drawings and structural specifications for client and architect approval.',img:'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80'},
-  {n:'03',title:'Precision Fabrication',body:'In our state-of-the-most facility, we process glass and aluminum components using advanced industrial automation.',img:'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_fabrication_facility_1777731490604.png'},
-  {n:'04',title:'System Handover',body:'After professional installation by our specialist teams, we perform a final safety audit and formal handover.',img:'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/professional_glass_engineers_1777731539303.png'},
+  {n:'03',title:'Precision Fabrication',body:'In our state-of-the-most facility, we process glass and aluminum components using advanced industrial automation.',img:'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2070&auto=format&fit=crop'},
+  {n:'04',title:'System Handover',body:'After professional installation by our specialist teams, we perform a final safety audit and formal handover.',img:'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2070&auto=format&fit=crop'},
 ];
 
 

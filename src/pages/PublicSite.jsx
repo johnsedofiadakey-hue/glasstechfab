@@ -379,10 +379,19 @@ export function AboutPage({ brand, content }) {
   );
 }
 
-export function ContactPage({ brand }) {
+export function ContactPage({ brand, submitContact }) {
+  const [searchParams] = useSearchParams();
+  const initialSubject = searchParams.get('subject') || '';
   const winW = useWindowWidth();
   const mob = isMob(winW);
   const ac = brand.color || AC;
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', subject: initialSubject, message: '' });
+
+  const handleSubmit = () => {
+    if (!formData.firstName || !formData.email || !formData.message) return alert("Please fill all required fields.");
+    submitContact(formData);
+    setFormData({ firstName: '', lastName: '', email: '', subject: '', message: '' });
+  };
 
   return (
     <div style={{ paddingTop: mob ? 80 : 120 }}>
@@ -398,12 +407,13 @@ export function ContactPage({ brand }) {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      <input placeholder="First Name" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} />
-                      <input placeholder="Last Name" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} />
+                      <input placeholder="First Name" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
+                      <input placeholder="Last Name" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
                    </div>
-                   <input placeholder="Email" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} />
-                   <textarea rows={5} placeholder="Project Description" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee', resize: 'none' }} />
-                   <button style={{ padding: 20, background: DARK_TEXT, color: '#fff', borderRadius: 12, border: 'none', fontWeight: 800, cursor: 'pointer' }}>Send Message</button>
+                   <input placeholder="Email" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                   <input placeholder="Subject (Optional)" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} />
+                   <textarea rows={5} placeholder="Project Description" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee', resize: 'none' }} value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} />
+                   <button onClick={handleSubmit} style={{ padding: 20, background: DARK_TEXT, color: '#fff', borderRadius: 12, border: 'none', fontWeight: 800, cursor: 'pointer' }}>Send Message</button>
                 </div>
              </div>
              <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
@@ -459,7 +469,7 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
       </>
     );
     if (p === 'about') return <AboutPage brand={brand} content={content} />;
-    if (p === 'contact') return <ContactPage brand={brand} />;
+    if (p === 'contact') return <ContactPage brand={brand} submitContact={props.submitContact} />;
 
     return <div style={{ paddingTop: 200, textAlign: 'center' }}>{p.toUpperCase()} Page Under Construction</div>;
 

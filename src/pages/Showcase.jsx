@@ -19,7 +19,7 @@ const DEFAULT_SCENES = [
     id: 'def-1',
     title: 'The Panoramic Penthouse',
     location: 'Airport Residential, Accra',
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/modern_glass_facade_hero_1777731475517.png',
+    img: 'https://images.unsplash.com/photo-1519302959554-a75be0afc82a?q=80&w=2084&auto=format&fit=crop',
     description: 'A study in transparency and structural integrity. Our ultra-narrow sliding systems dissolve the boundary between interior luxury and the city skyline.',
     hotspots: [
       { x: 40, y: 50, title: '103 Extremely Narrow Sliding', desc: '1.3mm visible stile for maximum glass area.', specs: { thickness: '24mm DGU', rating: 'SLA Level 5', finish: 'Anodized Black' } },
@@ -30,7 +30,7 @@ const DEFAULT_SCENES = [
     id: 'def-2',
     title: 'The Innovation Facility',
     location: 'Spintex Industrial Area',
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_fabrication_facility_1777731490604.png',
+    img: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2070&auto=format&fit=crop',
     description: 'Where precision meets scale. Our fabrication facility utilizes high-tech CNC processing to ensure sub-millimeter accuracy for every component.',
     hotspots: [
       { x: 50, y: 60, title: 'CNC Glass Processing', desc: 'Automated edge grinding and drilling for structural safety.', specs: { precision: '±0.2mm', speed: '45m/min', max_size: '3000x6000mm' } },
@@ -41,7 +41,7 @@ const DEFAULT_SCENES = [
     id: 'def-3',
     title: 'Structural Luxe Interior',
     location: 'East Legon',
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/luxury_interior_glass_partitions_1777731505732.png',
+    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop',
     description: 'Bespoke interior finishing where architectural glass partitions define luxury living and working spaces.',
     hotspots: [
       { x: 30, y: 50, title: 'Frameless Glass Wall', desc: 'Floor-to-ceiling glass systems with recessed aluminum tracks.', specs: { height: '3.2m', glass: '12mm Monolithic', finish: 'Satin Bronze' } },
@@ -52,7 +52,7 @@ const DEFAULT_SCENES = [
     id: 'def-4',
     title: 'Reflective Facade Detail',
     location: 'Tema Waterfront',
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_skylight_facade_detail_1777731521501.png',
+    img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',
     description: 'High-performance curtain wall systems engineered for the harsh West African climate.',
     hotspots: [
       { x: 45, y: 55, title: 'Structural Silicone Glazing', desc: 'Frameless exterior appearance with mechanical fixings.', specs: { wind_load: '3.5 kPa', sealant: 'Dow Corning 993', movement: '±25%' } },

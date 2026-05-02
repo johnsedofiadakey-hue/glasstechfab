@@ -1,7 +1,9 @@
-import React from 'react';
-import { PSBadge } from '../../components/Shared';
+import { Mail, Briefcase, User, MapPin, DollarSign, ShieldCheck, ChevronRight, X, Package, Search } from 'lucide-react';
+import { PSBadge, Modal, FF as PFormField } from '../../components/Shared';
 
-export default function AdminEmailCenter({ emails = [], brand, ...props }) {
+export default function AdminEmailCenter({ emails = [], projects = [], brand, ...props }) {
+  const [convertTarget, setConvertTarget] = React.useState(null);
+  const [conversionData, setConversionData] = React.useState({ title: '', site: '', budget: '', type: 'Commercial' });
   const ac = brand.color || '#C8A96E';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -45,8 +47,8 @@ export default function AdminEmailCenter({ emails = [], brand, ...props }) {
                    {e.type !== 'Marketplace Order' && e.status !== 'Converted to Project' && (
                       <button 
                          onClick={() => {
-                            const title = prompt("Enter Project Name for " + e.fromName);
-                            if (title) props.convertInquiry(e, title);
+                            setConvertTarget(e);
+                            setConversionData({...conversionData, title: `${e.fromName}'s New Project`});
                          }}
                          className="p-btn-gold" style={{ fontSize: 11, padding: '6px 12px' }}
                       >
@@ -70,6 +72,78 @@ export default function AdminEmailCenter({ emails = [], brand, ...props }) {
           </tbody>
         </table>
       </div>
+      {convertTarget && (
+        <Modal title="Industrial Lead Provisioning" onClose={() => setConvertTarget(null)}>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 40 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                 <div style={{ background: '#F9F7F4', padding: 24, borderRadius: 20, border: '1px solid #E0DDD8' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
+                       <div style={{ width: 44, height: 44, borderRadius: 12, background: '#1A1410', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={20}/></div>
+                       <div>
+                          <div style={{ fontSize: 10, color: ac, fontWeight: 900, textTransform: 'uppercase' }}>Inquiry Lead</div>
+                          <div style={{ fontSize: 18, fontWeight: 700 }}>{convertTarget.fromName}</div>
+                       </div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                       <div style={{ fontSize: 13, color: '#666' }}><Mail size={14} style={{ marginRight: 8 }}/> {convertTarget.fromEmail}</div>
+                       <div style={{ fontSize: 13, color: '#666' }}><Package size={14} style={{ marginRight: 8 }}/> {convertTarget.subject}</div>
+                    </div>
+                 </div>
+
+                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <PFormField label="Internal Project Title">
+                       <input className="p-inp" value={conversionData.title} onChange={e => setConversionData({...conversionData, title: e.target.value})} />
+                    </PFormField>
+                    <PFormField label="Project Type">
+                       <select className="p-inp" value={conversionData.type} onChange={e => setConversionData({...conversionData, type: e.target.value})}>
+                          <option value="Commercial">Commercial Facade</option>
+                          <option value="Residential">Residential Luxury</option>
+                          <option value="Industrial">Industrial Warehousing</option>
+                          <option value="Interior">Interior / Fit-out</option>
+                       </select>
+                    </PFormField>
+                 </div>
+                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    <PFormField label="Site Location (City/Region)">
+                       <input className="p-inp" placeholder="e.g. East Legon, Accra" value={conversionData.site} onChange={e => setConversionData({...conversionData, site: e.target.value})} />
+                    </PFormField>
+                    <PFormField label="Estimated Initial Budget">
+                       <input className="p-inp" placeholder="e.g. $45,000" value={conversionData.budget} onChange={e => setConversionData({...conversionData, budget: e.target.value})} />
+                    </PFormField>
+                 </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                 <div className="p-card" style={{ padding: 24, background: '#1A1410', color: '#fff', borderRadius: 24 }}>
+                    <h4 style={{ fontSize: 14, fontWeight: 800, marginBottom: 16, color: ac }}>AUTOMATION TRIGGER</h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                          <ShieldCheck size={18} color="#16A34A" />
+                          <div style={{ fontSize: 11, opacity: 0.7 }}>Secure B2B Client Portal will be provisioned instantly.</div>
+                       </div>
+                       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                          <Mail size={18} color={ac} />
+                          <div style={{ fontSize: 11, opacity: 0.7 }}>Onboarding email with login credentials will be dispatched.</div>
+                       </div>
+                       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                          <Briefcase size={18} color={ac} />
+                          <div style={{ fontSize: 11, opacity: 0.7 }}>Project folder & initial procurement pipeline created.</div>
+                       </div>
+                    </div>
+                    <button 
+                       onClick={async () => {
+                          await props.convertInquiry(convertTarget, conversionData.title, conversionData);
+                          setConvertTarget(null);
+                       }}
+                       className="p-btn-gold" style={{ width: '100%', marginTop: 24, padding: 14, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+                    >
+                       Initialize Ecosystem <ChevronRight size={18} />
+                    </button>
+                 </div>
+              </div>
+           </div>
+        </Modal>
+      )}
     </div>
   );
 }

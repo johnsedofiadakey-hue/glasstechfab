@@ -49,12 +49,15 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'dash': return <AdminDashboard {...common} />;
       case 'operations': return <AdminClients {...common} />;
       case 'client-hub': return <ClientHub clientId={selectedClientId} onBack={() => setView('operations')} {...common} />;
+      case 'logistics': return <AdminLogistics {...common} />;
+      case 'installations': return <AdminInstallations {...common} />;
       case 'cms': return <AdminCMS {...common} onPreview={onPreview} />;
       case 'portfolio': return <AdminPortfolio {...common} />;
       case 'showcase': return <AdminShowcase {...common} />;
       case 'bookings': return <AdminBookings {...common} />;
       case 'analytics': return <AdminAnalytics {...common} />;
       case 'chat': return <AdminChat {...common} />;
+      case 'staff': return <AdminStaff {...common} />;
       case 'testimonials': return <AdminTestimonials {...common} />;
       case 'financials': return <AdminFinancials {...common} />;
       case 'system': return <AdminSystem onReset={props.migrateToFirebase} syncCatalog={props.syncCatalog} {...common} />;

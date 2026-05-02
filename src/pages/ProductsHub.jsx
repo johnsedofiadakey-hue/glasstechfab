@@ -135,7 +135,7 @@ const DetailModal = ({ product, onClose, ac, navigate, mob }) => {
               <button 
                 onClick={() => { 
                   if (onClose) onClose(); 
-                  navigate('/?page=contact');
+                  navigate(`/?page=contact&subject=Quote Request: ${product.name}`);
                 }}
 
                 style={{ width: '100%', padding: '18px', background: DARK_TEXT, color: '#fff', borderRadius: 16, border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}

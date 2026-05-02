@@ -7,6 +7,7 @@ const AccountManagerPortal = lazy(() => import('./pages/AccountManagerPortal'));
 const ProductsHub = lazy(() => import('./pages/ProductsHub'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Showcase = lazy(() => import('./pages/Showcase'));
+const FieldUpload = lazy(() => import('./pages/admin/FieldUpload'));
 import { 
   CLIENTS_DATA, PROPOSALS_DATA, INVOICES_DATA, 
   BOOKINGS_DATA, EMAIL_QUEUE, HERO_SLIDES,
@@ -109,6 +110,8 @@ export default function App() {
   const [approvals, setApprovals] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [assets, setAssets] = useState([]);
+  const [workOrders, setWorkOrders] = useState([]);
+  const [containers, setContainers] = useState([]);
   const [magicCode, setMagicCode] = useState(null);
   const [otp, setOtp] = useState('');
   const [currency, setCurrency] = useState('USD');
@@ -396,6 +399,35 @@ export default function App() {
           ];
           for (const j of demoJobs) {
             await setDoc(doc(db, 'jobs', j.id), { ...j, createdAt: new Date().toISOString() });
+          }
+
+          // 12. NEW: Seed Work Orders (Nested Deliverables)
+          const woId = `WO-${pid}-KITCHEN`;
+          await setDoc(doc(db, 'work_orders', woId), {
+            id: woId,
+            projectId: pid,
+            clientId: item.email === 'client@glasstechfab.com' ? 'ELITE-CLIENT' : (item.clientId || 'DEMO-CLIENT'),
+            title: 'Modern Kitchen Fit-out',
+            stage: item.stage,
+            status: 'In Progress',
+            atRisk: false,
+            createdAt: new Date().toISOString()
+          });
+
+          // 13. NEW: Seed Containers (Shared Logistics)
+          if (item.email === 'client@glasstechfab.com') {
+             const contId = 'CONT-FOSHAN-098';
+             await setDoc(doc(db, 'containers', contId), {
+                id: contId,
+                shipmentRef: 'MSC-GT-2026-098',
+                clientId: 'ELITE-CLIENT',
+                origin: 'Foshan, China',
+                status: 'Sea', // Milestone: Dispatched -> Warehouse -> Loaded -> Sea -> Customs -> Local
+                eta: 'May 12, 2026',
+                atRisk: true,
+                riskReason: 'Port Congestion at Tema',
+                items: [woId]
+             });
           }
         }
       // 8. Seed Proposals (Root Collection)
@@ -728,72 +760,38 @@ export default function App() {
     console.log("[FETCH] Initializing Data Pipeline for:", user.id);
     
     let projectSub, userSub, paymentSub, taskSub, logSub, transSub, proposalSub, bookingSub, emailSub, assetSub, jobSub, notifSub;
-    let approvalSub, crSub, procSub, noteSub, mediaSub, shipSub;
+    let approvalSub, crSub, procSub, noteSub, mediaSub, shipSub, workOrderSub, containerSub;
 
-    projectSub = onSnapshot(collection(db, 'projects'), (snap) => {
+    // PROJECT LISTENER (Filtered for Clients)
+    const projectQuery = user.role === 'admin' 
+      ? collection(db, 'projects') 
+      : query(collection(db, 'projects'), where('clientId', '==', user.id));
+
+    projectSub = onSnapshot(projectQuery, (snap) => {
       setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title || d.data().project })));
     }, (err) => console.warn("Project Sync Error:", err));
 
+    // USER REGISTRY (Global for Admin, Self-Only for Client)
     if (user.role === 'admin') {
       userSub = onSnapshot(collection(db, 'users'), (snap) => {
         const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const clients = all.filter(u => u.role === 'client');
         const team = all.filter(u => u.role !== 'client');
         setTeamMembers(team);
-        setDbClients(clients);
+        setDbClients(all.filter(u => u.role === 'client'));
       }, (err) => console.warn("User Registry Error:", err));
-      
-      paymentSub = onSnapshot(collection(db, 'invoices'), (snap) => {
-        setInvoices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Invoice Sync Error:", err));
+    } else {
+      // Clients only listen to their OWN document
+      userSub = onSnapshot(doc(db, 'users', user.id), (snap) => {
+        if (snap.exists()) {
+          setDbClients([{ id: snap.id, ...snap.data() }]);
+        }
+      }, (err) => console.warn("Client Profile Sync Error:", err));
+    }
 
-      taskSub = onSnapshot(collection(db, 'tasks'), (snap) => {
-        setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Global Task Sync Error:", err));
-
-      logSub = onSnapshot(query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)), (snap) => {
-        setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Activity logs listener failed:", err));
-
-      approvalSub = onSnapshot(collection(db, 'approvals'), (snap) => {
-        setApprovals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Approval Sync Error:", err));
-      
-      crSub = onSnapshot(collection(db, 'change_requests'), (snap) => {
-        setChangeRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("CR Sync Error:", err));
-      
-      procSub = onSnapshot(collection(db, 'procurements'), (snap) => {
-        setProcurements(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Procurement Sync Error:", err));
-      
-      noteSub = onSnapshot(collection(db, 'notes'), (snap) => {
-        setNotes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Note Sync Error:", err));
-      
-      mediaSub = onSnapshot(collection(db, 'media'), (snap) => {
-        setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Media Sync Error:", err));
-      
-      shipSub = onSnapshot(collection(db, 'shipments'), (snap) => {
-        setShipments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Shipment Sync Error:", err));
-
-      proposalSub = onSnapshot(collection(db, 'proposals'), (snap) => {
-        setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Proposal Sync Error:", err));
-
-      bookingSub = onSnapshot(collection(db, 'bookings'), (snap) => {
-        setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => console.warn("Booking Sync Error:", err));
-
+    // ADMIN-ONLY GLOBAL LISTENERS
+    if (user.role === 'admin') {
       emailSub = onSnapshot(collection(db, 'emails'), (snap) => {
         setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-      transSub = onSnapshot(query(collection(db, 'transactions'), orderBy('date', 'desc')), (snap) => {
-        setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => {
-        console.warn("Transactions listener failed:", err);
       });
       assetSub = onSnapshot(collection(db, 'assets'), (snap) => {
         setAssets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
@@ -803,9 +801,77 @@ export default function App() {
       });
     }
 
-    notifSub = db && onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)), (snap) => {
-      setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
-    });
+    // SHARED LISTENERS (Filtered for Clients where applicable)
+    const invQuery = user.role === 'admin' ? collection(db, 'invoices') : query(collection(db, 'invoices'), where('parentId', 'in', clients.map(c => c.id).concat(['none'])));
+    // Note: 'in' queries are limited to 10 items. For a production app with many projects per client, we'd use multiple listeners or better mapping.
+    // For now, we'll use simple field filtering if possible, but Firestore doesn't allow cross-collection joins.
+    // We'll rely on the Security Rules for deep sub-collections if they are stored as such.
+    
+    // Simplification: For global collections, we filter by clientId if the field exists
+    const filterByClient = (coll) => user.role === 'admin' ? collection(db, coll) : query(collection(db, coll), where('clientId', '==', user.id));
+    const filterByParent = (coll) => user.role === 'admin' ? collection(db, coll) : query(collection(db, coll), where('parentId', '==', user.id));
+
+    paymentSub = onSnapshot(user.role === 'admin' ? collection(db, 'invoices') : query(collection(db, 'invoices'), where('clientId', '==', user.id)), (snap) => {
+      setInvoices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Invoice Sync Error:", err));
+
+    taskSub = onSnapshot(user.role === 'admin' ? collection(db, 'tasks') : query(collection(db, 'tasks'), where('clientId', '==', user.id)), (snap) => {
+      setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Global Task Sync Error:", err));
+
+    logSub = onSnapshot(user.role === 'admin' ? query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)) : query(collection(db, 'activity_logs'), where('clientId', '==', user.id)), (snap) => {
+      setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Activity logs listener failed:", err));
+
+    approvalSub = onSnapshot(user.role === 'admin' ? collection(db, 'approvals') : query(collection(db, 'approvals'), where('clientId', '==', user.id)), (snap) => {
+      setApprovals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Approval Sync Error:", err));
+    
+    crSub = onSnapshot(user.role === 'admin' ? collection(db, 'change_requests') : query(collection(db, 'change_requests'), where('clientId', '==', user.id)), (snap) => {
+      setChangeRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("CR Sync Error:", err));
+    
+    procSub = onSnapshot(user.role === 'admin' ? collection(db, 'procurements') : query(collection(db, 'procurements'), where('clientId', '==', user.id)), (snap) => {
+      setProcurements(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Procurement Sync Error:", err));
+    
+    noteSub = onSnapshot(user.role === 'admin' ? collection(db, 'notes') : query(collection(db, 'notes'), where('clientId', '==', user.id)), (snap) => {
+      setNotes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Note Sync Error:", err));
+    
+    mediaSub = onSnapshot(user.role === 'admin' ? collection(db, 'media') : query(collection(db, 'media'), where('clientId', '==', user.id)), (snap) => {
+      setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Media Sync Error:", err));
+
+    workOrderSub = onSnapshot(user.role === 'admin' ? collection(db, 'work_orders') : query(collection(db, 'work_orders'), where('clientId', '==', user.id)), (snap) => {
+      setWorkOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Work Order Sync Error:", err));
+
+    containerSub = onSnapshot(user.role === 'admin' ? collection(db, 'containers') : query(collection(db, 'containers'), where('clientId', '==', user.id)), (snap) => {
+      setContainers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Container Sync Error:", err));
+    
+    shipSub = onSnapshot(user.role === 'admin' ? collection(db, 'shipments') : query(collection(db, 'shipments'), where('clientId', '==', user.id)), (snap) => {
+      setShipments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Shipment Sync Error:", err));
+
+    proposalSub = onSnapshot(user.role === 'admin' ? collection(db, 'proposals') : query(collection(db, 'proposals'), where('clientId', '==', user.id)), (snap) => {
+      setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Proposal Sync Error:", err));
+
+    bookingSub = onSnapshot(user.role === 'admin' ? collection(db, 'bookings') : query(collection(db, 'bookings'), where('userId', '==', user.id)), (snap) => {
+      setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Booking Sync Error:", err));
+
+    transSub = onSnapshot(user.role === 'admin' ? query(collection(db, 'transactions'), orderBy('date', 'desc')) : query(collection(db, 'transactions'), where('clientId', '==', user.id)), (snap) => {
+      setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => console.warn("Transactions listener failed:", err));
+
+    notifSub = db && onSnapshot(query(collection(db, 'notifications'), where('userId', '==', user.id), limit(50)), (snap) => {
+      const sorted = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setUserNotifications(sorted.slice(0, 20));
+    }, (err) => console.warn("Notifications listener failed:", err));
 
     return () => { 
       console.log("[FETCH] Tearing down Data Pipeline...");
@@ -1149,7 +1215,29 @@ export default function App() {
         console.error("Failed to sync marketplace inquiry:", e);
       }
     }
-    notify('success', 'Inquiry sent successfully to our procurement team.');
+  };
+
+  const submitContactInquiry = async (data) => {
+    const payload = {
+      id: `CON-${Math.floor(1000 + Math.random() * 9000)}`,
+      fromName: `${data.firstName} ${data.lastName}`,
+      fromEmail: data.email,
+      subject: `Inquiry: ${data.subject || 'General Consultation'}`,
+      status: 'pending',
+      type: 'General Inquiry',
+      sentAt: new Date().toLocaleDateString(),
+      details: data
+    };
+    setEmails(prev => [payload, ...prev]);
+    if (db) {
+      try {
+        await setDoc(doc(db, 'emails', payload.id), payload);
+        notify('success', 'Inquiry sent successfully to our procurement team.');
+      } catch (e) {
+        console.error("Failed to sync contact inquiry:", e);
+        notify('error', 'Message dispatch failed.');
+      }
+    }
   };
   
   const createClient = async (data) => {
@@ -1172,8 +1260,9 @@ export default function App() {
       try {
         await createUserWithEmailAndPassword(auth, proxyEmail, tempPassword);
       } catch (authErr) {
-        if (authErr.code === 'auth/email-already-in-use') {
-          console.log("Client already has an auth record. Syncing Firestore profile...");
+        // If the auth record already exists, we ignore and proceed to update Firestore
+        if (authErr.code === 'auth/email-already-in-use' || authErr.message?.includes('email-already-in-use')) {
+          console.log("Client already has an auth record. Updating Firestore profile...");
         } else {
           throw authErr;
         }
@@ -1229,47 +1318,62 @@ export default function App() {
       notify('success', 'Client profile updated');
       logAction(null, 'CRM', `Updated Client: ${id}`);
     } catch (e) {
-      console.error(e);
       notify('error', 'Client setup failed. ' + e.message);
     }
   };
 
-  const convertInquiryToProject = async (inquiry, projectTitle) => {
+  const convertInquiryToProject = async (inquiry, projectTitle, meta = {}) => {
     if (!db) return;
     try {
        // 1. Create client if doesn't exist (basic)
        let clientId = inquiry.fromEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
        const uq = query(collection(db, 'users'), where('email', '==', inquiry.fromEmail));
        const usnap = await getDocs(uq);
+       
        if (usnap.empty) {
-          await setDoc(doc(db, 'users', clientId), {
-             id: clientId, name: inquiry.fromName || 'Client', email: inquiry.fromEmail,
-             phone: inquiry.phone || '', role: 'client', status: 'Active', joined: new Date().toISOString()
+          // Provision full client account (this should create a user with id: clientId or random)
+          await createClient({
+            name: inquiry.fromName || 'Client',
+            email: inquiry.fromEmail,
+            phone: inquiry.phone || clientId,
+            company: 'Private Entity'
           });
+          // Note: createClient currently uses a random ID or adds to collection.
+          // For immediate linking, we'll assume the email is the identifier until they sign up.
        } else {
-          clientId = usnap.docs[0].id;
+          clientId = usnap.docs[0].id; // Use ACTUAL Firebase UID
        }
        
-       // 2. Create Project
+       // 2. Create Project with Rich Meta
        const newProjRef = await addDoc(collection(db, 'projects'), {
           clientId: clientId,
+          clientIds: [clientId], // Ensure consistency
           project: projectTitle || 'New Converted Project',
           name: inquiry.fromName || 'Client',
+          email: inquiry.fromEmail, // Store email for fallback lookup
           stage: 1,
           progress: 0,
           createdAt: new Date().toISOString(),
-          budget: '$0',
-          cat: 'Marketplace Inquiry'
+          budget: meta.budget || '$0',
+          site: meta.site || 'Accra, Ghana',
+          cat: meta.type || 'Marketplace Inquiry',
+          status: 'Project provisioned. Initial technical review pending.'
        });
 
-       // 3. Update Email Status
-       await updateEmailStatus(inquiry.id, 'Converted to Project');
-       
-       notify('success', `Project ${projectTitle} provisioned for ${inquiry.fromName}.`);
-    } catch(e) {
-       console.error(e);
-       notify('error', 'Conversion failed.');
-    }
+        // 3. Update Email Status
+        await updateEmailStatus(inquiry.id, 'Converted to Project');
+        
+        // 4. Admin Notification
+        teamMembers.filter(m => m.role === 'admin').forEach(admin => {
+           createNotification(admin.id, `Lead Provisioned: ${projectTitle} is now an active project.`, 'success', '/admin');
+        });
+        
+        logAction(null, 'CRM', `Converted Inquiry ${inquiry.id} to Project: ${projectTitle}`);
+        notify('success', `Ecosystem provisioned for ${inquiry.fromName}.`);
+     } catch(e) {
+        console.error(e);
+        notify('error', 'Conversion failed.');
+     }
   };
 
   const sendToProcurement = async (emailData, projectId) => {
@@ -1439,6 +1543,8 @@ export default function App() {
     materials, updateMaterial,
     assets, updateAsset,
     updateStage, calculateProjectPulse,
+    submitContact: submitContactInquiry,
+    submitMarketplace: submitMarketplaceInquiry,
     sendOTP, verifyOTP, findUserByPhone,
     loginWithCredentials, resetUserPassword, changeClientPassword,
     deleteClient, 
@@ -1457,7 +1563,16 @@ export default function App() {
       const symbol = currency === 'GHS' ? 'GH₵' : currency === 'EUR' ? '€' : '$';
       return `${symbol}${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     },
-    lang, setLang, t, messages, sendMessage, testimonials, submitTestimonial, showVisualizer, setShowVisualizer
+    lang, setLang, t, messages, sendMessage, testimonials, submitTestimonial, showVisualizer, setShowVisualizer,
+    workOrders, containers,
+    updateWorkOrder: (id, d) => db && updateDoc(doc(db, 'work_orders', id), d),
+    updateContainer: (id, d) => db && updateDoc(doc(db, 'containers', id), d),
+    isPortalLocked: () => {
+       if (user?.role === 'admin') return false;
+       const myInvoices = invoices.filter(i => i.clientId === user?.id || i.clientEmail === user?.email);
+       const overdue = myInvoices.some(i => i.status === 'Pending' && new Date(i.due) < new Date());
+       return overdue;
+    }
   };
   const logoUpload = async (file) => {
     const localUrl = URL.createObjectURL(file);
@@ -1587,6 +1702,8 @@ export default function App() {
               />
             ) : <Navigate to="/login" />
           } />
+          <Route path="/field-upload" element={<FieldUpload {...commonProps} />} />
+          <Route path="/field-upload/:projectId" element={<FieldUpload {...commonProps} />} />
         </Routes>
       </Suspense>
 

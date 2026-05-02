@@ -1,125 +1,199 @@
 import React, { useState } from 'react';
 import { 
   Plus, Truck, Package, RefreshCw, ChevronDown, ChevronUp, 
-  Wrench, Scan, MapPin, Hammer, Navigation, Box 
+  Wrench, Scan, MapPin, Hammer, Navigation, Box, Anchor, Ship, ShieldAlert,
+  Download, ExternalLink, Share2, FileText, CheckCircle2, Clock
 } from 'lucide-react';
 import { FF as PFormField, PSBadge } from '../../components/Shared';
 
-export default function AdminLogistics({ shipments = [], clients = [], procurements = [], assets = [], createShipment, updateShipment, updateProcurement, brand }) {
+const LOGISTICS_MILESTONES = [
+  { id: 'Dispatched', label: 'Supplier', icon: <Package size={14} /> },
+  { id: 'Warehouse', label: 'Warehouse', icon: <Box size={14} /> },
+  { id: 'Sea', label: 'On Sea', icon: <Ship size={14} /> },
+  { id: 'Customs', label: 'Customs', icon: <Anchor size={14} /> },
+  { id: 'Local', label: 'Accra Hub', icon: <MapPin size={14} /> }
+];
+
+export default function AdminLogistics({ containers = [], workOrders = [], clients = [], brand, ...props }) {
   const ac = brand.color || '#C8A96E';
-  const [showAdd, setShowAdd] = useState(false);
-  const [expanded, setExpanded] = useState(null);
-  const [newS, setNewS] = useState({ projectId: '', item: '', supplier: '', status: 'Order Placed', eta: '', container: '' });
+  const [activeTab, setActiveTab] = useState('containers'); // 'containers' | 'procurement'
+  const [showAddContainer, setShowAddContainer] = useState(false);
 
-  // Simulation Assets (High-value site tools) pulled from props
-  // props.assets contains the live list from Firestore
-
-  const syncManifest = (shipment) => {
-    const items = (procurements || []).filter(p => p.containerId === shipment.container);
-    items.forEach(async item => {
-       await updateProcurement(item.id, { status: shipment.status }, item.parentId);
-    });
-    alert(`Synced ${items.length} items to status: ${shipment.status}`);
+  const generateWhatsAppLink = (items) => {
+     const text = `*GLASSTECH PROCUREMENT LIST*\n\nItems to source:\n${items.map(i => `- ${i.title || i.name}`).join('\n')}\n\nPlease provide Pro-Forma for these items.`;
+     return `https://wa.me/${brand.whatsapp?.replace(/\+/g, '')}?text=${encodeURIComponent(text)}`;
   };
 
-  const addShipment = async () => {
-    if (!newS.projectId || !newS.item) return alert('Project and Item required');
-    await createShipment({ ...newS, isShipment: true });
-    setNewS({ projectId: '', item: '', supplier: '', status: 'Order Placed', eta: '', container: '' });
-    setShowAdd(false);
+  const handleUpdateContainerStatus = async (id, status) => {
+     await props.updateContainer(id, { status, updatedAt: new Date().toISOString() });
+     // Propagate to linked work orders
+     const container = containers.find(c => c.id === id);
+     if (container?.items) {
+        for (const woId of container.items) {
+           await props.updateWorkOrder(woId, { logisticsStatus: status });
+        }
+     }
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-           <h2 className="lxfh" style={{ fontSize: 32, fontWeight: 400, color: '#1A1410' }}>Logistics & Assets</h2>
-           <p className="lxf" style={{ color: '#B5AFA9', fontSize: 13 }}>Global transit tracking and asset allocation pulses.</p>
+           <h2 className="lxfh" style={{ fontSize: 28, fontWeight: 700, color: '#1A1410' }}>Logistics Switchboard</h2>
+           <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
+              {['containers', 'procurement'].map(t => (
+                <button 
+                  key={t}
+                  onClick={() => setActiveTab(t)}
+                  style={{ 
+                    background: 'none', border: 'none', padding: '0 0 8px', 
+                    fontSize: 12, fontWeight: 800, color: activeTab === t ? ac : '#B5AFA9',
+                    borderBottom: `2px solid ${activeTab === t ? ac : 'transparent'}`,
+                    cursor: 'pointer', textTransform: 'uppercase', letterSpacing: 1
+                  }}
+                >
+                  {t}
+                </button>
+              ))}
+           </div>
         </div>
-        <button onClick={() => setShowAdd(!showAdd)} className="p-btn-dark lxf" style={{ padding: '10px 20px', fontSize: 13, gap: 8, display: 'flex', alignItems: 'center' }}><Plus size={16} /> Track Shipment</button>
+        <div style={{ display: 'flex', gap: 12 }}>
+           <button className="p-btn-light" style={{ fontSize: 11, padding: '8px 16px' }}><Download size={14} /> Export Manifest</button>
+           <button onClick={() => setShowAddContainer(true)} className="p-btn-dark" style={{ fontSize: 11, padding: '8px 16px' }}><Plus size={14} /> New Container</button>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth > 1024 ? '1fr 340px' : '1fr', gap: 32 }}>
-         {/* LEFT: SHIPMENTS */}
-         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            {showAdd && (
-              <div className="p-card fade-in" style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    <PFormField label="Select Project">
-                       <select className="p-inp" value={newS.projectId} onChange={e => setNewS({...newS, projectId: e.target.value})}>
-                          <option value="">Select a project...</option>
-                          {clients.map(p => <option key={p.id} value={p.id}>{p.project || p.title}</option>)}
-                       </select>
-                    </PFormField>
-                    <PFormField label="Item/Details"><input className="p-inp" value={newS.item} onChange={e => setNewS({...newS, item: e.target.value})} placeholder="e.g. Structural Glass Panels" /></PFormField>
+      {activeTab === 'containers' && (
+         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 24 }}>
+            {containers.map(c => (
+              <div key={c.id} className="p-card" style={{ padding: 24, border: c.atRisk ? '1px solid #EF4444' : '1px solid var(--border)' }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                    <div>
+                       <div style={{ fontSize: 10, fontWeight: 800, color: '#B5AFA9', textTransform: 'uppercase' }}>Shipment Ref</div>
+                       <div style={{ fontSize: 15, fontWeight: 700 }}>{c.shipmentRef}</div>
+                    </div>
+                    {c.atRisk && (
+                       <div style={{ background: '#FEF2F2', color: '#EF4444', padding: '4px 12px', borderRadius: 20, fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <ShieldAlert size={12} /> AT RISK
+                       </div>
+                    )}
                  </div>
-                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
-                    <PFormField label="Supplier"><input className="p-inp" value={newS.supplier} onChange={e => setNewS({...newS, supplier: e.target.value})} /></PFormField>
-                    <PFormField label="ETA"><input className="p-inp" type="date" value={newS.eta} onChange={e => setNewS({...newS, eta: e.target.value})} /></PFormField>
-                    <PFormField label="Container ID"><input className="p-inp" value={newS.container} onChange={e => setNewS({...newS, container: e.target.value})} /></PFormField>
-                 </div>
-                 <button onClick={addShipment} className="p-btn-gold lxf" style={{ padding: '12px', borderRadius: 12 }}>Initialize Tracking</button>
-              </div>
-            )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24 }}>
-               {(shipments || []).filter(s => s.isShipment || s.status === 'Shipped' || s.container).map(s => {
-                 const manifestItems = (procurements || []).filter(p => p.containerId === s.container);
-                 const isEx = expanded === s.id;
-                 return (
-                   <div key={s.id} className="p-card fade-in" style={{ padding: 24, background: '#fff', borderRadius: 24, border: isEx ? `1px solid ${ac}40` : '1px solid transparent' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                         <div style={{ width: 48, height: 48, borderRadius: 16, background: '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: ac }}>
-                            <Truck size={24} />
-                         </div>
-                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: 9, color: '#B5AFA9', fontWeight: 800, textTransform: 'uppercase' }}>Shipment ID</div>
-                            <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'monospace' }}>{s.id.slice(-6).toUpperCase()}</div>
-                         </div>
-                      </div>
-
-                      <div className="lxfh" style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>{s.item || s.itemName}</div>
-                      <div className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginBottom: 20 }}>{clients.find(p => p.id === s.parentId)?.project || 'Global Batch'}</div>
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 24 }}>
-                         <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>Status</div>
-                            <select className="p-inp" style={{ fontSize: 11, padding: '8px' }} value={s.status} onChange={e => updateShipment(s.id, { status: e.target.value })}>
-                               {['Order Placed', 'Shipped', 'At Customs', 'In Transit', 'Delivered'].map(st => <option key={st} value={st}>{st}</option>)}
-                            </select>
-                         </div>
-                         <div style={{ width: 100 }}>
-                            <div style={{ fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase', marginBottom: 4 }}>ETA</div>
-                            <div style={{ fontSize: 13, fontWeight: 700 }}>{s.eta || 'TBD'}</div>
-                         </div>
-                      </div>
-
-                      <div style={{ borderTop: '1px solid #F9F7F4', paddingTop: 16 }}>
-                         <button onClick={() => setExpanded(isEx ? null : s.id)} style={{ width: '100%', background: 'none', border: 'none', color: '#1A1410', fontWeight: 700, fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                            {isEx ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                            {isEx ? 'Hide Manifest' : `View Manifest (${manifestItems.length} items)`}
+                 {/* MILESTONE TOGGLE */}
+                 <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', marginBottom: 32, padding: '0 10px' }}>
+                    <div style={{ position: 'absolute', top: 12, left: 20, right: 20, height: 2, background: '#F0EBE5', zIndex: 0 }} />
+                    {LOGISTICS_MILESTONES.map((m, idx) => {
+                       const isPast = LOGISTICS_MILESTONES.findIndex(x => x.id === c.status) >= idx;
+                       const isCurrent = c.status === m.id;
+                       return (
+                         <button 
+                           key={m.id}
+                           onClick={() => handleUpdateContainerStatus(c.id, m.id)}
+                           style={{ 
+                             zIndex: 1, background: isPast ? ac : '#fff', border: `2px solid ${isPast ? ac : '#F0EBE5'}`, 
+                             width: 26, height: 26, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                             color: isPast ? '#fff' : '#B5AFA9', cursor: 'pointer', transition: 'all 0.3s'
+                           }}
+                         >
+                            {isPast ? <CheckCircle2 size={12} /> : idx + 1}
+                            <div style={{ position: 'absolute', top: 32, fontSize: 9, fontWeight: 800, color: isPast ? '#1A1410' : '#B5AFA9', whiteSpace: 'nowrap' }}>{m.label}</div>
                          </button>
-                      </div>
+                       );
+                    })}
+                 </div>
 
-                      {isEx && (
-                        <div className="fade-in" style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontSize: 10, color: ac, fontWeight: 800 }}>CONTAINER: {s.container}</span>
-                              <button onClick={() => syncManifest(s)} style={{ background: 'none', border: 'none', color: ac, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>Sync Status</button>
-                           </div>
-                           {manifestItems.map(m => (
-                             <div key={m.id} style={{ display: 'flex', justifyContent: 'space-between', background: '#F9F7F4', padding: '10px 14px', borderRadius: 12, fontSize: 11 }}>
-                                <span style={{ fontWeight: 600 }}>{m.item || m.itemName}</span>
-                                <span style={{ fontWeight: 700, color: m.status === s.status ? '#16A34A' : '#B5AFA9' }}>{m.status.toUpperCase()}</span>
-                             </div>
-                           ))}
-                        </div>
-                      )}
-                   </div>
-                 );
-               })}
-            </div>
+                 <div style={{ background: '#F9F7F4', padding: 16, borderRadius: 16, marginBottom: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                       <div style={{ fontSize: 11, color: '#625C54' }}>Linked Work Orders:</div>
+                       <div style={{ fontSize: 11, fontWeight: 700 }}>{c.items?.length || 0} Items</div>
+                    </div>
+                    {c.items?.map(woId => {
+                       const wo = workOrders.find(w => w.id === woId);
+                       return (
+                         <div key={woId} style={{ fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: '50%', background: ac }} />
+                            {wo?.title || woId}
+                         </div>
+                       );
+                    })}
+                 </div>
+
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#B5AFA9' }}>
+                       <Clock size={14} />
+                       <span style={{ fontSize: 12 }}>ETA: {c.eta}</span>
+                    </div>
+                    <button className="p-btn-light" style={{ padding: '6px 12px', fontSize: 10 }}><FileText size={12} /> Manifest</button>
+                 </div>
+
+                 {c.atRisk && (
+                    <div style={{ marginTop: 16, padding: 12, background: '#FEF2F2', borderRadius: 12, border: '1px solid #FEE2E2' }}>
+                       <div style={{ fontSize: 11, fontWeight: 700, color: '#991B1B' }}>Delay Alert: {c.riskReason}</div>
+                       <div style={{ fontSize: 10, color: '#B91C1C', marginTop: 4 }}>System will automatically notify {c.items?.length} clients.</div>
+                    </div>
+                 )}
+              </div>
+            ))}
          </div>
+      )}
+
+      {activeTab === 'procurement' && (
+         <div className="p-card" style={{ padding: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32 }}>
+               <div>
+                  <h3 className="lxfh" style={{ fontSize: 20 }}>Digital Pro-Forma Engine</h3>
+                  <p className="lxf" style={{ fontSize: 13, color: '#B5AFA9' }}>Convert customer requirements into China-ready shopping lists.</p>
+               </div>
+               <div style={{ display: 'flex', gap: 12 }}>
+                  <button onClick={() => window.open(generateWhatsAppLink(workOrders.filter(w => w.status === 'Pending')), '_blank')} className="p-btn-gold" style={{ background: '#25D366', border: 'none', color: '#fff' }}>
+                     <Share2 size={16} /> Share via WhatsApp
+                  </button>
+                  <button className="p-btn-dark">
+                     <FileText size={16} /> Generate PDF
+                  </button>
+               </div>
+            </div>
+
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+               <thead>
+                  <tr style={{ borderBottom: '2px solid #F0EBE5', textAlign: 'left' }}>
+                     <th style={{ padding: 16, fontSize: 11, fontWeight: 800, color: '#B5AFA9', textTransform: 'uppercase' }}>Work Order</th>
+                     <th style={{ padding: 16, fontSize: 11, fontWeight: 800, color: '#B5AFA9', textTransform: 'uppercase' }}>Client</th>
+                     <th style={{ padding: 16, fontSize: 11, fontWeight: 800, color: '#B5AFA9', textTransform: 'uppercase' }}>Budget</th>
+                     <th style={{ padding: 16, fontSize: 11, fontWeight: 800, color: '#B5AFA9', textTransform: 'uppercase' }}>Procurement Status</th>
+                     <th style={{ padding: 16 }}></th>
+                  </tr>
+               </thead>
+               <tbody>
+                  {workOrders.map(wo => (
+                     <tr key={wo.id} style={{ borderBottom: '1px solid #F0EBE5' }}>
+                        <td style={{ padding: 16 }}>
+                           <div style={{ fontSize: 14, fontWeight: 700 }}>{wo.title}</div>
+                           <div style={{ fontSize: 11, color: '#B5AFA9' }}>ID: {wo.id}</div>
+                        </td>
+                        <td style={{ padding: 16, fontSize: 13 }}>{clients.find(c => c.id === wo.clientId)?.name || 'Guest'}</td>
+                        <td style={{ padding: 16, fontSize: 13, fontWeight: 700 }}>$12,400</td>
+                        <td style={{ padding: 16 }}>
+                           <span style={{ 
+                             padding: '4px 10px', borderRadius: 20, fontSize: 10, fontWeight: 800, 
+                             background: wo.logisticsStatus === 'Local' ? '#DCFCE7' : '#FEF3C7',
+                             color: wo.logisticsStatus === 'Local' ? '#166534' : '#92400E'
+                           }}>
+                              {wo.logisticsStatus || 'To Buy'}
+                           </span>
+                        </td>
+                        <td style={{ padding: 16, textAlign: 'right' }}>
+                           <button className="p-btn-light" style={{ padding: 8 }}><ExternalLink size={14} /></button>
+                        </td>
+                     </tr>
+                  ))}
+               </tbody>
+            </table>
+         </div>
+      )}
+    </div>
+  );
+}
 
          {/* RIGHT: ASSET ALLOCATION */}
          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -138,13 +212,16 @@ export default function AdminLogistics({ shipments = [], clients = [], procureme
                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,.4)', marginBottom: 12 }}>
                           <MapPin size={12} /> {clients.find(p => p.id === a.siteId)?.project || 'Global Site'}
                        </div>
-                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                             <div style={{ width: 24, height: 24, borderRadius: '50%', background: ac, color: '#1A1410', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>{a.user}</div>
-                             <span style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>Lead Allocation</span>
-                          </div>
-                          <PSBadge s={a.status} />
-                       </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ width: 24, height: 24, borderRadius: '50%', background: ac, color: '#1A1410', fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, border: '2px solid rgba(255,255,255,0.2)' }}>{a.user}</div>
+                              <span style={{ fontSize: 11, color: 'rgba(255,255,255,.7)' }}>Lead Allocation</span>
+                           </div>
+                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              {a.status === 'In Use' && <div className="luxe-pulse" style={{ background: '#16A34A', width: 6, height: 6, borderRadius: '50%' }} />}
+                              <PSBadge s={a.status} />
+                           </div>
+                        </div>
                     </div>
                   ))}
                </div>
