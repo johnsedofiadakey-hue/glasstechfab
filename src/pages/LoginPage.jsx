@@ -40,12 +40,19 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
     setLoading(true);
     setErr('');
     try {
-      await onLogin(identifier.trim(), cred.trim(), loginPath);
+      const user = await onLogin(identifier.trim(), cred.trim(), loginPath);
+      if (user?.requiresPasswordChange) {
+         setShowOnboarding(true);
+         setLoading(false);
+      }
     } catch (e) {
       setErr(e.message || 'Login failed. Please check your credentials.');
       setLoading(false);
     }
   };
+
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [newPass, setNewPass] = useState('');
 
   return (
     <div className="lxf" style={{ 
@@ -58,6 +65,36 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
       padding: 24, 
       transition: 'background 0.8s'
     }}>
+      {showOnboarding && (
+        <div className="overlay-modal" style={{ zIndex: 10000, background: 'rgba(26, 20, 16, 0.95)', backdropFilter: 'blur(20px)', position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+           <div className="p-card" style={{ maxWidth: 400, width: '100%', padding: 40, textAlign: 'center', background: '#fff', borderRadius: 24 }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: `${ac}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: ac }}>
+                 <KeyRound size={32} />
+              </div>
+              <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 12 }}>Secure Your Portal</h2>
+              <p style={{ color: '#B5AFA9', fontSize: 14, marginBottom: 32 }}>Welcome! For your security, please create a new private password to replace your temporary one.</p>
+              <input 
+                type="password" 
+                placeholder="New Secure Password" 
+                className="p-inp" 
+                style={{ marginBottom: 16, width: '100%', height: 50, padding: '0 16px', borderRadius: 12, border: '1px solid #eee' }}
+                value={newPass}
+                onChange={e => setNewPass(e.target.value)}
+              />
+              <button 
+                onClick={async () => {
+                   if(newPass.length < 6) return alert("Password must be at least 6 characters.");
+                   if(props.updateClientProfile) {
+                     await props.updateClientProfile(props.user.id, { requiresPasswordChange: false });
+                   }
+                   setShowOnboarding(false);
+                }}
+                className="p-btn-gold" 
+                style={{ width: '100%', padding: 16, borderRadius: 12, border: 'none', background: '#1A1410', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
+              >Update & Continue</button>
+           </div>
+        </div>
+      )}
       
       {/* Navigation Top */}
       <div style={{ width: '100%', maxWidth: 440, marginBottom: 24 }}>
@@ -93,7 +130,7 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
              : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: isAdminLogin ? '#fff' : '#1A1410', marginBottom: 24 }}>{brand.name}</div>}
            
           <h1 className="lxfh" style={{ fontSize: isAdminLogin ? 28 : 32, fontWeight: 300, color: isAdminLogin ? '#fff' : '#1A1410', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            {isAdminLogin ? 'Staff Entry' : 'Partner Portal'} {isAdminLogin ? <Lock size={20} color={ac} /> : <ShieldCheck size={24} color={ac} />}
+            {isAdminLogin ? 'Staff Entry' : 'Client Portal'} {isAdminLogin ? <Lock size={20} color={ac} /> : <ShieldCheck size={24} color={ac} />}
           </h1>
           <p style={{ fontSize: 13, color: isAdminLogin ? '#625C54' : '#6A635C', textTransform: isAdminLogin ? 'uppercase' : 'none', letterSpacing: isAdminLogin ? '.1em' : 'normal' }}>
             {isAdminLogin ? 'Secured Terminal Environment' : 'Enter your designated credentials to access your dashboard.'}

@@ -6,6 +6,7 @@ import {
 import { FF as PFormField } from '../../components/Shared';
 import { uploadFile } from '../../lib/firebase';
 import { compressImage } from '../../lib/image-utils';
+import AdminShowcase from './AdminShowcase';
 
 function CMSBranding({ brand, onSave, ac }) {
   const [f, setF] = useState({ ...brand });
@@ -161,11 +162,21 @@ function CMSServices({ services, onSave, ac }) {
   );
 }
 
-function CMSProducts({ products, onSave, ac }) {
+function CMSProducts({ products, categories, onSave, ac, syncCMS }) {
   const [list, setList] = useState(products || []);
+  const [cats, setCats] = useState(categories || []);
   const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: 'Glass Systems', specs: '', fobPrice: '', landedCost: '', status: 'Available', stock: 10, threshold: 2 });
+  const [isManagingCats, setIsManagingCats] = useState(false);
+  const [newItem, setNewItem] = useState({ name: '', desc: '', img: '', cat: cats?.[0]?.id || 'casement', specs: '', fobPrice: '', landedCost: '', status: 'Available', stock: 10, threshold: 2 });
+  const [newCat, setNewCat] = useState({ id: '', label: '', icon: '📦', groupId: 'aluminum', desc: '' });
+
   const [uploading, setUploading] = useState(false);
+
+  const GROUPS = [
+    { id: 'aluminum', label: 'Aluminum Systems' },
+    { id: 'interior', label: 'Interior Systems' },
+    { id: 'finishing', label: 'Luxury Finishing' }
+  ];
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -182,19 +193,86 @@ function CMSProducts({ products, onSave, ac }) {
 
   const handleAddProduct = () => {
     if (!newItem.name || !newItem.img) return alert('Name and Image are required.');
-    setList([{ ...newItem, id: Date.now() }, ...list]);
-    setNewItem({ name: '', desc: '', img: '', cat: 'Glass Systems', specs: '', fobPrice: '', landedCost: '', status: 'Available' });
+    const newList = [{ ...newItem, id: Date.now() }, ...list];
+    setList(newList);
+    onSave(newList);
+    setNewItem({ name: '', desc: '', img: '', cat: cats?.[0]?.id || '', specs: '', fobPrice: '', landedCost: '', status: 'Available' });
     setIsAdding(false);
+  };
+
+  const handleAddCategory = () => {
+    if (!newCat.id || !newCat.label) return alert('ID and Label are required.');
+    const exists = cats.find(c => c.id === newCat.id);
+    if (exists) return alert('Category ID already exists.');
+    
+    const newCats = [...cats, newCat];
+    setCats(newCats);
+    if (syncCMS) syncCMS('categories', newCats);
+    setNewCat({ id: '', label: '', icon: '📦', groupId: 'aluminum', desc: '' });
+  };
+
+  const handleRemoveCategory = (id) => {
+    const newCats = cats.filter(c => c.id !== id);
+    setCats(newCats);
+    if (syncCMS) syncCMS('categories', newCats);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, position: 'relative' }}>
        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
          <h3 className="lxfh" style={{ fontSize: 24, color: '#1A1410' }}>Marketplace Assets</h3>
-         <button onClick={() => setIsAdding(true)} className="p-btn-gold lxf" style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 100 }}>
-           <Upload size={16} /> Add Asset
-         </button>
+         <div style={{ display: 'flex', gap: 12 }}>
+            <button onClick={() => setIsManagingCats(true)} style={{ padding: '10px 20px', background: '#fff', border: '1px solid #ddd', borderRadius: 100, fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Manage Categories</button>
+            <button onClick={() => setIsAdding(true)} className="p-btn-gold lxf" style={{ padding: '10px 24px', display: 'flex', alignItems: 'center', gap: 8, borderRadius: 100 }}>
+              <Upload size={16} /> Add Asset
+            </button>
+         </div>
        </div>
+
+       {isManagingCats && (
+          <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'absolute', inset: 0, background: 'rgba(13,11,9,0.7)', backdropFilter: 'blur(8px)' }} onClick={() => setIsManagingCats(false)} />
+            <div className="fade-in" style={{ position: 'relative', width: '100%', maxWidth: 800, background: '#fff', borderRadius: 24, overflow: 'hidden', boxShadow: '0 32px 64px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '24px 32px', borderBottom: '1px solid #F0EBE5', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F9F7F4' }}>
+                <h4 className="lxfh" style={{ fontSize: 20 }}>Category & Group Manager</h4>
+                <button onClick={() => setIsManagingCats(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9' }}><X size={20} /></button>
+              </div>
+              <div style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 24, maxHeight: '70vh', overflowY: 'auto' }}>
+                
+                {/* Add Category Form */}
+                <div style={{ background: '#F9F7F4', padding: 20, borderRadius: 16, display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 12, alignItems: 'flex-end' }}>
+                  <PFormField label="Cat ID (Slug)"><input className="p-inp" placeholder="e.g. casement" value={newCat.id} onChange={e => setNewCat({...newCat, id: e.target.value.toLowerCase().replace(/\s/g, '-')})} /></PFormField>
+                  <PFormField label="Label Name"><input className="p-inp" placeholder="e.g. Casement Windows" value={newCat.label} onChange={e => setNewCat({...newCat, label: e.target.value})} /></PFormField>
+                  <PFormField label="Group">
+                    <select className="p-inp" value={newCat.groupId} onChange={e => setNewCat({...newCat, groupId: e.target.value})}>
+                      {GROUPS.map(g => <option key={g.id} value={g.id}>{g.label}</option>)}
+                    </select>
+                  </PFormField>
+                  <PFormField label="Icon"><input className="p-inp" placeholder="Emoji" value={newCat.icon} onChange={e => setNewCat({...newCat, icon: e.target.value})} /></PFormField>
+                  <button onClick={handleAddCategory} className="p-btn-dark" style={{ height: 44, borderRadius: 12, padding: '0 20px' }}>Add</button>
+                </div>
+
+                {/* Categories List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {GROUPS.map(g => (
+                    <div key={g.id} style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: ac, letterSpacing: '0.1em', marginBottom: 12 }}>{g.label}</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {cats.filter(c => c.groupId === g.id).map(c => (
+                          <div key={c.id} style={{ padding: '8px 12px', background: '#fff', border: '1px solid #F0EBE5', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span>{c.icon}</span>
+                            <span style={{ fontSize: 13, fontWeight: 600 }}>{c.label}</span>
+                            <button onClick={() => handleRemoveCategory(c.id)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ff4444', display: 'flex', padding: 0 }}><Trash size={14} /></button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+       )}
 
        {isAdding && (
          <div style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -229,10 +307,14 @@ function CMSProducts({ products, onSave, ac }) {
                    <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Asset Name</div>
                    <input className="p-inp" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} style={{ width: '100%' }} />
                  </div>
-                 <div>
-                   <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Category</div>
-                   <input className="p-inp" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} style={{ width: '100%' }} />
-                 </div>
+                  <div>
+                    <div className="lxf" style={{ fontSize: 12, fontWeight: 600, marginBottom: 8 }}>Category</div>
+                    <select className="p-inp" value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value})} style={{ width: '100%' }}>
+                       {(cats || []).map(c => (
+                         <option key={c.id || c} value={c.id || c}>{c.label || c}</option>
+                       ))}
+                    </select>
+                  </div>
                </div>
 
                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
@@ -328,11 +410,13 @@ function CMSAbout({ about, onSave, ac }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 40 }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <h3 className="lxfh" style={{ fontSize: 20 }}>Company Story</h3>
-        <PFormField label="Founder Name"><input className="p-inp" value={f.founder || ''} onChange={e => setF({...f, founder: e.target.value})} /></PFormField>
+        <h3 className="lxfh" style={{ fontSize: 20 }}>Leadership & Story</h3>
+        <PFormField label="Managing Director"><input className="p-inp" value={f.founder || ''} onChange={e => setF({...f, founder: e.target.value})} /></PFormField>
+        <PFormField label="Role / Title"><input className="p-inp" value={f.role || 'Managing Director'} onChange={e => setF({...f, role: e.target.value})} /></PFormField>
         <PFormField label="Story Headline"><input className="p-inp" value={f.storyTitle || ''} onChange={e => setF({...f, storyTitle: e.target.value})} /></PFormField>
-        <PFormField label="Mission Summary"><textarea className="p-inp" rows={4} value={f.story || ''} onChange={e => setF({...f, story: e.target.value})} /></PFormField>
-        <PFormField label="Full Vision Statement"><textarea className="p-inp" rows={4} value={f.bio || ''} onChange={e => setF({...f, bio: e.target.value})} /></PFormField>
+        <PFormField label="Mission Summary"><textarea className="p-inp" rows={3} value={f.story || ''} onChange={e => setF({...f, story: e.target.value})} /></PFormField>
+        <PFormField label="Full Biography"><textarea className="p-inp" rows={5} value={f.bio || ''} onChange={e => setF({...f, bio: e.target.value})} /></PFormField>
+
         <button onClick={() => onSave(f)} className="p-btn-dark lxf" style={{ alignSelf: 'flex-start', padding: '10px 24px' }}>Save About Page</button>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -462,8 +546,9 @@ export default function AdminCMS({ content, syncCMS, brand, onPreview, ...props 
     { id: 'homepage', label: 'Homepage', icon: <Layout size={16} /> },
     { id: 'services', label: 'Services', icon: <Activity size={16} /> },
     { id: 'products', label: 'Products', icon: <Smartphone size={16} /> },
-    { id: 'gallery', label: 'Gallery', icon: <ImgIcon size={16} /> },
-    { id: 'about', label: 'About', icon: <Users size={16} /> },
+    { id: 'gallery', label: 'Portfolio', icon: <ImgIcon size={16} /> },
+    { id: 'showroom', label: 'Showroom', icon: <Sparkles size={16} /> },
+    { id: 'about', label: 'Leadership', icon: <Users size={16} /> },
     { id: 'testimonials', label: 'Testimonials', icon: <ThumbsUp size={16} /> },
     { id: 'footer', label: 'Footer', icon: <Link2 size={16} /> },
   ];
@@ -475,9 +560,12 @@ export default function AdminCMS({ content, syncCMS, brand, onPreview, ...props 
       case 'branding': return <CMSBranding brand={content?.brand || brand} onSave={val => syncCMS('brand', val)} ac={ac} />;
       case 'homepage': return <CMSHomepage hero={content?.hero} onSave={val => syncCMS('hero', val)} ac={ac} />;
       case 'services': return <CMSServices services={content?.services} onSave={val => syncCMS('services', val)} ac={ac} />;
-      case 'products': return <CMSProducts products={content?.products} onSave={val => syncCMS('products', val)} ac={ac} />;
+      case 'products': return <CMSProducts products={content?.products} categories={content?.categories} onSave={val => syncCMS('products', val)} ac={ac} />;
       case 'gallery': return <CMSGallery portfolio={content?.portfolio} onSave={val => syncCMS('portfolio', val)} ac={ac} />;
+
+      case 'showroom': return <AdminShowcase brand={brand} {...props} />;
       case 'about': return <CMSAbout about={content?.about} onSave={val => syncCMS('about', val)} ac={ac} />;
+
       case 'testimonials': return <CMSTestimonials list={content?.testimonials} onSave={val => syncCMS('testimonials', val)} ac={ac} />;
       case 'footer': return <CMSFooter data={content?.footer} onSave={val => syncCMS('footer', val)} ac={ac} />;
       default: return null;

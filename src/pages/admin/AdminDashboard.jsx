@@ -50,7 +50,11 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
         }
     });
 
-    return Object.keys(revenueMap).map(m => ({ m, v: parseFloat(revenueMap[m].toFixed(1)) }));
+    return Object.keys(revenueMap).map(m => ({ 
+      m, 
+      v: parseFloat(revenueMap[m].toFixed(1)),
+      p: parseFloat((revenueMap[m] * 1.25).toFixed(1)) // Projected
+    }));
   };
 
   const dynamicRevData = getRevenueData();
@@ -79,17 +83,18 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
           {!isMobile && <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.1)' }} />}
           <div style={{ display: 'flex', gap: 12 }}>
             <button 
-              onClick={() => typeof props.setMod === 'function' && props.setMod('AddProject')} 
+              onClick={() => props.setView('operations')} 
               className="p-btn-gold lxf" 
               style={{ padding: isMobile ? '10px 16px' : '12px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}
             >
-              <Plus size={16} /> <span className={isMobile ? "mob-hide" : ""}>Deploy Project</span>
+              <Users size={16} /> <span className={isMobile ? "mob-hide" : ""}>Stakeholder Registry</span>
             </button>
             <button 
-              onClick={() => typeof props.setAI === 'function' && props.setAI()} 
-              style={{ height: isMobile ? 40 : 48, width: isMobile ? 40 : 48, borderRadius: 12, border: `1.5px solid ${ac}`, background: 'none', color: ac, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => typeof props.setMod === 'function' && props.setMod('AddProject')} 
+              className="p-btn-dark lxf" 
+              style={{ padding: isMobile ? '10px 16px' : '12px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
             >
-              <Sparkles size={18} />
+              <Plus size={16} /> <span className={isMobile ? "mob-hide" : ""}>Deploy Project</span>
             </button>
           </div>
         </div>
@@ -145,9 +150,10 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
                 <YAxis tick={{ fill: '#B5AFA9', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}k`} />
                 <Tooltip 
                   contentStyle={{ borderRadius: 16, border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', background: '#1A1410', color: '#fff' }} 
-                  itemStyle={{ fontSize: 12, fontWeight: 800, color: ac }}
+                  itemStyle={{ fontSize: 12, fontWeight: 800 }}
                 />
-                <Area type="monotone" dataKey="v" stroke={ac} fill="url(#dashColor)" strokeWidth={3} />
+                <Area type="monotone" dataKey="v" name="Actual Revenue" stroke={ac} fill="url(#dashColor)" strokeWidth={3} />
+                <Area type="monotone" dataKey="p" name="Projected Targets" stroke="rgba(255,255,255,0.2)" fill="transparent" strokeDasharray="5 5" strokeWidth={2} />
                 <defs>
                    <linearGradient id="dashColor" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor={ac} stopOpacity={0.2}/>
@@ -160,6 +166,20 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+          {/* PRODUCTION CAPACITY GAUGE */}
+          <div className="p-card" style={{ padding: 40, background: '#1A1410', color: '#fff', borderRadius: 32, border: 'none' }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+                <h3 className="lxfh" style={{ fontSize: 24 }}>Factory Throughput</h3>
+                <div style={{ fontSize: 10, fontWeight: 800, color: ac }}>94% EFFICIENCY</div>
+             </div>
+             <div style={{ height: 8, background: 'rgba(255,255,255,0.1)', borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
+                <div style={{ width: '82%', height: '100%', background: ac }} />
+             </div>
+             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, opacity: 0.6 }}>
+                <span>Active Fabrication: {activeJobs} Jobs</span>
+                <span>Max Capacity: 50 Jobs</span>
+             </div>
+          </div>
           {/* OPERATIONS FEED */}
           <div className="p-card" style={{ padding: 40, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 32, border: '1px solid rgba(255,255,255,0.5)' }}>
              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>

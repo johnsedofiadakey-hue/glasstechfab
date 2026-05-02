@@ -32,7 +32,7 @@ export const ABOUT_DATA = {
   storyTitle: 'Crafting the Future of Structural Glass & Interiors',
   story: 'Under the leadership of John Dakey, Managing Director, Glasstech Fabrications has evolved from a structural glass specialist into Ghana’s premier hub for complete interior finishing. Our mission is to bridge the gap between industrial engineering and luxury design.',
   bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.',
-  image: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/luxury_interior_glass_partitions_1777731505732.png'
+  image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=700&q=80'
 };
 
 export const BOOKING_SLOTS = ['9:00 AM','10:00 AM','11:00 AM','2:00 PM','3:00 PM','4:00 PM'];
@@ -100,7 +100,7 @@ export const PORTFOLIO_DATA = [
   {id:1,title:'The Volta Suite',cat:'Full Interior',after:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80',before:'',year:'2024',loc:'East Legon, Accra',area:'4,200 sq ft',duration:'5 months',budget:'$195,000',style:'Modern Industrial',hasBA:false,desc:'Total interior finishing including kitchens, tiling, and lighting.',imgs:['https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80']},
   {id:2,title:'Airport Hills Kitchen',cat:'Kitchen Installation',after:'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=1600&q=80',before:'',year:'2024',loc:'Airport Hills',area:'1,100 sq ft',duration:'2 months',budget:'$72,000',style:'Minimalist',hasBA:false,desc:'Bespoke smart kitchen installation with high-gloss finish.',imgs:['https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=1600&q=80']},
   {id:3,title:'Corporate HQ Fit-out',cat:'Office Fit-out',after:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80',before:'',year:'2025',loc:'Ridge, Accra',area:'8,500 sq ft',duration:'8 months',budget:'$450,000',style:'Contemporary',hasBA:false,desc:'Full office interior finishing with structural glass partitions.',imgs:['https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80']},
-  {id:4,title:'Marina Bay Skylight',cat:'Glass & Aluminum',after:'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_skylight_facade_detail_1777731521501.png',before:'',year:'2025',loc:'Tema Waterfront',area:'2,400 sq ft',duration:'3 months',budget:'$120,000',style:'Structural',hasBA:false,desc:'High-performance reflective glass skylight with structural aluminum support.',imgs:['file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_skylight_facade_detail_1777731521501.png']},
+  {id:4,title:'Marina Bay Skylight',cat:'Glass & Aluminum',after:'https://images.unsplash.com/photo-1600585154340-be6199f7a096?w=1600&q=80',before:'',year:'2025',loc:'Tema Waterfront',area:'2,400 sq ft',duration:'3 months',budget:'$120,000',style:'Structural',hasBA:false,desc:'High-performance reflective glass skylight with structural aluminum support.',imgs:['https://images.unsplash.com/photo-1600585154340-be6199f7a096?w=1600&q=80']},
 ];
 
 export const PRODUCTS_DATA = [
@@ -153,29 +153,19 @@ export const NOTIFS_DATA = [
 
 export const HERO_SLIDES = [
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/modern_glass_facade_hero_1777731475517.png',
+    img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=1600&q=80',
     title: 'Complete Interior\nSolutions.',
     sub: 'Total finishing for luxury residential and commercial developments.'
   },
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_fabrication_facility_1777731490604.png',
-    title: 'Precision\nFabrication.',
-    sub: 'Advanced glass and aluminum processing in our high-tech facility.'
+    img: 'https://images.unsplash.com/photo-1556911223-e1534ff6f755?w=1600&q=80',
+    title: 'Bespoke Kitchen\nEngineering.',
+    sub: 'Crafting culinary spaces with industrial precision and aesthetic luxury.'
   },
   {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/luxury_interior_glass_partitions_1777731505732.png',
+    img: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=1600&q=80',
     title: 'Structural\nLuxe.',
     sub: 'Where advanced glass engineering meets full-scale interior transformation.'
-  },
-  {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_skylight_facade_detail_1777731521501.png',
-    title: 'Reflective\nExcellence.',
-    sub: 'High-performance skylights and facades engineered for the future.'
-  },
-  {
-    img: 'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/professional_glass_engineers_1777731539303.png',
-    title: 'Expert\nLeadership.',
-    sub: 'Led by John Dakey, our team ensures sub-millimeter precision on every project.'
   }
 ];
 
@@ -217,8 +207,8 @@ export const WHY_US = [
 export const PROCESS_STEPS = [
   {n:'01',title:'Technical Survey',body:'Our site supervisors perform high-precision measurements and structural site audits to define the fabrication scope.',img:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&q=80'},
   {n:'02',title:'Engineering Design',body:'Our CAD engineers develop detailed shop drawings and structural specifications for client and architect approval.',img:'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80'},
-  {n:'03',title:'Precision Fabrication',body:'In our state-of-the-most facility, we process glass and aluminum components using advanced industrial automation.',img:'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/glass_fabrication_facility_1777731490604.png'},
-  {n:'04',title:'System Handover',body:'After professional installation by our specialist teams, we perform a final safety audit and formal handover.',img:'file:///Users/truth/.gemini/antigravity/brain/adb28acf-05bb-4a06-add4-ff18df02d9db/professional_glass_engineers_1777731539303.png'},
+  {n:'03',title:'Precision Fabrication',body:'In our state-of-the-most facility, we process glass and aluminum components using advanced industrial automation.',img:'https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500&q=80'},
+  {n:'04',title:'System Handover',body:'After professional installation by our specialist teams, we perform a final safety audit and formal handover.',img:'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=500&q=80'},
 ];
 
 
@@ -230,37 +220,18 @@ export const PROCESS_STEPS = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const GLASS_CATALOG_CATEGORIES = [
-  // --- ALUMINUM SYSTEMS ---
-  { id: 'casement',     label: 'Casement Windows',  icon: '🪟', groupId: 'aluminum',  desc: 'Outward-opening thermalbreak aluminum windows.' },
-  { id: 'inward',       label: 'Inward Opening',    icon: '🔀', groupId: 'aluminum',  desc: 'Versatile inward-opening and tilting windows.' },
-  { id: 'sliding-win',  label: 'Sliding Windows',   icon: '↔️', groupId: 'aluminum',  desc: 'Space-saving horizontal sliding window systems.' },
-  { id: 'specialty-win',label: 'Specialty Windows', icon: '✨', groupId: 'aluminum',  desc: 'Motorized lifts and unique architectural window openings.' },
-  { id: 'sliding-door', label: 'Sliding Doors',     icon: '🚪', groupId: 'aluminum',  desc: 'Ultra-slim profile sliding door systems.' },
-  { id: 'swing-door',   label: 'Swing & Pivot',     icon: '🔄', groupId: 'aluminum',  desc: 'Architect-grade swing and pivot entry systems.' },
-  { id: 'folding-door', label: 'Folding Doors',     icon: '🪗', groupId: 'aluminum',  desc: 'Premium bi-fold and accordion door systems.' },
-  { id: 'sunroom',      label: 'Sunroom & Skylight',icon: '☀️', groupId: 'aluminum',  desc: 'Enclosed aluminium sunroom structures.' },
-  
-  // --- INTERIOR SYSTEMS ---
-  { id: 'kitchen-new',       label: '2023 New Arrivals',    icon: '✨', groupId: 'interior', desc: 'Latest designs.' },
-  { id: 'kitchen-sintered',  label: 'Sintered Surface',     icon: '🪨', groupId: 'interior', desc: 'Ultra-hard surfaces.' },
-  { id: 'kitchen-wood',      label: 'Solid Wood',           icon: '🌳', groupId: 'interior', desc: 'Hardwood cabinetry.' },
-  { id: 'kitchen-veneer',    label: 'Wood Veneer',          icon: '🪵', groupId: 'interior', desc: 'Real wood grain veneer.' },
-  { id: 'kitchen-pet',       label: 'PET Panel',            icon: '🔲', groupId: 'interior', desc: 'High-gloss or matte PET.' },
-  { id: 'kitchen-hpl',       label: 'HPL',                  icon: '⬛', groupId: 'interior', desc: 'High Pressure Laminate.' },
-  { id: 'kitchen-lacquer',   label: 'Lacquer',              icon: '🎨', groupId: 'interior', desc: 'Eco-lacquer finish.' },
-  { id: 'kitchen-spray',     label: 'Spray Lacquer',        icon: '💨', groupId: 'interior', desc: 'Premium spray finish.' },
-  { id: 'kitchen-uv',        label: 'UV Lacquer',           icon: '💡', groupId: 'interior', desc: 'UV-cured panels.' },
-  { id: 'kitchen-melamine',  label: 'Melamine',             icon: '🔳', groupId: 'interior', desc: 'Economical fine texture.' },
-  { id: 'kitchen-pvc',       label: 'PVC Foil',             icon: '🌊', groupId: 'interior', desc: 'Beautiful wood-grain alternative.' },
-  { id: 'kitchen-pp',        label: 'PP Foil',              icon: '🏠', groupId: 'interior', desc: 'Outstanding price-performance.' },
-
-  // --- WASHROOM SYSTEMS ---
-  { id: 'shower',       label: 'Shower Enclosures', icon: '🚿', groupId: 'washroom',  desc: 'Stainless steel and tempered glass.' },
-  { id: 'washroom-acc', label: 'Bathroom Fixtures', icon: '🛁', groupId: 'washroom',  desc: 'Premium integrated solutions.' },
+  { id: 'casement',   label: 'Casement Windows',      icon: '🪟', desc: 'Outward-opening thermalbreak aluminum windows. Maximum ventilation, superior weatherproofing.' },
+  { id: 'inward',     label: 'Tilt & Turn Windows',   icon: '↩️', desc: 'Inward-opening with tilt function. European-style safety, ideal for high-rise residential.' },
+  { id: 'sliding-win',label: 'Sliding Windows',       icon: '⬅️', desc: 'Space-saving horizontal sliding panels. Ultra-narrow frames for panoramic views.' },
+  { id: 'specialty-win',label:'Specialty Windows',    icon: '⚡', desc: 'Parallel opening, pull-up, and motorized electric lift windows for premium applications.' },
+  { id: 'sliding-door',label:'Sliding Doors',         icon: '🚪', desc: 'Ultra-slim profile sliding door systems. Single, double, and multi-track configurations.' },
+  { id: 'swing-door', label: 'Swing & Pivot Doors',   icon: '🔄', desc: 'Architect-grade swing, hanging, interior, and pivot entry door systems.' },
+  { id: 'folding-door',label:'Folding Doors',         icon: '📐', desc: 'Thermal break bi-fold and multi-panel folding door systems for wide openings.' },
+  { id: 'sunroom',    label: 'Sunroom & Skylight',    icon: '☀️', desc: 'Enclosed aluminium sunroom structures and overhead glazed skylight systems.' },
+  { id: 'shower',     label: 'Shower Enclosures',     icon: '🚿', desc: 'Stainless steel and tempered glass shower room series. All configurations available.' },
 ];
 
 export const GLASS_CATALOG_DATA = [
-
   // ── CASEMENT WINDOWS ──────────────────────────────────────────────────────
   {
     id: 'w-63', sku: '63', cat: 'casement',
@@ -654,73 +625,37 @@ export const GLASS_CATALOG_DATA = [
     options: ['D851 Double sliding', 'D853 One solid one live', 'D854 One solid two linkage', 'D856 One fixed open', 'D858 Two solid one live', 'D859 T-shaft rotating', 'D860 Diamond hinge', 'D861 Diamond room', 'D865 Sector room', 'D866 Dual purpose', 'D867 Fixed frame', 'Custom dimensions'],
     status: 'Available',
   },
+];
 
-  // ── CUSTOM SHOWER MODELS ──────────────────────────────────────────────────
-  {
-    id: 'sh-3092', sku: '3092', cat: 'shower',
-    name: '3092 Series Pivot Enclosure',
-    tagline: '270° Architectural Rotation — SUS304 Stainless',
-    img: '/washroom/3092_pivot.png',
-    fullImg: '/washroom/3092_pivot.png',
-    desc: 'Masterpiece of minimalist engineering with 270-degree rotation.',
-    features: ['270° Dual-Swing Pivot', 'SUS304 Stainless Steel Frame', '10mm Toughened Safety Glass'],
-    specs: { frame: 'SUS304 Stainless', finish: 'Matte Black', glass: '10mm Tempered' }
-  },
-  {
-    id: 'sh-1530', sku: '1530', cat: 'shower',
-    name: '1530 Series Diamond Enclosure',
-    tagline: 'Pentagon Corner Entry — Space Efficient Luxury',
-    img: '/washroom/1530_pentagon.png',
-    fullImg: '/washroom/1530_pentagon.png',
-    desc: 'Diamond geometry for spacious corner entry.',
-    features: ['Pentagon Geometry', 'Crystal Glass', 'Magnetic Seals'],
-    specs: { frame: 'Aviation Aluminum', finish: 'Chrome', glass: '10mm Tempered' }
-  },
-  {
-    id: 'sh-203PF', sku: '203PF', cat: 'shower',
-    name: '203PF Series Minimalist Screen',
-    tagline: 'Fixed & Swing Fusion — Open Concept Luxury',
-    img: '/washroom/203pf_screen.png',
-    fullImg: '/washroom/203pf_screen.png',
-    desc: 'Sophisticated open concept feel with champagne gold structure.',
-    features: ['Champagne Gold Profiles', 'Fixed Support Bar'],
-    specs: { frame: 'Electroplated Aluminum', glass: '8mm Tempered' }
-  },
-  {
-    id: 'sh-3515', sku: '3515', cat: 'shower',
-    name: '3515 Series Sliding Enclosure',
-    tagline: 'Smooth Gliding Technology — Top Rail Precision',
-    img: '/washroom/3515_sliding.png',
-    fullImg: '/washroom/3515_sliding.png',
-    desc: 'Exposed top-rail sliding system for silent motion.',
-    features: ['Top-Rail System', 'Silent Rollers'],
-    specs: { material: 'SUS304 Stainless', glass: '10mm Tempered' }
-  },
-  {
-    id: 'sh-9324', sku: '9324', cat: 'shower',
-    name: '9324 Series Curved Enclosure',
-    tagline: 'Quadrant Design — Fluid Architectural Lines',
-    img: '/washroom/9324_curved.png',
-    fullImg: '/washroom/9324_curved.png',
-    desc: 'Curved quadrant layout with dual sliding doors.',
-    features: ['Curved Doors', 'Quadrant Optimization'],
-    specs: { frame: 'Anodized Silver', radius: '550mm' }
-  },
-  {
-    id: 'sh-QJM2', sku: 'QJM-2', cat: 'shower',
-    name: 'QJM-2 Series Ultra-Slim Sliding',
-    tagline: 'Extreme Minimalism — Hidden Frame Technology',
-    img: '/washroom/qjm2_minimalist.png',
-    fullImg: '/washroom/qjm2_minimalist.png',
-    desc: 'Ultra-slim profiles that disappear into architecture.',
-    features: ['Hidden Tracking', 'Full-Height Glass'],
-    specs: { frame: 'Slim-Line Aluminum', finish: 'Shadow Black' }
-  },
+// ─────────────────────────────────────────────────────────────────────────────
+// KITCHEN CATALOG — Premium cabinetry collection
+// Sourced from ISO9001, NSF, CARB-certified manufacturing
+// Categories organised by door finish / material
+// ─────────────────────────────────────────────────────────────────────────────
 
+export const KITCHEN_CATALOG_CATEGORIES = [
+  { id: 'kitchen-new',       label: '2023 New Arrivals',    icon: '✨', desc: 'Latest designs combining cutting-edge materials with timeless form.' },
+  { id: 'kitchen-sintered',  label: 'Sintered Surface',     icon: '🪨', desc: 'Ultra-hard, heat-resistant sintered stone panels. Anti-scratch and stain-proof finish.' },
+  { id: 'kitchen-wood',      label: 'Solid Wood',           icon: '🌳', desc: 'North American broadleaf hardwood — birch, cherry, alder, oak, ash, walnut.' },
+  { id: 'kitchen-veneer',    label: 'Wood Veneer',          icon: '🪵', desc: 'Real wood grain veneer over engineered core. Warmth of timber, superior stability.' },
+  { id: 'kitchen-pet',       label: 'PET Panel',            icon: '🔲', desc: 'High-gloss or matte PET surface. Scratch-resistant, moisture-resistant, vibrant colours.' },
+  { id: 'kitchen-hpl',       label: 'HPL',                  icon: '⬛', desc: 'High Pressure Laminate. Outstanding scratch and heat resistance. Entry-level value.' },
+  { id: 'kitchen-lacquer',   label: 'Lacquer',              icon: '🎨', desc: 'PPG & DAIHO eco-lacquer. Superior yellowing resistance. Matt or high-gloss options.' },
+  { id: 'kitchen-spray',     label: 'Spray Lacquer',        icon: '💨', desc: 'Premium spray-applied lacquer finish. Eco-friendly, SGS-tested, no heavy metals.' },
+  { id: 'kitchen-uv',        label: 'UV Lacquer',           icon: '💡', desc: 'UV-cured lacquer panel. No moisture absorption. Fast-cure eco-friendly process.' },
+  { id: 'kitchen-melamine',  label: 'Melamine',             icon: '🔳', desc: 'German Schattdecor / Spain Lamigraf décor paper. Fine texture. Economical value.' },
+  { id: 'kitchen-pvc',       label: 'PVC Foil',             icon: '🌊', desc: 'RIKEN & RENOLIT foil. Tough surface, beautiful wood-grain alternative. Economical.' },
+  { id: 'kitchen-pp',        label: 'PP Foil',              icon: '🏠', desc: 'PP foil with astonishing wood grain texture. Classical look, outstanding price-performance.' },
+];
+
+// All categories that are "new arrivals"
+const NEW_ARRIVAL_SKUS = new Set(['WALDEN','GREENBERG','SOMMAROY','MAESTRO','HOUMAS','GLENDURGAN','NITA','AURORA','BROCADE','FEICHE','SICILIAN HOLIDAY','MOYEN','SONG FOR YOU']);
+
+export const KITCHEN_CATALOG_DATA = [
   // ── 2023 NEW ARRIVALS ─────────────────────────────────────────────────────
   { id:'k-walden', sku:'WALDEN', code:'PLCC23026', cat:['kitchen-new','kitchen-veneer'],
     name:'Walden', tagline:'Dark Veneer Drama — Marble Island & Brass Accents',
-    img:'/kitchen/walden.png', fullImg:'/kitchen/walden.png',
+    img:'/kitchen/thumbs/walden.jpg', fullImg:'/kitchen/walden.jpg',
     finish:'Wood Veneer', layout:'Island + Wall Run',
     dims:{ width:'5022mm', depth:'3850mm', island:'560mm × 1000mm' },
     specs:{ doorStyle:'YMN079, YMN080, YMN081', doorFinish:'PWMN2001', countertop:'PWTE0086, PWTY2013' },
@@ -728,10 +663,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Brass-trimmed display columns','Blue stone island countertop','Glass-front wine display','Under-island LED plinth lighting'],
     status:'In Stock' },
 
-  { id:'k-greenberg', sku:'GREENBERG',
-    name:'Greenberg',
-    tagline:'Warm Amber Veneer — Cityscape Confidence',
-    img:'/kitchen/greenberg.png', fullImg:'/kitchen/greenberg.png',
+  { id:'k-greenberg', sku:'GREENBERG', code:'PLCC23020', cat:['kitchen-new','kitchen-veneer'],
+    name:'Greenberg', tagline:'Warm Amber Veneer — Cityscape Confidence',
+    img:'/kitchen/thumbs/greenberg.jpg', fullImg:'/kitchen/greenberg.jpg',
     finish:'Wood Veneer', layout:'Island + Wall Run',
     dims:{ width:'5250mm', depth:'3657mm', island:'1060mm' },
     specs:{ doorStyle:'YMN082, YMN083, YMN001', doorFinish:'PWMN1001', countertop:'PWTE0005' },
@@ -741,7 +675,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-sommaroy', sku:'SOMMAROY', code:'PLCC23028', cat:['kitchen-new','kitchen-pet'],
     name:'Sommaroy', tagline:'Light Grey PET — Nordic L-Shape with Display Tower',
-    img:'/kitchen/sommaroy.png', fullImg:'/kitchen/sommaroy.png',
+    img:'/kitchen/thumbs/sommaroy.jpg', fullImg:'/kitchen/sommaroy.jpg',
     finish:'PET', layout:'L-Shape + Tall Unit',
     dims:{ width:'4270mm', depth:'2805mm', island:'560mm' },
     specs:{ doorStyle:'YMP053, YMP001P, YMA001P', doorFinish:'PWMP2033, PWMP2032, PWMA0545', countertop:'PWTY1048' },
@@ -751,7 +685,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-maestro', sku:'MAESTRO', code:'PLCC23030', cat:['kitchen-new','kitchen-pet'],
     name:'Maestro', tagline:'Bronze PET Drama — Glass Display Towers & Dark Island',
-    img:'/kitchen/maestro.png', fullImg:'/kitchen/maestro.png',
+    img:'/kitchen/thumbs/maestro.jpg', fullImg:'/kitchen/maestro.jpg',
     finish:'PET', layout:'G-Shape + Island',
     dims:{ width:'3868mm', depth:'2849mm', island:'949mm' },
     specs:{ doorStyle:'YMD077, YMG231', doorFinish:'PWMP2031, PWMP2030', countertop:'PWTE0048' },
@@ -761,7 +695,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-houmas', sku:'HOUMAS', code:'PLCC23024', cat:['kitchen-new','kitchen-lacquer'],
     name:'Houmas', tagline:'Cool Grey Lacquer — Brass Handles & Marble Island',
-    img:'/kitchen/houmas.png', fullImg:'/kitchen/houmas.png',
+    img:'/kitchen/thumbs/houmas.jpg', fullImg:'/kitchen/houmas.jpg',
     finish:'Lacquer', layout:'Wall Run + Island',
     dims:{ width:'5026mm', depth:'3090mm', island:'1138mm' },
     specs:{ doorStyle:'YMK001, YMK300', doorFinish:'PWMK2176', countertop:'PWTE0088' },
@@ -771,7 +705,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-glendurgan', sku:'GLENDURGAN', code:'PLCC23022', cat:['kitchen-new','kitchen-spray'],
     name:'Glendurgan', tagline:'Warm Cream Spray Lacquer — Island with Dining Extension',
-    img:'/kitchen/glendurgan.png', fullImg:'/kitchen/glendurgan.png',
+    img:'/kitchen/thumbs/glendurgan.jpg', fullImg:'/kitchen/glendurgan.jpg',
     finish:'Spray Lacquer', layout:'L-Shape + Island + Dining',
     dims:{ width:'4339mm', depth:'2953mm', seating:'1850mm × 1600mm' },
     specs:{ doorStyle:'YMH107, YMH108, YMH109, YMH001', doorFinish:'PWMH0070, PWMH0071', countertop:'PWTY1111' },
@@ -779,10 +713,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Island-to-dining table extension','Frosted glass wall cabinets','Concealed drawer organisers','Gold-tipped edge detail'],
     status:'In Stock' },
 
-  { id:'k-nita', sku:'NITA',
-    name:'Nita',
-    tagline:'Ivory & Bronze Spray Lacquer — Folding Island Table',
-    img:'/kitchen/nita.png', fullImg:'/kitchen/nita.png',
+  { id:'k-nita', sku:'NITA', code:'PLCC23023', cat:['kitchen-new','kitchen-spray'],
+    name:'Nita', tagline:'Ivory & Bronze Spray Lacquer — Folding Island Table',
+    img:'/kitchen/thumbs/nita.jpg', fullImg:'/kitchen/nita.jpg',
     finish:'Spray Lacquer', layout:'L-Shape + Island Table',
     dims:{ width:'5592mm', depth:'2522mm', island:'2000mm × 1644mm' },
     specs:{ doorStyle:'YMH104, YMH105, YMP054', doorFinish:'PWMH0072, PWMH0066', countertop:'PWTY1111' },
@@ -790,10 +723,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Integrated fold-out island dining table','Two-tone spray lacquer palette','Translucent glass upper cabinets','Smart appliance integration zone'],
     status:'In Stock' },
 
-  { id:'k-aurora', sku:'AURORA',
-    name:'Aurora',
-    tagline:'Light Concrete Melamine — Warm Oak Open Shelving',
-    img:'/kitchen/aurora_series.png', fullImg:'/kitchen/aurora_series.png',
+  { id:'k-aurora', sku:'AURORA', code:'PLCC23040', cat:['kitchen-new','kitchen-melamine'],
+    name:'Aurora', tagline:'Light Concrete Melamine — Warm Oak Open Shelving',
+    img:'/kitchen/thumbs/aurora.jpg', fullImg:'/kitchen/aurora.jpg',
     finish:'Melamine', layout:'L-Shape + Tall Column',
     dims:{ width:'4016mm', depth:'2513mm' },
     specs:{ doorStyle:'YMA001P', doorFinish:'PWMA0537, PWMA0536, PWMA0237', countertop:'PWTY1107' },
@@ -801,10 +733,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Warm oak illuminated open shelving','Light concrete door finish','Integrated range hood','Column appliance housing'],
     status:'In Stock' },
 
-  { id:'k-brocade', sku:'BROCADE',
-    name:'Brocade',
-    tagline:'Cream & Oak Melamine — Curved Island Feature',
-    img:'/kitchen/brocade.png', fullImg:'/kitchen/brocade.png',
+  { id:'k-brocade', sku:'BROCADE', code:'PLCC23039', cat:['kitchen-new','kitchen-melamine'],
+    name:'Brocade', tagline:'Cream & Oak Melamine — Curved Island Feature',
+    img:'/kitchen/thumbs/brocade.jpg', fullImg:'/kitchen/brocade.jpg',
     finish:'Melamine', layout:'L-Shape + Curved Island',
     dims:{ width:'5150mm', depth:'3009mm', island:'790mm × 1306mm' },
     specs:{ doorStyle:'YMA119, YMA120, YMA001P', doorFinish:'PWMA0539, PWMA0538', countertop:'PWTY1110' },
@@ -812,10 +743,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Sculpted curved island edge','Open lattice display panels','Honey oak open shelving','Marble-look countertop'],
     status:'In Stock' },
 
-  { id:'k-feiche', sku:'FEICHE',
-    name:'Feiche',
-    tagline:'Taupe PVC Foil — Industrial Wall Tower & Open Display',
-    img:'/kitchen/feiche_series.png', fullImg:'/kitchen/feiche_series.png',
+  { id:'k-feiche', sku:'FEICHE', code:'PLCC23003', cat:['kitchen-new','kitchen-pvc'],
+    name:'Feiche', tagline:'Taupe PVC Foil — Industrial Wall Tower & Open Display',
+    img:'/kitchen/thumbs/feiche.jpg', fullImg:'/kitchen/feiche.jpg',
     finish:'PVC Foil', layout:'Straight Run + Display Tower',
     dims:{ width:'4288mm', depth:'560mm' },
     specs:{ doorStyle:'YMG065, YMC003', doorFinish:'PWMG1383, PWMG1382, PWMC0160', countertop:'PWTE0048' },
@@ -825,7 +755,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-sicilian', sku:'SICILIAN HOLIDAY', code:'PLCC23031', cat:['kitchen-new','kitchen-pvc'],
     name:'Sicilian Holiday', tagline:'Cream PVC Foil — Grand Display Cabinet & Open Shelving',
-    img:'/kitchen/industrial.png', fullImg:'/kitchen/industrial.png',
+    img:'/kitchen/thumbs/sicilian_holiday.jpg', fullImg:'/kitchen/sicilian_holiday.jpg',
     finish:'PVC Foil', layout:'U-Shape + Display Column',
     dims:{ width:'6240mm', depth:'3050mm' },
     specs:{ doorStyle:'YMG227, YMG228, YMG229, YMG230', doorFinish:'PWMG1385', countertop:'PWTE0084' },
@@ -833,10 +763,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Ribbed glass display column','Dark wood-tone upper wall','Gold bar handles','Integrated double oven column'],
     status:'In Stock' },
 
-  { id:'k-moyen', sku:'MOYEN',
-    name:'Moyen',
-    tagline:'Ivory UV Lacquer — Warm Walnut Accents & Open Display',
-    img:'/kitchen/moyen_series.png', fullImg:'/kitchen/moyen_series.png',
+  { id:'k-moyen', sku:'MOYEN', code:'PLCC23033', cat:['kitchen-new','kitchen-uv'],
+    name:'Moyen', tagline:'Ivory UV Lacquer — Warm Walnut Accents & Open Display',
+    img:'/kitchen/thumbs/moyen.jpg', fullImg:'/kitchen/moyen.jpg',
     finish:'UV Lacquer', layout:'L-Shape + Island',
     dims:{ width:'4067mm', depth:'2849mm' },
     specs:{ doorStyle:'YMC048, YMC003P', doorFinish:'PWMC0161, PWMC0162, PWMC0164', countertop:'PWTE0022' },
@@ -846,7 +775,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-song', sku:'SONG FOR YOU', code:'PLCC23034', cat:['kitchen-new','kitchen-uv'],
     name:'Song For You', tagline:'White UV Lacquer — Warm Island with Organised Drawers',
-    img:'/kitchen/zen.png', fullImg:'/kitchen/zen.png',
+    img:'/kitchen/thumbs/song_for_you.jpg', fullImg:'/kitchen/song_for_you.jpg',
     finish:'UV Lacquer', layout:'L-Shape + Island',
     dims:{ width:'3930mm', depth:'2150mm' },
     specs:{ doorStyle:'YMC003P, YMA001P', doorFinish:'PWMC0163, PWMA0237', countertop:'PWTY1048' },
@@ -857,7 +786,7 @@ export const GLASS_CATALOG_DATA = [
   // ── SINTERED SURFACE ──────────────────────────────────────────────────────
   { id:'k-rippon', sku:'RIPPON', code:'PLCC22212', cat:['kitchen-sintered'],
     name:'Rippon', tagline:'Navy Sintered + White Marble Island — Bold Contrast',
-    img:'/kitchen/victorian.png', fullImg:'/kitchen/victorian.png',
+    img:'/kitchen/thumbs/rippon.jpg', fullImg:'/kitchen/rippon.jpg',
     finish:'Sintered Surface', layout:'Wall Run + Island',
     dims:{ width:'5270mm', depth:'3638mm' },
     specs:{ doorStyle:'YME004, YMK001', doorFinish:'PWME0008, PWMK5004, PWMK5005', countertop:'PWTE0041, PWTE0040' },
@@ -867,7 +796,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-goethe', sku:'GOETHE', code:'PLCC22001', cat:['kitchen-sintered'],
     name:'Goethe', tagline:'Dark Sintered — Red Accent Shelving & Curved Island',
-    img:'/kitchen/modern_black.png', fullImg:'/kitchen/modern_black.png',
+    img:'/kitchen/thumbs/goethe.jpg', fullImg:'/kitchen/goethe.jpg',
     finish:'Sintered Surface', layout:'L-Shape + Curved Island',
     dims:{ width:'5098mm', depth:'2744mm', island:'3504mm × 940mm' },
     specs:{ doorStyle:'YME017, YME018, YMG153', doorFinish:'PWME0013, PWMG0258', countertop:'YTE001A, PWTE0030' },
@@ -877,7 +806,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-leyah', sku:'LEYAH', code:'PLCC22011', cat:['kitchen-sintered'],
     name:'Leyah', tagline:'White Sintered & Walnut — Exotic Island Countertop',
-    img:'/kitchen/farmhouse.png', fullImg:'/kitchen/farmhouse.png',
+    img:'/kitchen/thumbs/leyah.jpg', fullImg:'/kitchen/leyah.jpg',
     finish:'Sintered Surface', layout:'L-Shape + Island',
     dims:{ width:'4248mm', depth:'4021mm' },
     specs:{ doorStyle:'YME015, YME016, YME019, YMN052', doorFinish:'PWME0020, PWMN3066', countertop:'YTS005A, PWTY2020' },
@@ -888,7 +817,7 @@ export const GLASS_CATALOG_DATA = [
   // ── SOLID WOOD ────────────────────────────────────────────────────────────
   { id:'k-scottish', sku:'SCOTTISH COUNTRYSIDE', code:'PLCC13344', cat:['kitchen-wood'],
     name:'Scottish Countryside', tagline:'Rich Mahogany Solid Wood — Classic Heritage Kitchen',
-    img:'/kitchen/mcm.png', fullImg:'/kitchen/mcm.png',
+    img:'/kitchen/thumbs/scottish_countryside.jpg', fullImg:'/kitchen/scottish_countryside.jpg',
     finish:'Solid Wood', layout:'L-Shape + Island',
     dims:{ width:'4180mm', depth:'3260mm', island:'930mm' },
     specs:{ doorStyle:'YMM004', doorFinish:'PWMM2014', countertop:'YTS006B, PWTY2019' },
@@ -898,7 +827,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-annecy', sku:'ANNECY TOWN', code:'PLCC16120', cat:['kitchen-wood'],
     name:'Annecy Town', tagline:'Cherry Solid Wood — Grand Classical Kitchen',
-    img:'/kitchen/boho.png', fullImg:'/kitchen/boho.png',
+    img:'/kitchen/thumbs/annecy_town.jpg', fullImg:'/kitchen/annecy_town.jpg',
     finish:'Solid Wood', layout:'U-Shape + Island',
     dims:{ width:'4593mm', depth:'2793mm', island:'600mm' },
     specs:{ doorStyle:'YMM035A, YMM035B', doorFinish:'PWMM2023', countertop:'YTS004B, PWTY2006' },
@@ -907,10 +836,9 @@ export const GLASS_CATALOG_DATA = [
     status:'In Stock' },
 
   // ── WOOD VENEER ───────────────────────────────────────────────────────────
-  { id:'k-nier', sku:'NIER',
-    name:'Nier',
-    tagline:'Dark Driftwood Veneer — Wine Bar Island',
-    img:'/kitchen/nier_series.png', fullImg:'/kitchen/nier_series.png',
+  { id:'k-nier', sku:'NIER', code:'PLCC22026', cat:['kitchen-veneer'],
+    name:'Nier', tagline:'Dark Driftwood Veneer — Wine Bar Island',
+    img:'/kitchen/thumbs/nier.jpg', fullImg:'/kitchen/nier.jpg',
     finish:'Wood Veneer', layout:'Island Only',
     dims:{ width:'4488mm', depth:'2650mm' },
     specs:{ doorStyle:'YMN001', doorFinish:'PWMN0005, PWMN0006', countertop:'PWTE0022' },
@@ -918,10 +846,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Brass-frame stemware towers','Dark driftwood veneer','Oval island bench','Built-in wine display wall'],
     status:'In Stock' },
 
-  { id:'k-blossom', sku:'ELEGANT BLOSSOM',
-    name:'Elegant Blossom',
-    tagline:'Warm Mahogany Veneer — Asian-Inspired Island Kitchen',
-    img:'/kitchen/elegant_blossom_series.png', fullImg:'/kitchen/elegant_blossom_series.png',
+  { id:'k-blossom', sku:'ELEGANT BLOSSOM', code:'PLCC20103', cat:['kitchen-veneer'],
+    name:'Elegant Blossom', tagline:'Warm Mahogany Veneer — Asian-Inspired Island Kitchen',
+    img:'/kitchen/thumbs/elegant_blossom.jpg', fullImg:'/kitchen/elegant_blossom.jpg',
     finish:'Wood Veneer', layout:'Island + Wall Run',
     dims:{ width:'4950mm', depth:'2450mm', island:'940mm' },
     specs:{ doorStyle:'YMM090', doorFinish:'PWMM2092', countertop:'YTE001D, PWTE0023' },
@@ -929,10 +856,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Brass inlay door detail','Japanese-inspired shelving','Integrated island breakfast bar','Marble-look countertop'],
     status:'In Stock' },
 
-  { id:'k-rodin', sku:'RODIN',
-    name:'Rodin',
-    tagline:'Two-Tone Veneer — Ribbed Island & Brass Grid Display',
-    img:'/kitchen/rodin_series.png', fullImg:'/kitchen/rodin_series.png',
+  { id:'k-rodin', sku:'RODIN', code:'PLCC22031', cat:['kitchen-veneer'],
+    name:'Rodin', tagline:'Two-Tone Veneer — Ribbed Island & Brass Grid Display',
+    img:'/kitchen/thumbs/rodin.jpg', fullImg:'/kitchen/rodin.jpg',
     finish:'Wood Veneer', layout:'Island + Wall Display',
     dims:{ width:'4500mm', depth:'3044mm', island:'660mm' },
     specs:{ doorStyle:'YMN053, YMN054', doorFinish:'PWMN0008, PWMN0009', countertop:'PWTE0005' },
@@ -942,7 +868,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-munch', sku:'MUNCH', code:'PLCC22025', cat:['kitchen-veneer'],
     name:'Munch', tagline:'Gold Burl Veneer — Fluted Columns & Curved Island',
-    img:'/kitchen/penthouse.png', fullImg:'/kitchen/penthouse.png',
+    img:'/kitchen/thumbs/munch.jpg', fullImg:'/kitchen/munch.jpg',
     finish:'Wood Veneer', layout:'L-Shape + Curved Island',
     dims:{ width:'5260mm', depth:'3288mm', island:'940mm' },
     specs:{ doorStyle:'YMN055, YMN049, YMB067', doorFinish:'PWMM4007, PWMM4008', countertop:'YTE001D, PWTE0023' },
@@ -953,7 +879,7 @@ export const GLASS_CATALOG_DATA = [
   // ── PET ───────────────────────────────────────────────────────────────────
   { id:'k-shadow', sku:'LIGHT AND SHADOW', code:'PLCC21406', cat:['kitchen-pet'],
     name:'Light and Shadow', tagline:'Slate Grey PET — Marble Island & Backlit Shelving',
-    img:'/kitchen/scandi.png', fullImg:'/kitchen/scandi.png',
+    img:'/kitchen/thumbs/light_and_shadow.jpg', fullImg:'/kitchen/light_and_shadow.jpg',
     finish:'PET', layout:'G-Shape + Island',
     dims:{ width:'4117mm', depth:'2349mm', island:'900mm' },
     specs:{ doorStyle:'YMP001, YMP027', doorFinish:'PWMP2010', countertop:'PWTE0006' },
@@ -963,7 +889,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-breezy', sku:'BREEZY', code:'PLCC22126', cat:['kitchen-pet'],
     name:'Breezy', tagline:'Warm Mocha PET — Dark Display Tower & Sintered Island',
-    img:'/kitchen/grey.png', fullImg:'/kitchen/grey.png',
+    img:'/kitchen/thumbs/breezy.jpg', fullImg:'/kitchen/breezy.jpg',
     finish:'PET', layout:'L-Shape + Island',
     dims:{ width:'4550mm', depth:'2958mm' },
     specs:{ doorStyle:'YMP001, YMK001', doorFinish:'PWMP2024, PWMP2025', countertop:'PWTE0067' },
@@ -974,7 +900,7 @@ export const GLASS_CATALOG_DATA = [
   // ── HPL ───────────────────────────────────────────────────────────────────
   { id:'k-odejoy', sku:'ODE TO JOY', code:'PLCC18082', cat:['kitchen-hpl'],
     name:'Ode To Joy', tagline:'Stone-Texture HPL — Industrial Open Framework',
-    img:'/kitchen/walnut_cozy.png', fullImg:'/kitchen/walnut_cozy.png',
+    img:'/kitchen/thumbs/ode_to_joy.jpg', fullImg:'/kitchen/ode_to_joy.jpg',
     finish:'HPL', layout:'L-Shape + Open Framework',
     dims:{ width:'3790mm', depth:'2650mm' },
     specs:{ doorStyle:'YMF001', doorFinish:'PWMF0047, PWMF0017', countertop:'PWTY1008' },
@@ -984,7 +910,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-cloud', sku:'CLOUD RETREAT', code:'PLCC21411', cat:['kitchen-hpl'],
     name:'Cloud Retreat', tagline:'White HPL — Brass-Frame Display Tower & Warm Glow',
-    img:'/kitchen/walden.png', fullImg:'/kitchen/walden.png',
+    img:'/kitchen/thumbs/cloud_retreat.jpg', fullImg:'/kitchen/cloud_retreat.jpg',
     finish:'HPL', layout:'L-Shape + Island',
     dims:{ width:'3640mm', depth:'2670mm' },
     specs:{ doorStyle:'YMF018, YMF001', doorFinish:'PWMF0072, PWMF0074', countertop:'YTE002A, PWTE0036' },
@@ -994,7 +920,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-zeppelin', sku:'ZEPPELIN', code:'PLCC21113', cat:['kitchen-hpl'],
     name:'Zeppelin', tagline:'Wood & Stone HPL — Straight-Line Industrial Palette',
-    img:'/kitchen/sommaroy.png', fullImg:'/kitchen/sommaroy.png',
+    img:'/kitchen/thumbs/zeppelin.jpg', fullImg:'/kitchen/zeppelin.jpg',
     finish:'HPL', layout:'Straight Run',
     dims:{ width:'4590mm', depth:'580mm' },
     specs:{ doorStyle:'YMF001', doorFinish:'PWMF0064, PWMF0065', countertop:'PWTE0034' },
@@ -1003,10 +929,9 @@ export const GLASS_CATALOG_DATA = [
     status:'In Stock' },
 
   // ── LACQUER ───────────────────────────────────────────────────────────────
-  { id:'k-garden', sku:'SECRET GARDEN',
-    name:'Secret Garden',
-    tagline:'Bordeaux Red Lacquer — Fluted Panels & Botanical Display',
-    img:'/kitchen/secret_garden_series.png', fullImg:'/kitchen/secret_garden_series.png',
+  { id:'k-garden', sku:'SECRET GARDEN', code:'PLCC21043', cat:['kitchen-lacquer'],
+    name:'Secret Garden', tagline:'Bordeaux Red Lacquer — Fluted Panels & Botanical Display',
+    img:'/kitchen/thumbs/secret_garden.jpg', fullImg:'/kitchen/secret_garden.jpg',
     finish:'Lacquer', layout:'Island + Display Wall',
     dims:{ width:'4838mm', depth:'3638mm' },
     specs:{ doorStyle:'YMK148A/B, YMK001, YMK150A/B', doorFinish:'PWMK5001, PWMK2112', countertop:'PWTE0008' },
@@ -1016,7 +941,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-dreams', sku:'ENCHANTED DREAMS', code:'PLCC21325', cat:['kitchen-lacquer'],
     name:'Enchanted Dreams', tagline:'White & Charcoal Lacquer — Floating Island',
-    img:'/kitchen/maestro.png', fullImg:'/kitchen/maestro.png',
+    img:'/kitchen/thumbs/enchanted_dreams.jpg', fullImg:'/kitchen/enchanted_dreams.jpg',
     finish:'Lacquer', layout:'L-Shape + Floating Island',
     dims:{ width:'3504mm', depth:'2482mm', island:'3080mm × 1104mm' },
     specs:{ doorStyle:'YMK146A, YMK146B', doorFinish:'PWMK3022', countertop:'YTE004, PWTE0007' },
@@ -1024,10 +949,9 @@ export const GLASS_CATALOG_DATA = [
     features:['Sculptural floating island base','Minimalist handleless doors','Asymmetric island design','LED toe-kick illumination'],
     status:'In Stock' },
 
-  { id:'k-elysees', sku:'ELYSEES',
-    name:'Elysees',
-    tagline:'Champagne Lacquer — Champagne Aluminium Frame Cabinets',
-    img:'/kitchen/elysees_series.png', fullImg:'/kitchen/elysees_series.png',
+  { id:'k-elysees', sku:'ELYSEES', code:'PLCC20016', cat:['kitchen-lacquer'],
+    name:'Elysees', tagline:'Champagne Lacquer — Champagne Aluminium Frame Cabinets',
+    img:'/kitchen/thumbs/elysees.jpg', fullImg:'/kitchen/elysees.jpg',
     finish:'Lacquer', layout:'U-Shape + Island',
     dims:{ width:'3796mm', depth:'2579mm', island:'948mm' },
     specs:{ doorStyle:'YMK001, YMC004', doorFinish:'PWMK1053, PWMC0032', countertop:'PWTE0005' },
@@ -1038,7 +962,7 @@ export const GLASS_CATALOG_DATA = [
   // ── SPRAY LACQUER ─────────────────────────────────────────────────────────
   { id:'k-titian', sku:'TITIAN', code:'PLCC22196', cat:['kitchen-spray'],
     name:'Titian', tagline:'Bold Burgundy Spray Lacquer — White Island & Open Shelving',
-    img:'/kitchen/houmas.png', fullImg:'/kitchen/houmas.png',
+    img:'/kitchen/thumbs/titian.jpg', fullImg:'/kitchen/titian.jpg',
     finish:'Spray Lacquer', layout:'L-Shape + Island',
     dims:{ width:'4089mm', depth:'3371mm' },
     specs:{ doorStyle:'YMK185A/YMK186A, YMK001G', doorFinish:'PWMK7004, PWMK7021', countertop:'PWTE0031' },
@@ -1048,7 +972,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-anne', sku:'ANNE', code:'PLCC22104', cat:['kitchen-spray'],
     name:'Anne', tagline:'Silver-Grey Spray Lacquer — Fluted Island & Gold Pendant',
-    img:'/kitchen/glendurgan.png', fullImg:'/kitchen/glendurgan.png',
+    img:'/kitchen/thumbs/anne.jpg', fullImg:'/kitchen/anne.jpg',
     finish:'Spray Lacquer', layout:'G-Shape + Island',
     dims:{ width:'4654mm', depth:'2584mm', island:'2432mm' },
     specs:{ doorStyle:'YMK192, YMK188B, YMG173, YMK188A', doorFinish:'PWMK7020, PWMG0260', countertop:'PWTE0067' },
@@ -1058,7 +982,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-tangula', sku:'TANGULA', code:'PLCC20032', cat:['kitchen-spray'],
     name:'Tangula', tagline:'Forest Green Spray Lacquer — Scandi-Industrial',
-    img:'/kitchen/greenberg.png', fullImg:'/kitchen/greenberg.png',
+    img:'/kitchen/thumbs/tangula.jpg', fullImg:'/kitchen/tangula.jpg',
     finish:'Spray Lacquer', layout:'L-Shape',
     dims:{ width:'4057mm', depth:'560mm' },
     specs:{ doorStyle:'YMK122A', doorFinish:'PWMK7005, PWMA0122', countertop:'PWTE0008' },
@@ -1069,7 +993,7 @@ export const GLASS_CATALOG_DATA = [
   // ── UV LACQUER ────────────────────────────────────────────────────────────
   { id:'k-swanlake', sku:'SWAN LAKE', code:'PLCC21128', cat:['kitchen-uv'],
     name:'Swan Lake', tagline:'White UV Lacquer — Black Stone & Warm Accents',
-    img:'/kitchen/aurora_series.png', fullImg:'/kitchen/aurora_series.png',
+    img:'/kitchen/thumbs/swan_lake.jpg', fullImg:'/kitchen/swan_lake.jpg',
     finish:'UV Lacquer', layout:'U-Shape + Island',
     dims:{ width:'5400mm', depth:'2650mm', island:'950mm × 560mm' },
     specs:{ doorStyle:'YMC018, YMK001', doorFinish:'PWMC0061, BWMK2011, PWMA0127', countertop:'PWTY1031' },
@@ -1079,7 +1003,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-beirut', sku:'BEIRUT', code:'PLCC22194', cat:['kitchen-uv'],
     name:'Beirut', tagline:'Grey UV Lacquer — Curved Display Column & Round Dining',
-    img:'/kitchen/brocade.png', fullImg:'/kitchen/brocade.png',
+    img:'/kitchen/thumbs/beirut.jpg', fullImg:'/kitchen/beirut.jpg',
     finish:'UV Lacquer', layout:'L-Shape + Island',
     dims:{ width:'3951mm', depth:'3242mm' },
     specs:{ doorStyle:'YMC003, YMG002, YMA001', doorFinish:'PWMC0112', countertop:'PWTE0031, PWTE0049' },
@@ -1089,7 +1013,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-magic', sku:'MAGIC Q IV', code:'PLCC21405', cat:['kitchen-uv'],
     name:'Magic Q IV', tagline:'Dark Green & Brass UV Lacquer — Social Kitchen',
-    img:'/kitchen/elegant_blossom_series.png', fullImg:'/kitchen/elegant_blossom_series.png',
+    img:'/kitchen/thumbs/magic_q_iv.jpg', fullImg:'/kitchen/magic_q_iv.jpg',
     finish:'UV Lacquer', layout:'L-Shape + Island Dining',
     dims:{ width:'4240mm', depth:'2440mm' },
     specs:{ doorStyle:'YMC020, YMC010, YMC003, YMF001, YMA001', doorFinish:'PWMC0081', countertop:'PWTE0008' },
@@ -1099,7 +1023,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-serenade', sku:'SERENADE', code:'PLCC21339', cat:['kitchen-uv'],
     name:'Serenade', tagline:'Grey UV Lacquer & Oak — Minimalist Structure',
-    img:'/kitchen/elysees_series.png', fullImg:'/kitchen/elysees_series.png',
+    img:'/kitchen/thumbs/serenade.jpg', fullImg:'/kitchen/serenade.jpg',
     finish:'UV Lacquer', layout:'L-Shape',
     dims:{ width:'4370mm', depth:'2480mm' },
     specs:{ doorStyle:'YMC003/YMC017, YMA001', doorFinish:'PWMC0060, PWMA0119', countertop:'PWTE0034' },
@@ -1109,7 +1033,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-starry', sku:'STARRY', code:'PLCC22195', cat:['kitchen-uv'],
     name:'Starry', tagline:'Blue & White UV Lacquer — Brass Trim & White Stone Island',
-    img:'/kitchen/feiche_series.png', fullImg:'/kitchen/feiche_series.png',
+    img:'/kitchen/thumbs/starry.jpg', fullImg:'/kitchen/starry.jpg',
     finish:'UV Lacquer', layout:'L-Shape + Island',
     dims:{ width:'4179mm', depth:'3259mm' },
     specs:{ doorStyle:'YMC003, YMA001', doorFinish:'PWMC0110, PWMC0111, PWMA0356', countertop:'PWTE0067' },
@@ -1119,7 +1043,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-caddo', sku:'CADDO', code:'PLCC21347', cat:['kitchen-uv'],
     name:'Caddo', tagline:'Forest Green UV Lacquer — Mirror Surfaces & White Counter',
-    img:'/kitchen/moyen_series.png', fullImg:'/kitchen/moyen_series.png',
+    img:'/kitchen/thumbs/caddo.jpg', fullImg:'/kitchen/caddo.jpg',
     finish:'UV Lacquer', layout:'L-Shape',
     dims:{ width:'4446mm', depth:'2238mm' },
     specs:{ doorStyle:'YMC003', doorFinish:'PWMC0064, PWMC0029', countertop:'PWTY1008' },
@@ -1130,7 +1054,7 @@ export const GLASS_CATALOG_DATA = [
   // ── MELAMINE ──────────────────────────────────────────────────────────────
   { id:'k-sherwood', sku:'SHERWOOD', code:'PLCC21182', cat:['kitchen-melamine'],
     name:'Sherwood', tagline:'Grey Stone Melamine — Metal Shelf Frames & Minimal White',
-    img:'/kitchen/nier_series.png', fullImg:'/kitchen/nier_series.png',
+    img:'/kitchen/thumbs/sherwood.jpg', fullImg:'/kitchen/sherwood.jpg',
     finish:'Melamine', layout:'L-Shape',
     dims:{ width:'3348mm', depth:'3198mm' },
     specs:{ doorStyle:'YMA009, YMA001', doorFinish:'PWMA0212, BWMA0025', countertop:'PWTY1078' },
@@ -1140,7 +1064,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-medellin', sku:'MEDELLIN', code:'PLCC22054', cat:['kitchen-melamine'],
     name:'Medellin', tagline:'Warm Timber Melamine — Pull-Out Island Dining Table',
-    img:'/kitchen/nita.png', fullImg:'/kitchen/nita.png',
+    img:'/kitchen/thumbs/medellin.jpg', fullImg:'/kitchen/medellin.jpg',
     finish:'Melamine', layout:'L-Shape + Island',
     dims:{ width:'3130mm', depth:'4230mm' },
     specs:{ doorStyle:'YMA001', doorFinish:'PWMA0353, PWMA0354', countertop:'PWTE0049' },
@@ -1150,7 +1074,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-camon', sku:'CAMON', code:'PLCC22046', cat:['kitchen-melamine'],
     name:'Camon', tagline:'Warm Taupe Melamine — Stone-Texture Lower & Glass Tower',
-    img:'/kitchen/rodin_series.png', fullImg:'/kitchen/rodin_series.png',
+    img:'/kitchen/thumbs/camon.jpg', fullImg:'/kitchen/camon.jpg',
     finish:'Melamine', layout:'L-Shape',
     dims:{ width:'4116mm', depth:'2598mm' },
     specs:{ doorStyle:'YMA001', doorFinish:'PWMA0350, PWMA0351, PWMA0215', countertop:'PWTY1092' },
@@ -1160,7 +1084,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-bandari', sku:'BANDARI', code:'PLCC21413', cat:['kitchen-melamine'],
     name:'Bandari', tagline:'Blue & Oak Melamine — Industrial Contrast',
-    img:'/kitchen/secret_garden_series.png', fullImg:'/kitchen/secret_garden_series.png',
+    img:'/kitchen/thumbs/bandari.jpg', fullImg:'/kitchen/bandari.jpg',
     finish:'Melamine', layout:'L-Shape',
     dims:{ width:'3108mm', depth:'3466mm' },
     specs:{ doorStyle:'YMA001', doorFinish:'PWMA0258, PWMA0259', countertop:'PWTE0034' },
@@ -1170,7 +1094,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-ellis', sku:'ELLIS', code:'PLCC20093', cat:['kitchen-melamine'],
     name:'Ellis', tagline:'White & Warm Oak Melamine — Nordic Wall System',
-    img:'/kitchen/industrial.png', fullImg:'/kitchen/industrial.png',
+    img:'/kitchen/thumbs/ellis.jpg', fullImg:'/kitchen/ellis.jpg',
     finish:'Melamine', layout:'L-Shape + Wall System',
     dims:{ width:'3830mm', depth:'1830mm' },
     specs:{ doorStyle:'YMA001', doorFinish:'PWMA0131, PWMA0113', countertop:'PWTY1018' },
@@ -1180,7 +1104,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-starto', sku:'STARTO', code:'PLCC22037', cat:['kitchen-melamine'],
     name:'Starto', tagline:'Blue & Cream Melamine — Gold Accents & Dining Island',
-    img:'/kitchen/zen.png', fullImg:'/kitchen/zen.png',
+    img:'/kitchen/thumbs/starto.jpg', fullImg:'/kitchen/starto.jpg',
     finish:'Melamine', layout:'L-Shape + Island',
     dims:{ width:'3914mm', depth:'2518mm' },
     specs:{ doorStyle:'YMA079, YMA001', doorFinish:'PWMA0360, PWMA0352', countertop:'PWTE0068' },
@@ -1190,7 +1114,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-montblanc', sku:'MONT BLANC', code:'PLCC18021', cat:['kitchen-melamine'],
     name:'Mont Blanc', tagline:'White & Oak Melamine — Open Shelf Island Kitchen',
-    img:'/kitchen/victorian.png', fullImg:'/kitchen/victorian.png',
+    img:'/kitchen/thumbs/mont_blanc.jpg', fullImg:'/kitchen/mont_blanc.jpg',
     finish:'Melamine', layout:'L-Shape',
     dims:{ width:'4470mm', depth:'1650mm' },
     specs:{ doorStyle:'YMA001', doorFinish:'PWMA0060, PWMA0103', countertop:'PWTY1032' },
@@ -1200,7 +1124,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-gluck', sku:'GLUCK', code:'PLCC21412', cat:['kitchen-melamine'],
     name:'Gluck', tagline:'Golden Oak Melamine — Stone Texture & Minimalist Form',
-    img:'/kitchen/modern_black.png', fullImg:'/kitchen/modern_black.png',
+    img:'/kitchen/thumbs/gluck.jpg', fullImg:'/kitchen/gluck.jpg',
     finish:'Melamine', layout:'Straight + L Return',
     dims:{ width:'4390mm', depth:'1700mm', island:'750mm' },
     specs:{ doorStyle:'YMA001', doorFinish:'PWMA0256, PWMA0257', countertop:'PWTY1077' },
@@ -1211,7 +1135,7 @@ export const GLASS_CATALOG_DATA = [
   // ── PVC FOIL ──────────────────────────────────────────────────────────────
   { id:'k-nottinghill', sku:'NOTTING HILL', code:'PLCC21409', cat:['kitchen-pvc'],
     name:'Notting Hill', tagline:'Titanium PVC Foil — Warm Industrial Luxury',
-    img:'/kitchen/farmhouse.png', fullImg:'/kitchen/farmhouse.png',
+    img:'/kitchen/thumbs/notting_hill.jpg', fullImg:'/kitchen/notting_hill.jpg',
     finish:'PVC Foil', layout:'Straight Run',
     dims:{ width:'4528mm', depth:'2649mm' },
     specs:{ doorStyle:'YMG116, YMG002, YMA001, YMK001', doorFinish:'PWMG0210, PWMG0209', countertop:'PWTE0022' },
@@ -1221,7 +1145,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-manzanillo', sku:'MANZANILLO', code:'PLCC20101', cat:['kitchen-pvc'],
     name:'Manzanillo', tagline:'Cream PVC Foil — Classic Frame Doors & Brass Accents',
-    img:'/kitchen/mcm.png', fullImg:'/kitchen/mcm.png',
+    img:'/kitchen/thumbs/manzanillo.jpg', fullImg:'/kitchen/manzanillo.jpg',
     finish:'PVC Foil', layout:'L-Shape',
     dims:{ width:'4454mm', depth:'2449mm', island:'585mm' },
     specs:{ doorStyle:'YMG088', doorFinish:'PWMG0061', countertop:'PWTY1031' },
@@ -1231,7 +1155,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-cezanne', sku:'CEZANNE', code:'PLCC22092', cat:['kitchen-pvc'],
     name:'Cezanne', tagline:'Charcoal & Bronze PVC Foil — Luxury Marble & Island',
-    img:'/kitchen/boho.png', fullImg:'/kitchen/boho.png',
+    img:'/kitchen/thumbs/cezanne.jpg', fullImg:'/kitchen/cezanne.jpg',
     finish:'PVC Foil', layout:'L-Shape + Island',
     dims:{ width:'2949mm', depth:'3797mm', island:'2249mm' },
     specs:{ doorStyle:'YMG168, YMG167', doorFinish:'PWMG0254, PWMG0255, PWMA0269', countertop:'PWTE0048' },
@@ -1241,7 +1165,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-bernard', sku:'BERNARD', code:'PLCC22094', cat:['kitchen-pvc'],
     name:'Bernard', tagline:'Taupe PVC Foil — Floor-to-Ceiling Pantry & Curved Island',
-    img:'/kitchen/penthouse.png', fullImg:'/kitchen/penthouse.png',
+    img:'/kitchen/thumbs/bernard.jpg', fullImg:'/kitchen/bernard.jpg',
     finish:'PVC Foil', layout:'L-Shape + Island',
     dims:{ width:'3524mm', depth:'2966mm', island:'2556mm' },
     specs:{ doorStyle:'YMG174, YMG175', doorFinish:'PWMG0260, PWMG0261', countertop:'PWTE0070' },
@@ -1251,7 +1175,7 @@ export const GLASS_CATALOG_DATA = [
 
   { id:'k-dewroma', sku:'DEWROMA', code:'PLCC22101', cat:['kitchen-pvc'],
     name:'Dewroma', tagline:'Cream & Bronze PVC Foil — Fluted Panels & Folding Island',
-    img:'/kitchen/scandi.png', fullImg:'/kitchen/scandi.png',
+    img:'/kitchen/thumbs/dewroma.jpg', fullImg:'/kitchen/dewroma.jpg',
     finish:'PVC Foil', layout:'L-Shape + Island',
     dims:{ width:'4735mm', depth:'2885mm', island:'2176mm × 834mm' },
     specs:{ doorStyle:'YMG170, YMG171, YMG172, YMG139', doorFinish:'PWMG0257, PWMG0266, PWMG0258', countertop:'YTE001G, PWTE0030' },
@@ -1262,39 +1186,11 @@ export const GLASS_CATALOG_DATA = [
   // ── PP FOIL ───────────────────────────────────────────────────────────────
   { id:'k-nicaea', sku:'NICAEA', code:'PLCC14035', cat:['kitchen-pp'],
     name:'Nicaea', tagline:'PP Foil Wood-Grain — Traditional Country House Kitchen',
-    img:'/kitchen/grey.png', fullImg:'/kitchen/grey.png',
+    img:'/kitchen/thumbs/nicaea.jpg', fullImg:'/kitchen/nicaea.jpg',
     finish:'PP Foil', layout:'U-Shape',
     dims:{ width:'3760mm', depth:'2970mm', island:'570mm' },
     specs:{ doorStyle:'YMD007', doorFinish:'PWMD0005', countertop:'PWTY1011' },
     description:'PP foil with astonishingly authentic wood grain texture. Lattice-insert doors, classic hardware, and traditional country-house mouldings make this the warmest kitchen in the collection.',
     features:['Authentic PP foil wood grain','Lattice insert door panels','Traditional hardware','Country moulding cornice'],
     status:'In Stock' },
-
-];
-
-export const DEFAULT_SCENES = [
-  {
-    id: 'def-1',
-    title: 'The Panoramic Penthouse',
-    location: 'Airport Residential, Accra',
-    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1600&q=80',
-    description: 'A study in transparency and structural integrity.',
-    hotspots: [{ x: 40, y: 50, title: '103 Extremely Narrow Sliding', desc: '1.3mm stile.' }]
-  },
-  {
-    id: 'def-2',
-    title: 'Modern Minimalist Villa',
-    location: 'Cantonments',
-    img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80',
-    description: 'Clean lines and heavy-duty engineering.',
-    hotspots: [{ x: 50, y: 60, title: 'Z3 Pivot Statement Door', desc: 'Pivot system.' }]
-  },
-  {
-    id: 'def-3',
-    title: 'The Culinary Studio',
-    location: 'East Legon',
-    img: 'https://images.unsplash.com/photo-1556911223-e1534ff6f755?auto=format&fit=crop&w=1600&q=80',
-    description: 'Bespoke kitchen engineering.',
-    hotspots: [{ x: 30, y: 50, title: 'Luxe Cabinetry', desc: 'Architectural wardrobes.' }]
-  }
 ];

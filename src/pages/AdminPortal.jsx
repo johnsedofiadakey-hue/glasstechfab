@@ -16,7 +16,8 @@ import ClientHub from './admin/ClientHub';
 import FabricationKanban from './admin/FabricationKanban';
 import ProjectProcurement from './admin/ProjectProcurement';
 import { PROJECT_STAGES } from '../data.jsx';
-import { Sparkles, MessageSquare } from 'lucide-react';
+import AdminShowcase from './admin/AdminShowcase';
+import AdminFinancials from './admin/AdminFinancials';
 
 export default function AdminPortal({ user, onLogout, onPreview, content, setContent, ...props }) {
   const [view, setView] = useState('dash');
@@ -50,11 +51,13 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'client-hub': return <ClientHub clientId={selectedClientId} onBack={() => setView('operations')} {...common} />;
       case 'cms': return <AdminCMS {...common} onPreview={onPreview} />;
       case 'portfolio': return <AdminPortfolio {...common} />;
+      case 'showcase': return <AdminShowcase {...common} />;
       case 'bookings': return <AdminBookings {...common} />;
       case 'analytics': return <AdminAnalytics {...common} />;
       case 'chat': return <AdminChat {...common} />;
       case 'testimonials': return <AdminTestimonials {...common} />;
-      case 'system': return <AdminSystem onReset={props.migrateToFirebase} {...common} />;
+      case 'financials': return <AdminFinancials {...common} />;
+      case 'system': return <AdminSystem onReset={props.migrateToFirebase} syncCatalog={props.syncCatalog} {...common} />;
       case 'email': return <AdminEmailCenter {...common} convertInquiry={props.convertInquiryToProject} updateEmailStatus={props.updateEmailStatus} />;
       default: return <AdminDashboard {...common} />;
     }

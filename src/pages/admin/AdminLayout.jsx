@@ -10,19 +10,17 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
 
   const menu = [
     { id: 'dash', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { id: 'operations', label: 'Operations', icon: <Globe size={20} /> },
-    { id: 'logistics', label: 'Logistics', icon: <Truck size={20} /> },
-    { id: 'cms', label: 'CMS Hub', icon: <Settings size={20} /> },
+    { id: 'operations', label: 'Stakeholders', icon: <Users size={20} /> },
+    { id: 'logistics', label: 'Procurement', icon: <Truck size={20} /> },
+    { id: 'cms', label: 'Catalog & CMS', icon: <Settings size={20} /> },
+    { id: 'financials', label: 'Financials', icon: <Package size={20} /> },
+    { id: 'email', label: 'Inquiry Box', icon: <Mail size={20} /> },
+    { id: 'chat', label: 'Project Chat', icon: <MessageSquare size={20} /> },
   ];
 
   const fullMenu = [
     ...menu,
-    { id: 'analytics', label: 'Activity', icon: <Activity size={18} /> },
-    { id: 'bookings', label: 'Reservations', icon: <Calendar size={18} /> },
-    { id: 'chat', label: 'Project Chat', icon: <MessageSquare size={18} /> },
-    { id: 'testimonials', label: 'Reviews', icon: <Sparkles size={18} /> },
-    { id: 'email', label: 'Email Center', icon: <Mail size={18} /> },
-    { id: 'system', label: 'Maintenance', icon: <Settings size={18} /> },
+    { id: 'system', label: 'System', icon: <Sparkles size={18} /> },
   ];
 
   const isMobile = window.innerWidth <= 768;

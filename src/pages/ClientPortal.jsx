@@ -4,7 +4,8 @@ import {
   Calendar, FolderOpen, Check, Lock, X, Printer, Camera,
   Eye, MessageSquare, Image, ThumbsUp, ThumbsDown, Plus, 
   AlertTriangle, FileText, Target, Moon, Sun, ShoppingCart, 
-  Truck, Sparkles, Globe, CheckSquare, ShieldCheck
+  Truck, Sparkles, Globe, CheckSquare, ShieldCheck, User,
+  Map, DollarSign, PackageCheck
 } from 'lucide-react';
 import { 
   Av, SBadge, Modal, FF as PFormField, PAv, PSBadge,
@@ -17,46 +18,9 @@ import {
 } from '../data.jsx';
 import PaystackPayModal from '../components/PaystackPayModal';
 
-
-
-// --- CLIENT BOOKING VIEW ---
-function ClientBookingView({ brand, bookings, clientEmail }) {
-  const ac = brand.color || '#C8A96E';
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const [calMonth] = useState(new Date().getMonth());
-  const [selDay, setSelDay] = useState(null);
-  const [selTime, setSelTime] = useState('');
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-      <div className="p-card" style={{ padding: 24 }}>
-        <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 20 }}>Schedule a Technical Survey</h3>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <div className="lxfh" style={{ fontSize: 18 }}>{monthNames[calMonth]} 2026</div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8 }}>
-          {Array(28).fill(0).map((_, i) => (
-            <button key={i} onClick={() => setSelDay(i + 1)} style={{ padding: 12, textAlign: 'center', borderRadius: 12, border: 'none', cursor: 'pointer', background: selDay === i + 1 ? ac : 'var(--bg)', color: selDay === i + 1 ? '#fff' : 'var(--fg)', fontWeight: 600 }}>{i + 1}</button>
-          ))}
-        </div>
-      </div>
-      {selDay && (
-        <div className="p-card fade-in" style={{ padding: 24 }}>
-          <div className="lxf" style={{ marginBottom: 16, fontWeight: 700 }}>Choose Time Slot</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
-            {BOOKING_SLOTS.map(t => (
-              <button key={t} onClick={() => setSelTime(t)} style={{ padding: 12, borderRadius: 10, border: `2px solid ${selTime === t ? ac : 'var(--border)'}`, background: 'none', color: 'var(--fg)', cursor: 'pointer' }}>{t}</button>
-            ))}
-          </div>
-          <button disabled={!selTime} className="p-btn-gold lxf" style={{ width: '100%', marginTop: 24, padding: 14 }}>Confirm Consultation Appointment</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// --- MAIN CLIENT PORTAL ---
-export default function ClientPortal({ client, brand, onLogout, calculateProjectPulse, ...props }) {
+export default function ClientPortal({ client, brand, onLogout, calculateProjectPulse, updateClientProfile, ...props }) {
+  const [showPasswordChange, setShowPasswordChange] = useState(client?.requiresPasswordChange);
+  const [newPassword, setNewPassword] = useState('');
   const [theme, setTheme] = useState(localStorage.getItem('lx-theme') || 'light');
   const [tab, setTab] = useState('hub');
   const [selectedProjectId, setSelectedProjectId] = useState(null);
@@ -79,644 +43,306 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
   const myTxs = (props.transactions || []).filter(t => t.parentId === selectedProjectId);
   const myProcurements = (props.procurements || []).filter(p => p.parentId === selectedProjectId);
   const myMedia = (props.media || []).filter(m => m.parentId === selectedProjectId);
-
   const myMaterials = (props.materials || []).filter(m => m.parentId === selectedProjectId);
 
   const [payModal, setPayModal] = useState(null);
   const [paidIds, setPaidIds] = useState([]);
 
+  // SIMPLIFIED TABS FOR EASY NAVIGATION
   const tabs = [
-    { id: 'hub', label: t('dashboard'), icon: <Target size={18} /> }, 
-    { id: 'orders', label: t('orders'), icon: <ShoppingCart size={18} /> },
-    { id: 'visualizer', label: t('visualizer'), icon: <Sparkles size={18} /> },
-    { id: 'chat', label: t('chat'), icon: <MessageSquare size={18} /> },
-    { id: 'timeline', label: t('projects'), icon: <Calendar size={18} /> }, 
+    { id: 'hub', label: 'My Journey', icon: <Map size={18} /> }, 
+    { id: 'financials', label: 'Payments', icon: <DollarSign size={18} /> }, 
     { id: 'documents', label: 'Documents', icon: <FileText size={18} /> },
-    { id: 'materials', label: 'Materials', icon: <Sparkles size={18} /> },
-    { id: 'shipments', label: 'Logistics', icon: <Truck size={18} /> },
-    { id: 'gallery', label: 'Media', icon: <Image size={18} /> },
-    { id: 'financials', label: t('finance'), icon: <CreditCard size={18} /> }, 
-    { id: 'security', label: 'Security', icon: <ShieldCheck size={18} /> }
+    { id: 'gallery', label: 'Site Photos', icon: <Image size={18} /> },
+    { id: 'chat', label: 'Help Chat', icon: <MessageSquare size={18} /> },
+    { id: 'profile', label: 'My Profile', icon: <User size={18} /> }
   ];
 
   const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
 
   const renderContent = () => {
     switch (tab) {
-      case 'chat':
-        return (
-          <div className="p-card" style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: 24, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className="lxfh" style={{ fontSize: 18 }}>Project Support Chat</div>
-              <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 800 }}>● ONLINE</div>
-            </div>
-            <div style={{ flex: 1, padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {(props.messages || []).filter(m => m.senderId === client.id || m.receiverId === client.id).map((m, i) => (
-                <div key={i} style={{ 
-                  alignSelf: m.senderId === client.id ? 'flex-end' : 'flex-start',
-                  background: m.senderId === client.id ? ac : 'var(--bg-alt)',
-                  color: m.senderId === client.id ? '#fff' : 'var(--fg)',
-                  padding: '12px 16px', borderRadius: 16, maxWidth: '70%', fontSize: 14
-                }}>
-                  {m.text}
-                </div>
-              ))}
-            </div>
-            <div style={{ padding: 24, borderTop: '1px solid var(--border)', display: 'flex', gap: 12 }}>
-              <input 
-                id="msgInput"
-                className="p-inp" 
-                placeholder="Type your message..." 
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && e.target.value) {
-                    props.sendMessage(e.target.value, client.id, 'admin');
-                    e.target.value = '';
-                  }
-                }}
-                style={{ flex: 1 }} 
-              />
-              <button onClick={() => {
-                const inp = document.getElementById('msgInput');
-                if (inp.value) {
-                  props.sendMessage(inp.value, client.id, 'admin');
-                  inp.value = '';
-                }
-              }} className="p-btn-gold" style={{ padding: '0 24px' }}><Send size={18} /></button>
-            </div>
-          </div>
-        );
-      case 'visualizer':
-        return (
-          <div className="p-card" style={{ padding: 40, textAlign: 'center' }}>
-            <Sparkles size={48} color={ac} style={{ marginBottom: 24 }} />
-            <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 16 }}>AI Space Visualizer</h2>
-            <p className="lxf" style={{ color: 'var(--dim)', marginBottom: 40, maxWidth: 600, margin: '0 auto 40px' }}>
-              Upload a photo of your site to see how our premium glass systems and interior finishes will transform your space.
-            </p>
-            <div style={{ border: '2px dashed var(--border)', padding: 60, borderRadius: 24, background: 'var(--bg)' }}>
-               <input type="file" id="vizUpload" style={{ display: 'none' }} />
-               <label htmlFor="vizUpload" className="p-btn-dark lxf" style={{ cursor: 'pointer', padding: '16px 32px' }}>
-                 Upload Site Photo
-               </label>
-               <div style={{ marginTop: 20, fontSize: 12, color: 'var(--dim)' }}>Supported: JPG, PNG, HEIC (Max 10MB)</div>
-            </div>
-          </div>
-        );
-      case 'orders': {
-        const myOrders = (props.emails || []).filter(e => e.type === 'Marketplace Order' && (e.fromEmail === client.email || e.toName === client.name));
-        const stages = ['pending', 'Quote Provided', 'Payment Verified', 'In Production', 'Shipped', 'Delivered'];
+      case 'hub': {
+        const pulse = calculateProjectPulse(selectedProjectId || activeProject?.id);
+        const stages = [
+          { id: 1, name: 'ORDER PLACED', icon: '📝', stages: [1,2] },
+          { id: 2, name: 'MANUFACTURING', icon: '🏭', stages: [3,4,5,6] },
+          { id: 3, name: 'SHIPPING', icon: '🚢', stages: [7,8,9] },
+          { id: 4, name: 'INSTALLATION', icon: '✅', stages: [10,11,12] }
+        ];
         
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <div className="p-card" style={{ padding: 32 }}>
-               <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Marketplace Order Tracker</h2>
-               <p style={{ color: 'var(--dim)', marginBottom: 32 }}>Real-time status of your structural asset procurements.</p>
-               
-               {myOrders.length > 0 ? myOrders.map(order => {
-                  const currentIdx = stages.indexOf(order.status) === -1 ? 0 : stages.indexOf(order.status);
-                  return (
-                    <div key={order.id} style={{ background: 'var(--bg)', borderRadius: 24, padding: 32, marginBottom: 24, border: '1px solid var(--border)' }}>
-                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
-                          <div>
-                             <div className="lxf" style={{ fontSize: 11, color: ac, fontWeight: 800, textTransform: 'uppercase' }}>ORDER #{order.id}</div>
-                             <div className="lxfh" style={{ fontSize: 20 }}>{order.subject}</div>
-                          </div>
-                          <PSBadge s={order.status} />
-                       </div>
+        const currentMajorStage = stages.find(s => s.stages.includes(activeProject?.stage || 1)) || stages[0];
 
-                       {/* TIMELINE VISUAL */}
-                       <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', padding: '0 20px' }}>
-                          <div style={{ position: 'absolute', top: 12, left: 40, right: 40, height: 2, background: 'var(--border)', zIndex: 0 }} />
-                          <div style={{ position: 'absolute', top: 12, left: 40, width: `${(currentIdx / (stages.length - 1)) * (100 - (80 / stages.length * stages.length))}%`, height: 2, background: ac, zIndex: 1, transition: 'width 1s ease' }} />
-                          
-                          {stages.map((s, idx) => (
-                             <div key={s} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: 60 }}>
-                                <div style={{ 
-                                   width: 24, height: 24, borderRadius: '50%', 
-                                   background: idx <= currentIdx ? ac : 'var(--bg)', 
-                                   border: `2px solid ${idx <= currentIdx ? ac : 'var(--border)'}`,
-                                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                   transition: 'all 0.4s ease'
-                                }}>
-                                   {idx < currentIdx ? <Check size={12} color="#fff" /> : <div style={{ width: 6, height: 6, borderRadius: '50%', background: idx === currentIdx ? '#fff' : 'var(--border)' }} />}
-                                </div>
-                                <div style={{ fontSize: 9, fontWeight: 700, color: idx <= currentIdx ? 'var(--fg)' : 'var(--dim)', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '.05em' }}>{s}</div>
-                             </div>
-                          ))}
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+            {/* THE JOURNEY MAP */}
+            <div className="p-card" style={{ padding: 32, textAlign: 'center' }}>
+               <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 32 }}>Your Project Journey</h2>
+               <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', maxWidth: 800, margin: '0 auto', padding: '0 20px' }}>
+                  <div style={{ position: 'absolute', top: 30, left: 60, right: 60, height: 4, background: 'var(--border)', zIndex: 1 }} />
+                  <div style={{ position: 'absolute', top: 30, left: 60, height: 4, background: ac, width: `${((currentMajorStage.id - 1) / 3) * 100}%`, zIndex: 1, transition: 'all 1s ease' }} />
+                  
+                  {stages.map(s => (
+                    <div key={s.id} style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                       <div style={{ 
+                         width: 60, height: 60, borderRadius: '50%', background: s.id <= currentMajorStage.id ? ac : 'var(--bg)', 
+                         border: `4px solid ${s.id <= currentMajorStage.id ? ac : 'var(--border)'}`,
+                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+                         boxShadow: s.id === currentMajorStage.id ? `0 0 20px ${ac}40` : 'none',
+                         transition: 'all 0.5s ease'
+                       }}>
+                         {s.id < currentMajorStage.id ? <Check size={28} color="#fff" /> : s.icon}
                        </div>
+                       <div style={{ fontSize: 11, fontWeight: 800, color: s.id <= currentMajorStage.id ? 'var(--fg)' : 'var(--dim)', letterSpacing: '1px' }}>{s.name}</div>
                     </div>
-                  );
-               }) : (
-                 <div style={{ padding: 64, textAlign: 'center', background: 'var(--bg)', borderRadius: 24 }}>
-                    <ShoppingCart size={48} color="var(--border)" style={{ marginBottom: 16 }} />
-                    <div className="lxf" style={{ color: 'var(--dim)' }}>No active marketplace orders found.</div>
-                    <button onClick={() => window.location.href = '/'} className="p-btn-gold" style={{ marginTop: 24, padding: '12px 24px' }}>Browse Marketplace</button>
+                  ))}
+               </div>
+               <div style={{ marginTop: 40, padding: 20, background: 'var(--bg-alt)', borderRadius: 16, display: 'inline-block' }}>
+                  <span style={{ fontWeight: 800, color: ac }}>STATUS:</span> {activeProject?.status || 'Processing your luxury order...'}
+               </div>
+
+               {/* PENDING APPROVALS GATE */}
+               {(props.approvals || []).filter(a => a.parentId === activeProject?.id && a.status === 'pending').length > 0 && (
+                 <div style={{ marginTop: 32, padding: 24, background: `${ac}10`, border: `1px dashed ${ac}`, borderRadius: 20, textAlign: 'left' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                       <Sparkles size={20} color={ac} />
+                       <div style={{ fontSize: 14, fontWeight: 800 }}>Technical Approval Required</div>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                       {(props.approvals || []).filter(a => a.parentId === activeProject?.id && a.status === 'pending').map(a => (
+                         <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', padding: 16, borderRadius: 12 }}>
+                            <div>
+                               <div style={{ fontSize: 13, fontWeight: 700 }}>{a.title}</div>
+                               <div style={{ fontSize: 11, color: 'var(--dim)' }}>Submitted: {new Date(a.createdAt).toLocaleDateString()}</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 8 }}>
+                               <button onClick={() => props.handleApproval(a.id, 'approved')} style={{ background: '#16A34A', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>Approve</button>
+                               <button onClick={() => props.handleApproval(a.id, 'rejected')} style={{ background: '#EF4444', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>Feedback</button>
+                            </div>
+                         </div>
+                       ))}
+                    </div>
                  </div>
                )}
             </div>
-          </div>
-        );
-      }
-      case 'hub': {
-        const myProj = activeProject;
-        const pendingMat = (myMaterials || []).filter(m => m.status === 'pending');
-        const pendingApp = (props.approvals || []).filter(a => a.parentId === myProj?.id && a.status === 'pending');
-        const activeShip = (myProcurements || []).filter(p => p.isShipment || p.status === 'Shipped').slice(0, 1);
-        const nextInv = (myInvs || []).filter(i => i.status !== 'Paid' && !paidIds.includes(i.id))[0];
-        const pulse = calculateProjectPulse(selectedProjectId || myProj?.id);
 
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            {/* KPI GRID */}
-            <div className="res-grid-3">
-               <div className="p-card pulse-card kpi-card" style={{ padding: 24, background: '#fff', border: '1px solid #F0EBE5' }}>
-                  <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', marginBottom: 12 }}>Production Velocity</div>
-                  <div className="lxfh" style={{ fontSize: window.innerWidth <= 900 ? 24 : 32, fontWeight: 300, color: '#121212' }}>{pulse}% <span style={{ fontSize: 13, color: '#B5AFA9', fontWeight: 500 }}>COMPLETE</span></div>
-                  <div style={{ height: 4, background: '#F9F7F4', borderRadius: 10, marginTop: 20, overflow: 'hidden' }}>
-                     <div style={{ width: `${pulse}%`, height: '100%', background: ac, borderRadius: 10 }} />
-                  </div>
-               </div>
-               <div className="p-card kpi-card" style={{ padding: 24, background: '#fff', border: '1px solid #F0EBE5' }}>
-                  <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', marginBottom: 12 }}>Current Phase</div>
-                  <div className="lxfh" style={{ fontSize: 22, fontWeight: 400, color: '#121212' }}>{PROJECT_STAGES.find(s => s.id === (myProj?.stage || 1))?.name}</div>
-                  <p className="lxf" style={{ fontSize: 12, color: '#B5AFA9', marginTop: 10 }}>Handover: <span style={{ color: ac, fontWeight: 700 }}>{props.getSLA?.(myProj).date || 'TBD'}</span></p>
-               </div>
-               <div className="p-card kpi-card" style={{ padding: 24, background: '#121212', border: 'none' }}>
-                  <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', marginBottom: 12, color: ac }}>Account Summary</div>
-                  <div className="lxfh" style={{ fontSize: 22, color: '#fff', fontWeight: 300 }}>{nextInv ? 'Payment Due' : 'All Settled'}</div>
-                  <div className="lxf" style={{ fontSize: 12, color: nextInv ? ac : '#16A34A', fontWeight: 700, marginTop: 10 }}>{nextInv ? nextInv.amount : 'No balance due'}</div>
-               </div>
-            </div>
-
-               <div className="p-card" style={{ padding: 32, background: 'var(--bg-alt)', border: '1px solid var(--border)', borderRadius: 24 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
-                     <div>
-                        <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 4 }}>{lang === 'fr' ? 'Satisfait de nos services?' : 'Happy with our service?'}</h3>
-                        <p className="lxf" style={{ fontSize: 13, color: 'var(--dim)' }}>{lang === 'fr' ? 'Partagez votre expérience sur notre site public.' : 'Submit a verified review to our public portal.'}</p>
-                     </div>
-                     <button onClick={() => setShowReviewModal(true)} className="p-btn-gold" style={{ padding: '12px 24px' }}><Sparkles size={16} /> {lang === 'fr' ? 'Soumettre' : 'Leave Review'}</button>
-                  </div>
-               </div>
-               
-               <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1fr 1fr', gap: 24 }}>
-                  {/* LIVE OPERATIONS STATUS */}
-                  <div className="p-card" style={{ padding: 24 }}>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><Truck size={18} color={ac} /> Operations & Logistics</h3>
-                        <button onClick={() => setTab('shipments')} className="lxf" style={{ fontSize: 12, background: 'none', border: 'none', color: ac, cursor: 'pointer', fontWeight: 700 }}>Tracker Hub →</button>
-                     </div>
-                     {activeShip.length > 0 ? (
-                        <div style={{ background: 'var(--bg)', padding: 20, borderRadius: 16, border: '1px solid var(--border)' }}>
-                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                              <div style={{ fontWeight: 700 }}>{activeShip[0].itemName || activeShip[0].item}</div>
-                              <div style={{ fontSize: 11, background: ac+'20', color: ac, padding: '4px 8px', borderRadius: 4, fontWeight: 700 }}>{activeShip[0].status.toUpperCase()}</div>
-                           </div>
-                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--dim)' }}>
-                              <Globe size={14} /> Origin: {activeShip[0].source}
-                              <span style={{ opacity: 0.3 }}>|</span>
-                              <Calendar size={14} /> Est: {activeShip[0].eta || 'Pending'}
-                           </div>
-                        </div>
-                     ) : (
-                        <div style={{ background: 'var(--bg)', padding: 32, borderRadius: 16, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>
-                           No active shipments currently in transit.
-                        </div>
-                     )}
-                  </div>
-
-                  {/* ACTION PENDING */}
-                  <div className="p-card" style={{ padding: 24 }}>
-                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                        <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><CheckSquare size={18} color={ac} /> Action Required</h3>
-                     </div>
-                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {pendingMat.length > 0 ? pendingMat.map(m => (
-                           <div key={m.id} className="glass-matrix" style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                                 <div style={{ width: 48, height: 48, borderRadius: 8, background: 'var(--bg)', overflow: 'hidden' }}>
-                                    <img src={m.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                 </div>
-                                 <div>
-                                    <div style={{ fontSize: 14, fontWeight: 700 }}>{m.name} Approval</div>
-                                    <div style={{ fontSize: 11, color: 'var(--dim)' }}>Technical specification review required</div>
-                                 </div>
-                              </div>
-                              <button onClick={() => setTab('materials')} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 8 }}>Review Specs</button>
-                           </div>
-                        )) : null}
-                         
-                         {pendingApp.length > 0 ? pendingApp.map(a => (
-                            <div key={a.id} className="glass-matrix" style={{ padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                               <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                                  <div style={{ width: 48, height: 48, borderRadius: 8, background: 'rgba(33,150,243,0.1)', color: '#2196F3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                     <CheckSquare size={24} />
-                                  </div>
-                                  <div>
-                                     <div style={{ fontSize: 14, fontWeight: 700 }}>{a.title || 'Technical Document'} Sign-Off</div>
-                                     <div style={{ fontSize: 11, color: 'var(--dim)' }}>{a.desc || 'Requires your approval to proceed'}</div>
-                                  </div>
-                               </div>
-                               <div style={{ display: 'flex', gap: 8 }}>
-                                  {a.fileUrl && <a href={a.fileUrl} target="_blank" className="p-btn-light" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 8, textDecoration: 'none' }}>View Doc</a>}
-                                  <button onClick={() => {
-                                     if(confirm('Are you sure you want to approve this?')) props.updateApproval(a.id, { status: 'Approved', approvedAt: new Date().toISOString() }, myProj.id);
-                                  }} className="p-btn-gold" style={{ padding: '8px 16px', fontSize: 12, borderRadius: 8 }}>Sign-off</button>
-                               </div>
-                            </div>
-                         )) : null}
-
-                         {(pendingMat.length === 0 && pendingApp.length === 0) && (
-                            <div style={{ background: 'var(--bg)', padding: 32, borderRadius: 16, textAlign: 'center', color: '#16A34A', fontSize: 14 }}>
-                              <CheckCircle size={24} style={{ marginBottom: 8 }} />
-                              <div>All item specifications are currently approved.</div>
-                           </div>
-                        )}
-                     </div>
-                  </div>
-               </div>
-
-               {/* SIDE COLUMN */}
-               <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1fr 1fr', gap: 24 }}>
-                  {/* RECENT ACTIVITY FEED */}
-                  <div className="p-card" style={{ padding: 24, background: 'var(--bg-alt)' }}>
-                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <MessageSquare size={18} color={ac} /> Recent Site Activity
-                     </h3>
-                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        {(props.notes || []).filter(n => n.parentId === (selectedProjectId || myProj?.id)).slice(0, 5).map(note => (
-                           <div key={note.id} style={{ display: 'flex', gap: 12 }}>
-                              <div style={{ flexShrink: 0 }}><PAv i={note.author?.[0] || 'A'} s={32} c={ac} /></div>
-                              <div>
-                                 <div style={{ fontSize: 13, lineHeight: 1.4, color: 'var(--fg)' }}>{note.text}</div>
-                                 <div style={{ fontSize: 10, color: 'var(--dim)', marginTop: 4 }}>{new Date(note.createdAt).toLocaleDateString()} • {note.author || 'Project Lead'}</div>
-                              </div>
-                           </div>
-                        ))}
-                        {(props.notes || []).filter(n => n.parentId === (selectedProjectId || myProj?.id)).length === 0 && (
-                           <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--muted)', fontSize: 12 }}>
-                              No recent updates posted.
-                           </div>
-                        )}
-                     </div>
-                  </div>
-
-                  {/* FINANCIAL PULSE */}
-                  <div className="p-card" style={{ padding: 24 }}>
-                     <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Account Summary</h3>
-                     {nextInv ? (
-                        <div style={{ background: 'rgba(239, 68, 68, 0.05)', padding: 24, borderRadius: 16, textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
-                           <div style={{ fontSize: 32, fontWeight: 300, marginBottom: 4, fontFamily: 'var(--font-h)' }}>{nextInv.amount}</div>
-                           <div style={{ fontSize: 11, color: '#EF4444', fontWeight: 700, textTransform: 'uppercase', marginBottom: 20 }}>Payment Outstanding</div>
-                           <button onClick={() => setPayModal(nextInv)} className="p-btn-dark lxf" style={{ width: '100%', padding: '14px', borderRadius: 10 }}>Complete Checkout</button>
-                        </div>
-                     ) : (
-                        <div style={{ background: 'rgba(22, 163, 74, 0.05)', padding: 24, borderRadius: 16, textAlign: 'center', border: '1px solid rgba(22, 163, 74, 0.1)' }}>
-                           <CheckCircle size={32} color="#16A34A" style={{ marginBottom: 12 }} />
-                           <div style={{ fontSize: 15, fontWeight: 700, color: '#16A34A' }}>Account Up to Date</div>
-                        </div>
-                     )}
-                     <button onClick={() => setTab('financials')} className="lxf" style={{ width: '100%', marginTop: 16, background: 'none', border: 'none', fontSize: 12, color: ac, fontWeight: 700, cursor: 'pointer' }}>View Transaction History →</button>
-                  </div>
-
-                  {/* PROJECT TEAM */}
-                  <div className="p-card" style={{ padding: 24, background: '#1A1410', color: '#fff' }}>
-                     <h3 className="lxfh" style={{ fontSize: 16, marginBottom: 20, color: ac }}>Assigned Expert</h3>
-                     <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
-                        <PAv i={TEAM_MEMBERS[0].av} s={52} c={ac} />
-                        <div>
-                           <div style={{ fontWeight: 800, fontSize: 15 }}>{TEAM_MEMBERS[0].name}</div>
-                           <div style={{ fontSize: 12, opacity: 0.6 }}>Project Architect</div>
-                        </div>
-                     </div>
-                     <button className="p-btn-dark" style={{ width: '100%', padding: 14, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 13 }}>Send Message</button>
-                  </div>
-               </div>
-            </div>
-        );
-      }
-      case 'documents': {
-        const myProjProposals = proposals.filter(p => p.projectId === selectedProjectId || p.id === activeProject?.id);
-        const myProjInvoices = myInvs;
-
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            <div className="p-card" style={{ padding: 32 }}>
-               <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>Document Safe</h2>
-               <p style={{ color: 'var(--dim)', marginBottom: 32 }}>Secure access to all project proposals, contracts, and financial receipts.</p>
-
-               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div className="eyebrow" style={{ color: ac, fontSize: 11, fontWeight: 800 }}>PROPOSALS & CONTRACTS</div>
-                  {myProjProposals.length > 0 ? myProjProposals.map(p => (
-                    <div key={p.id} className="doc-card">
-                       <div className="doc-icon"><FileText size={20} /></div>
-                       <div>
-                          <div style={{ fontWeight: 700, fontSize: 15 }}>{p.title || 'Project Proposal'}</div>
-                          <div style={{ fontSize: 12, color: 'var(--dim)' }}>Issued: {p.date || 'TBD'} • Status: <SBadge s={p.status} /></div>
-                       </div>
-                       <button className="glass-btn" style={{ padding: '8px 16px', fontSize: 12 }}>View Document</button>
-                    </div>
-                  )) : <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>No proposals found for this project.</div>}
-
-                  <div className="eyebrow" style={{ color: ac, fontSize: 11, fontWeight: 800, marginTop: 24 }}>FINANCIAL INVOICES</div>
-                  {myProjInvoices.length > 0 ? myProjInvoices.map(i => (
-                    <div key={i.id} className="doc-card">
-                       <div className="doc-icon"><CreditCard size={20} /></div>
-                       <div>
-                          <div style={{ fontWeight: 700, fontSize: 15 }}>{i.title}</div>
-                          <div style={{ fontSize: 12, color: 'var(--dim)' }}>Due: {i.due} • Amount: {i.amount}</div>
-                       </div>
-                       <div style={{ display: 'flex', gap: 8 }}>
-                          <PAv i={<Download size={14} />} s={32} />
-                          {i.status !== 'Paid' && <button onClick={() => setPayModal(i)} className="p-btn-gold" style={{ padding: '4px 12px', fontSize: 11 }}>Pay Now</button>}
-                       </div>
-                    </div>
-                  )) : <div style={{ padding: 24, textAlign: 'center', color: 'var(--muted)', fontSize: 14 }}>No invoices issued yet.</div>}
-               </div>
-            </div>
-          </div>
-        );
-      }
-
-      case 'materials':
-        return (
-          <MaterialSelector 
-            materials={myMaterials} 
-            onApprove={(id) => props.updateMaterial(selectedProjectId, id, { status: 'Approved' })}
-            onReject={(id) => props.updateMaterial(selectedProjectId, id, { status: 'Rejected' })}
-            ac={ac}
-          />
-        );
-      case 'shipments':
-        return (
-          <div className="p-card" style={{ padding: 40 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
-               <div>
-                  <h3 className="lxfh" style={{ fontSize: 28, margin: 0 }}>Global Logistics Tracker</h3>
-                  <p style={{ color: 'var(--dim)', margin: '8px 0 0' }}>Real-time oversight of your architectural imports and local procurement.</p>
-               </div>
-               <div style={{ background: ac+'10', color: ac, padding: '12px 20px', borderRadius: 12, border: '1px solid '+ac+'20', textAlign: 'right' }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.1em' }}>Active Shipments</div>
-                  <div style={{ fontSize: 24, fontWeight: 700 }}>{myProcurements.filter(p => (p.isShipment || p.status === 'Shipped') && p.status !== 'Received').length}</div>
-               </div>
-            </div>
-
-            {myProcurements.filter(p => p.isShipment || p.status === 'Shipped' || p.status === 'Received').map(p => (
-              <div key={p.id} className="glass-matrix" style={{ padding: 32, marginBottom: 24, border: '1px solid var(--border)' }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
-                    <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-                       <div style={{ width: 56, height: 56, background: '#1A1410', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Truck size={24} color={ac} />
-                       </div>
-                       <div>
-                          <div style={{ fontSize: 20, fontWeight: 800 }}>{p.item || p.itemName}</div>
-                          <div style={{ fontSize: 12, color: 'var(--dim)' }}>Ref: {p.id} • Container: {p.container || 'Internal'}</div>
-                       </div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                       <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 800 }}>ESTIMATED HANDOVER</div>
-                       <div style={{ fontSize: 18, fontWeight: 700, color: ac }}>{p.eta || 'Calculating...'}</div>
-                    </div>
-                 </div>
-
-                 {/* VISUAL TRACKER */}
-                 <div style={{ position: 'relative', height: 40, marginBottom: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ position: 'absolute', top: '50%', left: 24, right: 24, height: 2, background: 'var(--border)', zIndex: 1 }} />
-                    <div style={{ position: 'absolute', top: '50%', left: 24, right: 24, height: 2, background: ac, width: p.status === 'Received' ? '100%' : (p.status === 'Transit' ? '75%' : (p.status === 'Shipped' ? '50%' : '25%')), zIndex: 2, transition: 'width 1s ease' }} />
-                    
-                    {['Ordered', 'Shipped', 'Customs', 'Transit', 'Ready'].map((st) => {
-                       const isDone = (p.status === 'Received' || st === p.status || (p.status === 'Transit' && (st === 'Ordered' || st === 'Shipped' || st === 'Customs')) || (p.status === 'Shipped' && (st === 'Ordered')));
-                       return (
-                        <div key={st} style={{ position: 'relative', zIndex: 3, background: 'var(--bg)', padding: '0 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                           <div style={{ width: 14, height: 14, borderRadius: '50%', background: isDone ? ac : 'var(--bg)', border: `3px solid ${isDone ? ac : 'var(--border)'}`, boxShdow: isDone ? `0 0 10px ${ac}60` : 'none' }} />
-                           <span style={{ fontSize: 10, fontWeight: isDone ? 700 : 500, color: isDone ? 'var(--fg)' : 'var(--muted)', textTransform: 'uppercase' }}>{st}</span>
-                        </div>
-                       );
-                    })}
-                 </div>
-
-                 {p.signature && (
-                    <div style={{ background: 'rgba(22,163,74,0.05)', padding: 20, borderRadius: 12, border: '1px solid rgba(22,163,74,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                       <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-                          <CheckCircle size={20} color="#16A34A" />
-                          <div>
-                             <div style={{ fontSize: 13, fontWeight: 700 }}>Confirmed Site Delivery</div>
-                             <div style={{ fontSize: 11, color: 'var(--dim)' }}>Handed over to client agent at site coordinates.</div>
-                          </div>
-                       </div>
-                       <img src={p.signature} style={{ height: 48, filter: theme === 'dark' ? 'invert(1)' : 'none' }} alt="sig" />
-                    </div>
-                 )}
-
-                 {p.factoryPhoto && p.status === 'production' && (
-                    <div style={{ position: 'relative', borderRadius: 16, overflow: 'hidden', height: 200, marginTop: 12 }}>
-                       <img src={p.factoryPhoto} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', display: 'flex', alignItems: 'flex-end', padding: 20 }}>
-                          <div>
-                             <div style={{ fontSize: 10, fontWeight: 800, color: ac, textTransform: 'uppercase' }}>Factory Insight</div>
-                             <div style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>Manufacturing verification photo logged</div>
-                          </div>
-                       </div>
-                    </div>
-                 )}
-              </div>
-            ))}
-            {myProcurements.length === 0 && <div style={{ textAlign: 'center', color: 'var(--muted)', padding: 80 }}>Secure procurement systems are active. No shipments currently tracked.</div>}
-          </div>
-        );
-      case 'timeline':
-        return (
-          <div className="p-card" style={{ padding: 32 }}>
-            <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 32 }}>Project Roadmap</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-               {PROJECT_STAGES.map(s => {
-                 const isDone = (activeProject?.stage || 1) > s.id;
-                 const isCur = (activeProject?.stage || 1) === s.id;
-                 return (
-                   <div key={s.id} style={{ display: 'flex', gap: 20, opacity: isDone || isCur ? 1 : 0.4 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: '50%', background: isDone ? s.color : 'none', border: `2px solid ${isDone || isCur ? s.color : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                         {isDone ? <Check size={16} color="#fff" /> : isCur ? <div style={{ width: 8, height: 8, borderRadius: '50%', background: s.color }} /> : null}
-                      </div>
-                      <div style={{ fontSize: 16, fontWeight: isCur ? 700 : 500 }}>{s.name}</div>
+            <div style={{ display: 'grid', gridTemplateColumns: window.innerWidth <= 900 ? '1fr' : '1.5fr 1fr', gap: 24 }}>
+                {/* SHOPPING LIST (PROCUREMENT) */}
+                <div className="p-card" style={{ padding: 24 }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                      <h3 className="lxfh" style={{ fontSize: 18, display: 'flex', alignItems: 'center', gap: 10 }}><PackageCheck size={20} color={ac} /> Material Checklist</h3>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: ac }}>{myProcurements.filter(p => p.status === 'Received').length} / {myProcurements.length} ITEMS READY</div>
                    </div>
-                 );
-               })}
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {myProcurements.length > 0 ? myProcurements.map(p => (
+                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: 'var(--bg)', borderRadius: 12 }}>
+                           <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                              <div style={{ width: 40, height: 40, borderRadius: '50%', background: p.status === 'Received' ? '#16A34A20' : '#EAB30820', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                 {p.status === 'Received' ? <CheckCircle size={20} color="#16A34A" /> : <Truck size={20} color="#EAB308" />}
+                              </div>
+                              <div>
+                                 <div style={{ fontSize: 14, fontWeight: 700 }}>{p.itemName || p.item}</div>
+                                 <div style={{ fontSize: 11, color: 'var(--dim)' }}>{p.status === 'Received' ? 'Arrived & Verified' : 'In Transit'}</div>
+                              </div>
+                           </div>
+                           <div style={{ fontSize: 12, fontWeight: 800, color: p.status === 'Received' ? '#16A34A' : '#EAB308' }}>{p.status.toUpperCase()}</div>
+                        </div>
+                      )) : (
+                        <div style={{ padding: 40, textAlign: 'center', color: 'var(--dim)', fontSize: 14 }}>Initializing your custom material list...</div>
+                      )}
+                   </div>
+                </div>
+
+                {/* MONEY GAUGE */}
+                <div className="p-card" style={{ padding: 24 }}>
+                   <h3 className="lxfh" style={{ fontSize: 18, marginBottom: 20 }}>Payment Status</h3>
+                   <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                      <div style={{ fontSize: 40, fontWeight: 300, color: 'var(--fg)' }}>
+                         {invoices.filter(i => (i.parentId === activeProject?.id) && i.status !== 'Paid').length > 0 ? 'Balance Due' : 'Fully Paid'}
+                      </div>
+                      <div style={{ fontSize: 14, color: ac, fontWeight: 700, marginTop: 4 }}>
+                         {invoices.filter(i => (i.parentId === activeProject?.id) && i.status !== 'Paid').reduce((acc, curr) => acc + parseFloat(curr.amount.replace(/[^0-9.]/g, '')), 0).toLocaleString('en-US', { style: 'currency', currency: 'USD' })} Remaining
+                      </div>
+                   </div>
+                   <div style={{ height: 12, background: 'var(--border)', borderRadius: 10, overflow: 'hidden', marginBottom: 24 }}>
+                      <div style={{ width: '60%', height: '100%', background: '#16A34A' }} />
+                   </div>
+                   <button onClick={() => setTab('financials')} className="p-btn-gold" style={{ width: '100%', padding: 16 }}>Make a Payment</button>
+                </div>
             </div>
           </div>
         );
+      }
       case 'financials':
         return (
-          <div className="p-scroll" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-             <div className="eyebrow" style={{ color: ac, opacity: 0.8 }}>Pending Invoices</div>
-             {myInvs.filter(inv => inv.status !== 'Paid' && !paidIds.includes(inv.id)).map(inv => (
-               <div key={inv.id} className="p-card" style={{ padding: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>{inv.title}</div>
-                    <div style={{ fontSize: 12, color: 'var(--muted)' }}>Due Date: {inv.due}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+             <h2 className="lxfh" style={{ fontSize: 24 }}>Payments & Receipts</h2>
+             <div className="p-card" style={{ padding: 24 }}>
+                <div className="eyebrow" style={{ marginBottom: 16, color: ac }}>UNPAID INVOICES</div>
+                {myInvs.filter(i => i.status !== 'Paid' && !paidIds.includes(i.id)).map(inv => (
+                  <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottom: '1px solid var(--border)' }}>
+                     <div>
+                        <div style={{ fontWeight: 700 }}>{inv.title}</div>
+                        <div style={{ fontSize: 12, color: 'var(--dim)' }}>Due: {inv.due}</div>
+                     </div>
+                     <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 18, fontWeight: 700 }}>{inv.amount}</div>
+                        <button onClick={() => setPayModal(inv)} className="p-btn-gold" style={{ padding: '6px 16px', fontSize: 12, marginTop: 8 }}>Pay Now</button>
+                     </div>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: 24, fontWeight: 300 }}>{inv.amount}</div>
-                    <button onClick={() => setPayModal(inv)} className="p-btn-gold" style={{ padding: '6px 20px', fontSize: 12, marginTop: 8 }}>Secure Checkout</button>
-                  </div>
-               </div>
-             ))}
-             
-             {myInvs.filter(i => i.status !== 'Paid').length === 0 && <div className="lxf" style={{ padding: 20, color: 'var(--dim)', textAlign: 'center' }}>No outstanding invoices.</div>}
-
-             <div className="eyebrow" style={{ color: ac, opacity: 0.8, marginTop: 24 }}>Payment History & Audit Trail</div>
-             <div className="p-card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                   <thead style={{ background: 'var(--bg)' }}>
-                      <tr>{['Date', 'Reference', 'Method', 'Amount'].map(h => <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontSize: 11, color: 'var(--muted)', fontWeight: 600 }}>{h}</th>)}</tr>
-                   </thead>
-                   <tbody>
-                      {myTxs.map(tx => (
-                        <tr key={tx.id} style={{ borderTop: '1px solid var(--border)' }}>
-                           <td style={{ padding: '14px 16px', fontSize: 13 }}>{tx.date}</td>
-                           <td style={{ padding: '14px 16px', fontSize: 13, color: 'var(--dim)' }}>{tx.invoiceId || 'Offline'}</td>
-                           <td style={{ padding: '14px 16px' }}><SBadge s={tx.method.toUpperCase()} /></td>
-                           <td style={{ padding: '14px 16px', fontSize: 14, fontWeight: 700, color: '#16A34A' }}>${parseFloat(tx.amount).toLocaleString()}</td>
-                        </tr>
-                      ))}
-                   </tbody>
-                </table>
-                {myTxs.length === 0 && <div style={{ padding: 40, textAlign: 'center', color: 'var(--muted)', fontSize: 13 }}>No payment history recorded yet.</div>}
+                ))}
+                {myInvs.filter(i => i.status !== 'Paid').length === 0 && <div style={{ padding: 20, color: '#16A34A', fontWeight: 700 }}>All invoices are paid! Thank you.</div>}
              </div>
+          </div>
+        );
+      case 'profile': {
+        const [profileData, setProfileData] = useState({ 
+          name: client?.name || '', 
+          username: client?.username || '',
+          phone: client?.phone || ''
+        });
+        const [pLoading, setPLoading] = useState(false);
+
+        const handleUpdate = async () => {
+          setPLoading(true);
+          await updateClientProfile(client.id, profileData);
+          setPLoading(false);
+        };
+
+        return (
+          <div className="p-card" style={{ padding: 32, maxWidth: 600, margin: '0 auto' }}>
+             <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 32 }}>My Information</h2>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div className="p-form-group">
+                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, marginBottom: 8 }}>FULL NAME</label>
+                   <input className="p-inp" value={profileData.name} onChange={e => setProfileData({...profileData, name: e.target.value})} />
+                </div>
+                <div className="p-form-group">
+                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, marginBottom: 8 }}>USER ID (USERNAME)</label>
+                   <input className="p-inp" value={profileData.username} onChange={e => setProfileData({...profileData, username: e.target.value})} />
+                </div>
+                <div className="p-form-group">
+                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, marginBottom: 8 }}>PHONE NUMBER</label>
+                   <input className="p-inp" value={profileData.phone} onChange={e => setProfileData({...profileData, phone: e.target.value})} />
+                </div>
+                <button onClick={handleUpdate} disabled={pLoading} className="p-btn-gold" style={{ padding: 16, marginTop: 12 }}>
+                   {pLoading ? <Spinner /> : 'Save Profile Changes'}
+                </button>
+             </div>
+          </div>
+        );
+      }
+      case 'chat':
+        return (
+          <div className="p-card" style={{ height: 'calc(100vh - 250px)', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: 20, borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
+               <PAv i={TEAM_MEMBERS[0].av} s={40} c={ac} />
+               <div>
+                  <div style={{ fontWeight: 800 }}>{TEAM_MEMBERS[0].name}</div>
+                  <div style={{ fontSize: 10, color: '#16A34A' }}>● ONLINE - Project Support</div>
+               </div>
+            </div>
+            <div style={{ flex: 1, padding: 20, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+               {(props.messages || []).filter(m => m.senderId === client.id || m.receiverId === client.id).map((m, i) => (
+                 <div key={i} style={{ 
+                   alignSelf: m.senderId === client.id ? 'flex-end' : 'flex-start',
+                   background: m.senderId === client.id ? ac : 'var(--bg-alt)',
+                   color: m.senderId === client.id ? '#fff' : 'var(--fg)',
+                   padding: '12px 16px', borderRadius: 16, maxWidth: '80%', fontSize: 14
+                 }}>
+                   {m.text}
+                 </div>
+               ))}
+            </div>
+            <div style={{ padding: 20, borderTop: '1px solid var(--border)', display: 'flex', gap: 12 }}>
+               <input id="msgInput" className="p-inp" placeholder="Type here..." style={{ flex: 1 }} onKeyDown={e => { if(e.key === 'Enter' && e.target.value) { props.sendMessage(e.target.value, client.id, 'admin'); e.target.value = ''; }}} />
+               <button onClick={() => { const i = document.getElementById('msgInput'); if(i.value) { props.sendMessage(i.value, client.id, 'admin'); i.value = ''; }}} className="p-btn-gold"><Send size={18} /></button>
+            </div>
           </div>
         );
       case 'gallery':
         return (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
              {myMedia.map(m => (
-               <div key={m.id} className="p-card" style={{ padding: 0 }}>
-                  <img src={m.url} style={{ width: '100%', aspectRatio: '1.2', objectFit: 'cover' }} alt="prop" />
+               <div key={m.id} className="p-card" style={{ padding: 0, overflow: 'hidden' }}>
+                  <img src={m.url} style={{ width: '100%', aspectRatio: '1.2', objectFit: 'cover' }} />
+                  <div style={{ padding: 12, fontSize: 11, color: 'var(--dim)' }}>{new Date(m.createdAt).toLocaleDateString()} • {m.stage || 'Site Update'}</div>
                </div>
              ))}
-             {myMedia.length === 0 && <div style={{ gridColumn: '1 / -1', padding: 100, textAlign: 'center', color: 'var(--muted)' }}>Photos will appear here as site work begins.</div>}
+             {myMedia.length === 0 && <div style={{ gridColumn: '1 / -1', padding: 100, textAlign: 'center', color: 'var(--dim)' }}>No project photos uploaded yet.</div>}
           </div>
         );
-      case 'book':
-        return <ClientBookingView brand={brand} clientEmail={client.email} />;
-      case 'security': {
-        const [pwData, setPwData] = useState({ current: '', next: '', confirm: '' });
-        const [pwLoading, setPwLoading] = useState(false);
-
-        const handleUpdatePassword = async () => {
-          if (!pwData.current || !pwData.next) return alert("Please fill in both current and new passwords.");
-          if (pwData.next !== pwData.confirm) return alert("New passwords do not match.");
-          
-          setPwLoading(true);
-          try {
-            await props.changeClientPassword(client.id, pwData.current, pwData.next);
-            setPwData({ current: '', next: '', confirm: '' });
-          } catch (e) {
-            // Error managed by App.jsx notify
-          } finally {
-            setPwLoading(false);
-          }
-        };
-
+      case 'documents':
         return (
-          <div className="p-card fade-in" style={{ padding: isMobile ? 24 : 48, maxWidth: 600, margin: '0 auto' }}>
-             <div style={{ textAlign: 'center', marginBottom: 40 }}>
-                <div style={{ width: 64, height: 64, borderRadius: 20, background: `${ac}15`, color: ac, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                   <ShieldCheck size={32} />
-                </div>
-                <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 700, color: 'var(--fg)' }}>Account Security</h2>
-                <p className="lxf" style={{ fontSize: 14, color: 'var(--dim)', marginTop: 8 }}>Manage your managed access credentials</p>
-             </div>
-             
-             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                <div style={{ padding: 24, background: 'var(--bg-alt)', borderRadius: 16, border: `1px solid var(--border)` }}>
-                   <div className="lxf" style={{ fontSize: 10, fontWeight: 700, color: ac, letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 12 }}>Portal Identifier</div>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className="lxfh" style={{ fontSize: 18 }}>{client.username || 'Not Set'}</div>
-                      <div className="lxf" style={{ fontSize: 10, background: ac+'20', color: ac, padding: '4px 10px', borderRadius: 4, fontWeight: 700 }}>ACTIVE ACCOUNT</div>
-                   </div>
-                   <p className="lxf" style={{ fontSize: 12, color: 'var(--dim)', marginTop: 12 }}>This is your unique username for Glasstech Hub access.</p>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                   <div className="p-form-group">
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>Current Password</label>
-                      <input 
-                        className="p-inp" 
-                        type="password" 
-                        value={pwData.current}
-                        onChange={e => setPwData({ ...pwData, current: e.target.value })}
-                        placeholder="••••••••" 
-                      />
-                   </div>
-                   
-                   <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
-                      <div className="p-form-group">
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>New Password</label>
-                        <input 
-                          className="p-inp" 
-                          type="password" 
-                          value={pwData.next}
-                          onChange={e => setPwData({ ...pwData, next: e.target.value })}
-                          placeholder="Update password" 
-                        />
-                      </div>
-                      <div className="p-form-group">
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 8, textTransform: 'uppercase' }}>Confirm New</label>
-                        <input 
-                          className="p-inp" 
-                          type="password" 
-                          value={pwData.confirm}
-                          onChange={e => setPwData({ ...pwData, confirm: e.target.value })}
-                          placeholder="Re-type password" 
-                        />
-                      </div>
-                   </div>
-
-                   <button 
-                    onClick={handleUpdatePassword} 
-                    disabled={pwLoading}
-                    className="p-btn-gold" 
-                    style={{ padding: '16px', marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
-                   >
-                     {pwLoading ? <Spinner /> : <><Lock size={16} /> Update Access Password</>}
-                   </button>
-                </div>
+          <div className="p-card" style={{ padding: 24 }}>
+             <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 24 }}>Important Documents</h2>
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {proposals.filter(p => p.projectId === activeProject?.id || p.id === activeProject?.id).map(p => (
+                  <div key={p.id} className="doc-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20, background: 'var(--bg)', borderRadius: 12 }}>
+                     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                        <FileText size={24} color={ac} />
+                        <div>
+                           <div style={{ fontWeight: 700 }}>{p.title || 'Project Proposal'}</div>
+                           <div style={{ fontSize: 11, color: 'var(--dim)' }}>{p.date}</div>
+                        </div>
+                     </div>
+                     <button 
+                        onClick={() => {
+                          const win = window.open('', '_blank');
+                          win.document.write(`
+                            <html>
+                              <head><title>${p.title}</title></head>
+                              <body style="font-family:sans-serif; padding: 40px;">
+                                <div style="text-align:center; margin-bottom: 40px;">
+                                  <h1 style="color:${ac}">${brand.name}</h1>
+                                  <p>${p.type} - ${p.id}</p>
+                                </div>
+                                <div style="border:1px solid #eee; padding: 20px; border-radius:12px;">
+                                  <h3>Project: ${p.title}</h3>
+                                  <p>Date: ${p.date}</p>
+                                  <p>Status: ${p.status.toUpperCase()}</p>
+                                  <hr/>
+                                  <div style="font-size: 24px; font-weight: 800; color:${ac}">Amount: ${p.amount}</div>
+                                </div>
+                                <div style="margin-top:40px; font-size: 10px; opacity:0.5; text-align:center;">
+                                  This is an official system-generated document from Glasstech Hub.
+                                </div>
+                                <script>window.onload = () => { window.print(); window.close(); };</script>
+                              </body>
+                            </html>
+                          `);
+                        }} 
+                        className="p-btn-light" 
+                        style={{ padding: '8px 16px', fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}
+                      >
+                        <Download size={14} /> View & Print
+                      </button>
+                  </div>
+                ))}
              </div>
           </div>
         );
-      }
       default: return null;
     }
   };
 
   const isMobile = window.innerWidth <= 768;
-  const mobileTabs = [
-    { id: 'hub', label: 'Home', icon: <Target size={20} /> },
-    { id: 'orders', label: 'Orders', icon: <ShoppingCart size={20} /> },
-    { id: 'visualizer', label: 'AI', icon: <Sparkles size={20} /> },
-    { id: 'chat', label: 'Chat', icon: <MessageSquare size={20} /> },
-    { id: 'financials', label: 'Finance', icon: <CreditCard size={20} /> },
-  ];
 
   return (
-    <div className={`portal-layout lxf ${theme === 'dark' ? 'dark-theme' : ''}`} style={{ transition: 'all 0.5s cubic-bezier(0.19, 1, 0.22, 1)', background: 'var(--bg)' }}>
+    <div className={`portal-layout lxf ${theme === 'dark' ? 'dark-theme' : ''}`} style={{ background: 'var(--bg)' }}>
       {/* SIDEBAR (Desktop) */}
       {!isMobile && (
         <div className="portal-sidebar">
           <div style={{ padding: '32px 24px', marginBottom: 20 }}>
-             {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 44, objectFit: 'contain' }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700 }}>{brand.name}</div>}
+             {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 44, objectFit: 'contain' }} /> : <div className="lxfh" style={{ fontSize: 24, fontWeight: 700 }}>GLASSTECH</div>}
           </div>
-
           <nav style={{ flex: 1 }}>
             {tabs.map(t => (
-              <button 
-                key={t.id} 
-                onClick={() => setTab(t.id)} 
-                className={`portal-sidebar-item ${tab === t.id ? 'active' : ''}`}
-              >
+              <button key={t.id} onClick={() => setTab(t.id)} className={`portal-sidebar-item ${tab === t.id ? 'active' : ''}`}>
                 {t.icon} <span className="n-label">{t.label}</span>
               </button>
             ))}
           </nav>
-
           <div style={{ padding: 24, borderTop: '1px solid var(--border)' }}>
              <button onClick={toggleTheme} className="portal-sidebar-item" style={{ padding: '12px 0' }}>
                {theme === 'light' ? <><Moon size={18} /> Dark Mode</> : <><Sun size={18} /> Light Mode</>}
@@ -730,41 +356,20 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
 
       {/* MAIN CONTENT AREA */}
       <div className="portal-content lx-scroll" style={{ paddingBottom: isMobile ? 120 : 40 }}>
-        <header style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: isMobile ? 'center' : 'center', 
-          marginBottom: isMobile ? 24 : 40,
-          background: isMobile ? 'var(--bg)' : 'transparent',
-          position: isMobile ? 'sticky' : 'static',
-          top: 0,
-          zIndex: 100,
-          padding: isMobile ? '12px 0' : 0
-        }}>
+        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
           <div>
-            <h1 className="lxfh" style={{ fontSize: isMobile ? 24 : 32, margin: 0 }}>Project Hub</h1>
-            {!isMobile && <p style={{ color: 'var(--dim)', margin: 0 }}>{t('welcome')}, {client?.name}</p>}
+            <h1 className="lxfh" style={{ fontSize: isMobile ? 24 : 32, margin: 0 }}>{activeProject?.title || 'Project Hub'}</h1>
+            <p style={{ color: 'var(--dim)', margin: 0 }}>Welcome back, {client?.name}</p>
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 12 : 20 }}>
-            {myProjects.length > 1 && !isMobile && (
-              <select className="p-inp" style={{ width: 220, background: 'var(--card-bg)' }} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}>
-                {myProjects.map(p => <option key={p.id} value={p.id}>{p.title || p.project}</option>)}
-              </select>
-            )}
-            <select 
-              value={props.lang} 
-              onChange={e => props.setLang(e.target.value)}
-              style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--card-bg)', fontSize: 10, fontWeight: 800, cursor: 'pointer' }}
-            >
-              <option value="en">EN</option>
-              <option value="fr">FR</option>
-            </select>
-            <NotificationBell notifications={props.notifications} onMarkRead={props.markNotificationRead} />
-            <div onClick={() => setTab('security')} style={{ cursor: 'pointer' }}>
-               <PAv i={client?.av} s={isMobile ? 32 : 40} c={ac} />
-            </div>
-            {isMobile && <button onClick={onLogout} style={{ background: 'none', border: 'none', color: '#EF4444' }}><LogOut size={20} /></button>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+             {myProjects.length > 1 && (
+               <select className="p-inp" style={{ width: 180 }} value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)}>
+                 {myProjects.map(p => <option key={p.id} value={p.id}>{p.title || p.project}</option>)}
+               </select>
+             )}
+             <NotificationBell notifications={props.notifications} onMarkRead={props.markNotificationRead} />
+             <PAv i={client?.av} s={40} c={ac} onClick={() => setTab('profile')} />
+             {isMobile && <button onClick={onLogout} style={{ background: 'none', border: 'none', color: '#EF4444' }}><LogOut size={20} /></button>}
           </div>
         </header>
 
@@ -773,61 +378,48 @@ export default function ClientPortal({ client, brand, onLogout, calculateProject
         </div>
       </div>
 
-      {/* MOBILE BOTTOM NAVIGATION (Premium Glass Dock) */}
+      {/* MOBILE BOTTOM NAVIGATION */}
       {isMobile && (
-        <nav className="glass-dock">
-          {mobileTabs.map(m => (
-            <button 
-              key={m.id} 
-              onClick={() => setTab(m.id)} 
-              className={`glass-dock-item ${tab === m.id ? 'active' : ''}`}
-            >
-              <div className="dot" />
-              <div className="icon-box">
-                {m.icon}
-              </div>
-              <span>{m.label}</span>
+        <nav className="glass-dock" style={{ display: 'flex', justifyContent: 'space-around', padding: '10px 0', background: 'var(--card-bg)', borderTop: '1px solid var(--border)', position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000 }}>
+          {tabs.slice(0, 5).map(m => (
+            <button key={m.id} onClick={() => setTab(m.id)} style={{ background: 'none', border: 'none', color: tab === m.id ? ac : 'var(--dim)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              {m.icon}
+              <span style={{ fontSize: 10, fontWeight: 700 }}>{m.label}</span>
             </button>
           ))}
         </nav>
       )}
 
       {payModal && <PaystackPayModal invoice={payModal} brand={brand} onClose={() => setPayModal(null)} onSuccess={(id) => { setPaidIds([...paidIds, id]); props.payInvoice(id, selectedProjectId, 'Paystack'); }} />}
-      
-      {showReviewModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          <div className="p-card fade-in" style={{ maxWidth: 500, width: '100%', padding: 40, background: 'var(--card-bg)' }}>
-             <h2 className="lxfh" style={{ fontSize: 24, marginBottom: 8 }}>{lang === 'fr' ? 'Avis Client' : 'Client Feedback'}</h2>
-             <p className="lxf" style={{ color: 'var(--dim)', marginBottom: 32 }}>{lang === 'fr' ? 'Votre avis nous aide à maintenir nos standards.' : 'Your feedback helps us maintain million-dollar standards.'}</p>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                <div>
-                   <label className="eyebrow lxf" style={{ fontSize: 10, display: 'block', marginBottom: 8 }}>RATING</label>
-                   <div style={{ display: 'flex', gap: 8 }}>
-                      {[1,2,3,4,5].map(r => (
-                        <button key={r} onClick={() => setReviewData({...reviewData, rating: r})} style={{ background: reviewData.rating >= r ? ac : 'none', border: `1px solid ${ac}`, color: reviewData.rating >= r ? '#fff' : ac, padding: '8px 16px', borderRadius: 8, cursor: 'pointer' }}>{r}★</button>
-                      ))}
-                   </div>
-                </div>
-                <textarea 
-                  className="p-inp" 
-                  rows={4} 
-                  placeholder={lang === 'fr' ? 'Parlez-nous de votre expérience...' : 'Tell us about your experience...'} 
-                  value={reviewData.text}
-                  onChange={e => setReviewData({...reviewData, text: e.target.value})}
-                />
-                <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                   <button onClick={() => {
-                     props.submitTestimonial({ ...reviewData, author: client.name, userId: client.id });
-                     setShowReviewModal(false);
-                     alert(lang === 'fr' ? "Merci! Votre avis a été soumis." : "Thank you! Your review has been submitted for approval.");
-                   }} className="p-btn-gold" style={{ flex: 1, padding: 16 }}>{lang === 'fr' ? 'Envoyer' : 'Submit Review'}</button>
-                   <button onClick={() => setShowReviewModal(false)} className="p-btn-light" style={{ padding: '0 24px' }}>{lang === 'fr' ? 'Annuler' : 'Cancel'}</button>
-                </div>
-             </div>
-          </div>
-        </div>
+
+      {showPasswordChange && (
+        <Modal title="Security Initialization" noClose>
+           <div style={{ textAlign: 'center', padding: '20px 0' }}>
+              <Lock size={48} color={ac} style={{ marginBottom: 20 }} />
+              <h3 className="lxfh" style={{ fontSize: 24, marginBottom: 12 }}>Securing Your Account</h3>
+              <p style={{ color: 'var(--dim)', marginBottom: 32, fontSize: 14 }}>
+                 For your security, please update your access password before proceeding to the command center.
+              </p>
+              <div style={{ textAlign: 'left', marginBottom: 32 }}>
+                 <PFormField label="New Access Password">
+                    <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="p-inp" placeholder="Min. 8 characters" />
+                 </PFormField>
+              </div>
+              <button 
+                 onClick={async () => {
+                    if (newPassword.length < 6) return alert("Password too short.");
+                    await props.updateUserPassword(client.id, newPassword);
+                    await updateClientProfile(client.id, { requiresPasswordChange: false });
+                    setShowPasswordChange(false);
+                 }} 
+                 className="p-btn-gold" 
+                 style={{ width: '100%', padding: 20, borderRadius: 16, fontWeight: 800 }}
+              >
+                 Confirm & Initialize Portal
+              </button>
+           </div>
+        </Modal>
       )}
     </div>
   );
 }
-

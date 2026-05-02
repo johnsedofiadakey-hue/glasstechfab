@@ -783,8 +783,12 @@ body {
 }
 
 /* ── NATIVE APP & PUBLIC NAVIGATION ── */
-.dt-flex { display: flex !important; }
+.dt-only { display: flex !important; }
 .mob-only { display: none !important; }
+@media (max-width: 1024px) {
+  .dt-only { display: none !important; }
+  .mob-only { display: flex !important; }
+}
 
 /* Global Frosted Overlay */
 .pub-drawer {
@@ -820,27 +824,24 @@ body {
   }
 }
 
-.pub-bottom-nav {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 32px);
-  max-width: 480px;
-  height: 76px;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(40px) saturate(200%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 40px;
-  box-shadow: 0 12px 60px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0 16px;
-  z-index: 5000;
-  transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+/* --- MOBILE NAVIGATION --- */
+.mob-only { display: none; }
+@media (max-width: 768px) {
+  .mob-only { display: flex; }
 }
+
+.pub-bottom-nav-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 5000;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+
 
 .pub-bottom-nav::after {
   content: '';
@@ -893,28 +894,8 @@ body {
 }
 
 /* 🧪 UNIFIED GLASS DOCK SYSTEM */
-.glass-dock {
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 40px);
-  max-width: 480px;
-  height: 76px;
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(32px) saturate(190%);
-  -webkit-backdrop-filter: blur(32px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 40px;
-  box-shadow: 0 15px 45px rgba(26, 20, 16, 0.12), 0 5px 15px rgba(26, 20, 16, 0.04);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 0 12px;
-  z-index: 6000;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  padding-bottom: 0; /* Handled by bottom positioning */
-}
+/* Legacy Dock Removed */
+
 
 .glass-dock-item {
   display: flex;

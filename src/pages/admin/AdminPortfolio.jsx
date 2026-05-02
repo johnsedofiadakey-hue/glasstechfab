@@ -4,11 +4,16 @@ import { FF as PFormField } from '../../components/Shared';
 import { uploadFile } from '../../lib/firebase';
 import { compressImage } from '../../lib/image-utils';
 
-export default function AdminPortfolio({ content, setContent, brand }) {
-  const ac = brand.color || '#C8A96E';
+export default function AdminPortfolio({ content, syncCMS, brand }) {
+  const ac = brand?.color || '#C8A96E';
   const portfolio = content?.portfolio || [];
   
+  const onSave = (newList) => {
+    if (syncCMS) syncCMS('portfolio', newList);
+  };
+
   const addProject = () => {
+
     const newProj = {
       id: Date.now(),
       title: 'New Luxury Project',
@@ -25,21 +30,24 @@ export default function AdminPortfolio({ content, setContent, brand }) {
       desc: 'Describe the transformation here...',
       imgs: []
     };
-    if (setContent) setContent('portfolio', [newProj, ...portfolio]);
+    onSave([newProj, ...portfolio]);
   };
+
 
   const updateProj = (idx, fields) => {
     const newP = [...portfolio];
     newP[idx] = { ...newP[idx], ...fields };
-    if (setContent) setContent('portfolio', newP);
+    onSave(newP);
   };
+
 
   const deleteProj = (idx) => {
     if (window.confirm('Are you sure you want to delete this project?')) {
       const newP = portfolio.filter((_, i) => i !== idx);
-      if (setContent) setContent('portfolio', newP);
+      onSave(newP);
     }
   };
+
 
   const onFile = async (idx, field, file) => {
     if (file) {

@@ -11,7 +11,10 @@ service cloud.firestore {
       return isAuthenticated() && (
         request.auth.token.email.matches(".*@glasstechfab.com") ||
         request.auth.token.email == "contact@glasstech.com.gh" ||
-        request.auth.token.email == "admin@glasstechfab.com"
+        request.auth.uid == "qRcOaTkJ6rYmjha9jNAadrYW6pK2" || // Super Admin
+        request.auth.uid == "pBkrb38P9NaXXjIILQXlqxxC33p2" || // Factory Admin
+        request.auth.uid == "GQL4qVw3NIe9XVq8gZFkuU4Q9dD3" || // Authorized Test Account
+        request.auth.uid == "GQL4qVw3NIe9XVq8gZFkuU4Q9dd3"    // Current Active UID
       );
     }
 
@@ -65,9 +68,19 @@ service cloud.firestore {
        allow read, write: if true;
     }
     match /notifications/{notifId} {
-      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow create: if true; // System-wide notifications
-      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+      allow create: if true; 
+      allow update, delete: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+    }
+
+    match /portfolio/{projId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /products/{prodId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     match /testimonials/{testId} {
@@ -82,13 +95,29 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    match /invoices/{invId} {
-       allow read: if isAdmin() || (isAuthenticated() && request.auth.token.email == resource.data.clientEmail);
-       allow write: if isAdmin();
+    match /showcase/{sceneId} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    match /activity_logs/{logId} {
-       allow read, write: if isAdmin();
+    match /emails/{emailId} {
+      allow read: if isAdmin() || (isAuthenticated() && request.auth.token.email == resource.data.to);
+      allow write: if isAdmin();
+      allow create: if true; // Public can send inquiries
     }
+
+    // --- GLOBAL ADMIN COLLECTIONS ---
+    match /transactions/{txId} { allow read, write: if isAuthenticated(); }
+    match /shipments/{shipId} { allow read, write: if isAuthenticated(); }
+    match /invoices/{invId} { allow read, write: if isAuthenticated(); }
+    match /tasks/{taskId} { allow read, write: if isAuthenticated(); }
+    match /procurements/{procId} { allow read, write: if isAuthenticated(); }
+    match /activity_logs/{logId} { allow read, write: if isAuthenticated(); }
+    match /messages/{msgId} { allow read, write: if isAuthenticated(); }
+    match /approvals/{id} { allow read, write: if isAuthenticated(); }
+    match /change_requests/{id} { allow read, write: if isAuthenticated(); }
+    match /notes/{id} { allow read, write: if isAuthenticated(); }
+    match /media/{id} { allow read, write: if isAuthenticated(); }
+    match /testimonials/{id} { allow read: if true; allow write: if isAuthenticated(); }
   }
 }

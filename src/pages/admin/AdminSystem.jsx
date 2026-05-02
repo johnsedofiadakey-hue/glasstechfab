@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Database, RefreshCw, ShieldAlert, Archive, Terminal, CheckCircle } from 'lucide-react';
 
-export default function AdminSystem({ onReset, brand }) {
+export default function AdminSystem({ onReset, syncCatalog, brand }) {
   const ac = brand.color || '#C8A96E';
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export default function AdminSystem({ onReset, brand }) {
           <p className="lxf" style={{ color: '#B5AFA9', fontSize: 14 }}>Global environment controls and data synchronization tools.</p>
        </div>
 
-       <div className="p-card" style={{ padding: 32, border: confirm ? `2px solid #EF4444` : '1px solid var(--border)' }}>
+        <div className="p-card" style={{ padding: 32, border: confirm ? `2px solid #EF4444` : '1px solid var(--border)' }}>
           <div style={{ display: 'flex', gap: 24 }}>
              <div style={{ width: 64, height: 64, borderRadius: 20, background: confirm ? '#FEF2F2' : '#F9F7F4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: confirm ? '#EF4444' : ac }}>
                 <Database size={32} />
@@ -33,18 +33,25 @@ export default function AdminSystem({ onReset, brand }) {
                    <br/><strong>Note:</strong> Existing account profiles will be merged, not deleted.
                 </p>
 
-                {!confirm ? (
-                  <button onClick={() => setConfirm(true)} className="p-btn-dark lxf" style={{ background: '#1A1410', padding: '12px 24px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <RefreshCw size={16} /> Re-seed Ecosystem
-                  </button>
-                ) : (
-                  <div style={{ display: 'flex', gap: 12 }}>
-                    <button onClick={handleReset} disabled={loading} className="p-btn-gold lxf" style={{ background: '#EF4444', padding: '12px 24px', fontSize: 13 }}>
-                      {loading ? 'Initializing...' : 'Confirm Deep Reset'}
-                    </button>
-                    <button onClick={() => setConfirm(false)} className="p-btn-light lxf" style={{ padding: '12px 24px', fontSize: 13 }}>Cancel</button>
-                  </div>
-                )}
+                <div style={{ display: 'flex', gap: 12 }}>
+                  {!confirm ? (
+                    <>
+                      <button onClick={() => setConfirm(true)} className="p-btn-dark lxf" style={{ background: '#1A1410', padding: '12px 24px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <RefreshCw size={16} /> Re-seed Ecosystem
+                      </button>
+                      <button onClick={async () => { setLoading(true); await syncCatalog(); setLoading(false); }} disabled={loading} className="p-btn-gold lxf" style={{ padding: '12px 24px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <RefreshCw size={16} /> {loading ? 'Syncing...' : 'Sync Catalog Only'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button onClick={handleReset} disabled={loading} className="p-btn-gold lxf" style={{ background: '#EF4444', padding: '12px 24px', fontSize: 13 }}>
+                        {loading ? 'Initializing...' : 'Confirm Deep Reset'}
+                      </button>
+                      <button onClick={() => setConfirm(false)} className="p-btn-light lxf" style={{ padding: '12px 24px', fontSize: 13 }}>Cancel</button>
+                    </>
+                  )}
+                </div>
              </div>
           </div>
        </div>

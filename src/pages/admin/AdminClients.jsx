@@ -13,7 +13,10 @@ import {
   ShieldCheck,
   Building,
   Shield,
-  Command
+  Command,
+  Zap,
+  Globe,
+  Settings
 } from 'lucide-react';
 import { PAv } from '../../components/Shared';
 
@@ -32,8 +35,8 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
   };
 
   const handleSubmit = async () => {
-    if (!newC.name || !newC.username || (!editingClient && !newC.password)) {
-      return alert("Required: Name, Username, and initial Password");
+    if (!newC.name || !newC.phone) {
+      return alert("Required: Full Name and Phone Number");
     }
     
     if (editingClient) {
@@ -86,63 +89,63 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
         </button>
       </div>
 
-      <div className="p-card" style={{ padding: 0, overflow: 'hidden', border: '1px solid rgba(0,0,0,0.06)', background: '#fff', borderRadius: 4 }}>
-        <div style={{ padding: '16px 24px', background: '#FDFCFB', borderBottom: '1px solid rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center' }}>
-          <Search size={18} color="#B5AFA9" style={{ marginRight: 16 }} />
+      <div className="p-card" style={{ padding: 0, overflow: 'hidden', border: 'none', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(10px)', borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.03)' }}>
+        <div style={{ padding: '24px 32px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center' }}>
+          <Search size={20} color={ac} style={{ marginRight: 20 }} />
           <input 
             type="text" 
-            placeholder="Search by name, username, or company..." 
+            placeholder="Search Stakeholder Database..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{ background: 'none', border: 'none', width: '100%', fontSize: 14, outline: 'none', color: '#121212' }}
+            style={{ background: 'none', border: 'none', width: '100%', fontSize: 16, outline: 'none', color: '#1A1410' }}
             className="lxf"
           />
         </div>
 
-        <div style={{ padding: 32 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 24 }}>
+        <div style={{ padding: 40 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 32 }}>
             {filtered.map(client => (
-              <div key={client.id} className="p-card" style={{ padding: 0, border: '1px solid #F0EBE5', background: '#fff', borderRadius: 8, overflow: 'hidden', transition: 'all 0.3s' }}>
-                <div style={{ padding: 24, paddingBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                   <div style={{ width: 56, height: 56, borderRadius: 4, background: '#F9F7F4', border: '1px solid #F0EBE5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 300, color: ac }} className="lxfh">
+              <div key={client.id} className="p-card" style={{ padding: 0, border: '1px solid rgba(0,0,0,0.04)', background: '#fff', borderRadius: 20, overflow: 'hidden', transition: 'transform 0.3s' }}>
+                <div style={{ padding: 32, paddingBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                   <div style={{ width: 64, height: 64, borderRadius: 16, background: '#1A1410', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 300 }} className="lxfh">
                       {client.name?.[0]}
                    </div>
-                   <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => startEdit(client)} style={{ background: '#F9F7F4', border: 'none', padding: 10, borderRadius: 4, color: '#666', cursor: 'pointer' }} className="hover-ac"><Edit2 size={16} /></button>
-                      <button onClick={() => deleteClient(client.id)} style={{ background: '#FFF1F1', border: 'none', padding: 10, borderRadius: 4, color: '#EF4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                   <div style={{ display: 'flex', gap: 10 }}>
+                      <button onClick={() => startEdit(client)} style={{ background: '#F9F7F4', border: 'none', padding: 12, borderRadius: 12, color: '#1A1410', cursor: 'pointer' }}><Edit2 size={18} /></button>
+                      <button onClick={() => deleteClient(client.id)} style={{ background: '#FFF1F1', border: 'none', padding: 12, borderRadius: 12, color: '#EF4444', cursor: 'pointer' }}><Trash2 size={18} /></button>
                    </div>
                 </div>
 
-                <div style={{ padding: 24 }}>
-                  <div className="lxfh" style={{ fontSize: 22, marginBottom: 4, fontWeight: 400 }}>{client.name}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: ac, marginBottom: 20 }}>
+                <div style={{ padding: 32 }}>
+                  <div className="lxfh" style={{ fontSize: 24, marginBottom: 8, fontWeight: 400, color: '#1A1410' }}>{client.name}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: ac, marginBottom: 24, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                     <Building size={14} />
-                    <span className="lxf" style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{client.company || 'Private Portfolio'}</span>
+                    {client.company || 'Private Portfolio'}
                   </div>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#666' }} className="lxf">
-                        <Mail size={16} color="#B5AFA9" /> {client.email}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#6A635C' }} className="lxf">
+                        <Mail size={18} color="#B5AFA9" /> {client.email}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#666' }} className="lxf">
-                        <Command size={16} color="#B5AFA9" /> <span style={{ fontWeight: 600 }}>{client.username}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#6A635C' }} className="lxf">
+                        <Zap size={18} color={ac} /> <span style={{ fontWeight: 700 }}>{client.username}</span>
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid #f5f5f5', paddingTop: 20 }}>
+                  <div style={{ background: '#F9F7F4', padding: 24, borderRadius: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em' }}>Access Method</div>
-                      <div style={{ fontSize: 10, background: '#F0F9FF', color: '#0369A1', padding: '2px 8px', borderRadius: 10, fontWeight: 700 }}>CREDENTIAL AUTH</div>
+                      <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', fontWeight: 800, textTransform: 'uppercase' }}>Security Layer</div>
+                      <ShieldCheck size={16} color="#16A34A" />
                     </div>
-                    <div className="lxf" style={{ fontSize: 14, color: '#1A1410' }}>
-                      Login with username <b>{client.username}</b>
+                    <div className="lxf" style={{ fontSize: 13, color: '#1A1410', lineHeight: 1.5 }}>
+                      Authenticated via <b>WhatsApp/OTP</b> and Biometric credentials.
                     </div>
                   </div>
                 </div>
 
-                <div onClick={() => props.onSelectClient?.(client.id)} style={{ padding: '16px 24px', background: '#FDFCFB', borderTop: '1px solid rgba(0,0,0,0.03)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }} className="hover-light">
-                  <span className="lxf" style={{ fontSize: 12, fontWeight: 600, color: '#666' }}>View Project Command Center</span>
-                  <ChevronRight size={16} color={ac} />
+                <div onClick={() => props.onSelectClient?.(client.id)} style={{ padding: '20px 32px', background: '#1A1410', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', color: '#fff' }}>
+                  <span className="lxf" style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Access Command Center</span>
+                  <ChevronRight size={18} color={ac} />
                 </div>
               </div>
             ))}
@@ -190,24 +193,15 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
 
                 <section>
                   <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>2. Managed Credentials</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                    <div className="p-form-group">
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Portal Username</label>
-                      <input className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.username} onChange={e => setNewC({ ...newC, username: e.target.value.toLowerCase().replace(/\s/g, '_') })} placeholder="e.g. john_doe" disabled={editingClient} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
+                    <div style={{ background: '#F9F7F4', padding: 20, borderRadius: 12, border: '1px dashed #F0EBE5' }}>
+                       <div style={{ fontSize: 13, fontWeight: 700, color: ac, marginBottom: 4 }}>AUTO-GENERATED PORTAL ACCESS</div>
+                       <p style={{ fontSize: 12, color: '#666', margin: 0 }}>
+                         The system will use the <b>Phone Number</b> as the Username. 
+                         Initial password will be <b>unlockme</b>. 
+                         The client will be prompted to change this on their first login.
+                       </p>
                     </div>
-                    {!editingClient ? (
-                      <div className="p-form-group">
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Initial Password</label>
-                        <input type="password" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.password} onChange={e => setNewC({ ...newC, password: e.target.value })} placeholder="Create secure password" />
-                      </div>
-                    ) : (
-                      <div className="p-form-group">
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Security Access</label>
-                        <button onClick={handleResetPassword} style={{ width: '100%', padding: '14px', borderRadius: 8, background: '#F9F7F4', border: '1px solid #F0EBE5', color: ac, fontWeight: 700, cursor: 'pointer' }}>
-                          <Shield size={16} style={{ marginRight: 8 }} /> Reset Password
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </section>
 

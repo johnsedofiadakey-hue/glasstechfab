@@ -43,16 +43,13 @@ export const MessengerService = {
   },
 
   /**
-   * Sends a progress update to the client.
+   * Sends a generic message to the client.
    */
-  sendProgressUpdate: async (phone, name, project, stage) => {
-    console.log(`[MessengerService] Routing update via provider: ${PROVIDER}`);
-    const message = `High-End Update: Hello ${name}, your project "${project}" has moved to the ${stage} phase at Glasstech Fab.`;
+  sendMessage: async (phone, message) => {
+    console.log(`[MessengerService] Routing generic message via provider: ${PROVIDER}`);
 
     switch (PROVIDER.toLowerCase()) {
       case 'meta':
-        // In a real Meta integration, you would use a template for this.
-        // For now, we'll route it through the Meta service's messaging method if it exists.
         return await MetaWhatsAppService.sendMessage(phone, message);
       
       case 'arkesel':
@@ -62,15 +59,15 @@ export const MessengerService = {
         return await new Promise((resolve) => {
           setTimeout(() => {
             console.log("------------------------------------------");
-            console.log(`[MOCK WHATSAPP UPDATE] To: ${phone}`);
-            console.log(`[MOCK WHATSAPP UPDATE] Message: ${message}`);
+            console.log(`[MOCK WHATSAPP GENERIC] To: ${phone}`);
+            console.log(`[MOCK WHATSAPP GENERIC] Message: ${message}`);
             console.log("------------------------------------------");
-            resolve({ success: true, sid: 'mock_update_123' });
+            resolve({ success: true, sid: 'mock_msg_123' });
           }, 800);
         });
 
       default:
-        console.warn(`Messaging provider ${PROVIDER} does not support progress updates yet.`);
+        console.warn(`Messaging provider ${PROVIDER} does not support generic messaging yet.`);
         return { success: false, error: 'Provider not supported' };
     }
   }

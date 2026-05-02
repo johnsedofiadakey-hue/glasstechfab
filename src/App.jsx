@@ -5,13 +5,18 @@ const AdminPortal = lazy(() => import('./pages/AdminPortal'));
 const ClientPortal = lazy(() => import('./pages/ClientPortal'));
 const AccountManagerPortal = lazy(() => import('./pages/AccountManagerPortal'));
 const ProductsHub = lazy(() => import('./pages/ProductsHub'));
-const GlassCatalog = lazy(() => import('./pages/GlassCatalog'));
+const Portfolio = lazy(() => import('./pages/Portfolio'));
+const Showcase = lazy(() => import('./pages/Showcase'));
 import { 
   CLIENTS_DATA, PROPOSALS_DATA, INVOICES_DATA, 
   BOOKINGS_DATA, EMAIL_QUEUE, HERO_SLIDES,
   SERVICES_DATA, ABOUT_DATA, PROCESS_STEPS, ROOM_GALLERY,
-  PORTFOLIO_DATA, TEAM_MEMBERS, PROJECT_STAGES, WHY_US, PRODUCTS_DATA
+  PORTFOLIO_DATA, TEAM_MEMBERS, PROJECT_STAGES, WHY_US, 
+  PRODUCTS_DATA, GLASS_CATALOG_DATA, GLASS_CATALOG_CATEGORIES,
+  BRAND0, DEFAULT_SCENES
 } from './data.jsx';
+
+
 import { auth, db, storage, isFirebaseEnabled } from './lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { 
@@ -23,19 +28,6 @@ import { uploadFile } from './lib/firebase';
 import { MessengerService } from './lib/MessengerService';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
-const BRAND0 = {
-  name: 'Glasstech Fabrications',
-  logo: '/logo.png',
-  color: '#C8A96E',
-  theme: 'classic',
-  tagline: 'Complete Interior & Finishing Solutions',
-  phone: '+233 59 845 5012',
-  email: 'contact@glasstech.com.gh',
-  location: 'Spintex Road Industrial Area, Accra',
-  website: 'www.glasstech.com.gh',
-  instagram: '@glasstech_gh',
-  whatsapp: '+233598455012'
-};
 
 const INITIAL_CONTENT = {
   hero: { slides: HERO_SLIDES },
@@ -51,9 +43,11 @@ const INITIAL_CONTENT = {
   process: PROCESS_STEPS,
   portfolio: PORTFOLIO_DATA,
   gallery: ROOM_GALLERY,
-  products: PRODUCTS_DATA,
+  products: GLASS_CATALOG_DATA,
+  categories: GLASS_CATALOG_CATEGORIES,
   brand: BRAND0
 };
+
 
 const ProtectedRoute = ({ user, role, children, setView }) => {
   if (!user) return null;
@@ -76,18 +70,8 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true); 
   const navigate = useNavigate();
   const location = useLocation();  const [brand, setBrand] = useState(BRAND0);
-  const [content, setContent] = useState({
-    brand: BRAND0,
-    hero: { slides: HERO_SLIDES },
-    services: SERVICES_DATA,
-    portfolio: PORTFOLIO_DATA,
-    about: ABOUT_DATA,
-    team: TEAM_MEMBERS,
-    testimonials: [],
-    why_us: WHY_US,
-    process: PROCESS_STEPS,
-    products: PRODUCTS_DATA
-  });
+  const [content, setContent] = useState(INITIAL_CONTENT);
+
 
   // Inject dynamic CSS variables based on brand settings
   useEffect(() => {
@@ -150,6 +134,16 @@ export default function App() {
     fr: { welcome: 'Bienvenue', dashboard: 'Tableau de bord', orders: 'Commandes', visualizer: 'Visualiseur AI', chat: 'Chat en direct', projects: 'Projets', finance: 'Finances' }
   };
   const t = (k) => dict[lang][k] || k;
+  
+  const updateClientProfile = async (clientId, data) => {
+    if (!db) return;
+    try {
+      await updateDoc(doc(db, 'users', clientId), { ...data, updatedAt: serverTimestamp() });
+      notify('success', 'Profile updated successfully');
+    } catch (e) {
+      notify('error', 'Failed to update profile');
+    }
+  };
 
   useEffect(() => {
     if (!db) return;
@@ -291,7 +285,13 @@ export default function App() {
       await setDoc(doc(db, 'cms_content', 'services'), { content: SERVICES_DATA }, { merge: true });
       await setDoc(doc(db, 'cms_content', 'portfolio'), { content: PORTFOLIO_DATA }, { merge: true });
       await setDoc(doc(db, 'cms_content', 'about'), { content: ABOUT_DATA }, { merge: true });
-      await setDoc(doc(db, 'cms_content', 'products'), { content: PRODUCTS_DATA }, { merge: true });
+      await setDoc(doc(db, 'cms_content', 'products'), { content: GLASS_CATALOG_DATA }, { merge: true });
+      await setDoc(doc(db, 'cms_content', 'categories'), { content: GLASS_CATALOG_CATEGORIES }, { merge: true });
+
+      // 5. Initialise Showroom (Collection)
+      for (const scene of DEFAULT_SCENES) {
+        await setDoc(doc(db, 'showcase', scene.id), scene, { merge: true });
+      }
 
       for (const item of ALL_PROJECT_DATA) {
         const pid = item.id.toString();
@@ -357,9 +357,8 @@ export default function App() {
             actualCost: '19500',
             eta: 'May 12, 2026', 
             container: 'MSC-GT-'+pid, 
-            isShipment: true,
-            createdAt: new Date().toISOString()
-          });
+          }, { merge: true });
+        }
 
           // 8. Financial Transactions (Audit Trail)
           const txId = `TX-${pid}-01`;
@@ -399,8 +398,6 @@ export default function App() {
             await setDoc(doc(db, 'jobs', j.id), { ...j, createdAt: new Date().toISOString() });
           }
         }
-      }
-
       // 8. Seed Proposals (Root Collection)
       for (const p of PROPOSALS_DATA) {
         await setDoc(doc(db, 'proposals', p.id), { ...p, createdAt: new Date().toISOString() }, { merge: true });
@@ -423,6 +420,18 @@ export default function App() {
       notify('error', 'Seeding failed. Check console for details.'); 
     } finally { 
       setLoading(false); 
+    }
+  };
+
+  const syncCatalogOnly = async () => {
+    if (!db) return;
+    try {
+      notify('pending', 'Syncing catalog updates...');
+      await setDoc(doc(db, 'cms_content', 'products'), { content: GLASS_CATALOG_DATA }, { merge: true });
+      await setDoc(doc(db, 'cms_content', 'categories'), { content: GLASS_CATALOG_CATEGORIES }, { merge: true });
+      notify('success', 'Catalog synchronized successfully.');
+    } catch (err) {
+      notify('error', 'Sync failed: ' + err.message);
     }
   };
 
@@ -574,6 +583,7 @@ export default function App() {
 
       navigate('/portal');
       notify('success', `Welcome back, ${uData.name}`);
+      return fullUser;
     } catch (e) {
       setNotification({ msg: e.message, type: 'error' });
       throw e;
@@ -717,11 +727,12 @@ export default function App() {
     
     console.log("[FETCH] Initializing Data Pipeline for:", user.id);
     
-    let projectSub, userSub, paymentSub, taskSub, logSub, transSub, proposalSub, bookingSub, emailSub, assetSub, jobSub;
+    let projectSub, userSub, paymentSub, taskSub, logSub, transSub, proposalSub, bookingSub, emailSub, assetSub, jobSub, notifSub;
+    let approvalSub, crSub, procSub, noteSub, mediaSub, shipSub;
 
     projectSub = onSnapshot(collection(db, 'projects'), (snap) => {
-      setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title })));
-    });
+      setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title || d.data().project })));
+    }, (err) => console.warn("Project Sync Error:", err));
 
     if (user.role === 'admin') {
       userSub = onSnapshot(collection(db, 'users'), (snap) => {
@@ -730,49 +741,52 @@ export default function App() {
         const team = all.filter(u => u.role !== 'client');
         setTeamMembers(team);
         setDbClients(clients);
-      });
-      paymentSub = onSnapshot(query(collectionGroup(db, 'payments')), (snap) => {
-        setInvoices(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-      });
-    }
-    if (user.role === 'admin' && db) {
-      taskSub = onSnapshot(query(collectionGroup(db, 'tasks')), (snap) => {
-        setTasks(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-      });
+      }, (err) => console.warn("User Registry Error:", err));
+      
+      paymentSub = onSnapshot(collection(db, 'invoices'), (snap) => {
+        setInvoices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Invoice Sync Error:", err));
+
+      taskSub = onSnapshot(collection(db, 'tasks'), (snap) => {
+        setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Global Task Sync Error:", err));
+
       logSub = onSnapshot(query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)), (snap) => {
         setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, (err) => {
-        console.warn("Activity logs listener failed:", err);
-      });
-    }
-    const notifSub = db && onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)), (snap) => {
-      setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
-    });
-    const approvalSub = db && onSnapshot(query(collectionGroup(db, 'approvals')), (snap) => {
-      setApprovals(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const crSub = db && onSnapshot(query(collectionGroup(db, 'change_requests')), (snap) => {
-      setChangeRequests(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const procSub = db && onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
-      setProcurements(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const noteSub = db && onSnapshot(query(collectionGroup(db, 'notes')), (snap) => {
-      setNotes(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const mediaSub = db && onSnapshot(query(collectionGroup(db, 'media')), (snap) => {
-      setMedia(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    const shipSub = db && onSnapshot(query(collectionGroup(db, 'procurements')), (snap) => {
-      setShipments(snap.docs.map(d => ({ id: d.id, parentId: d.ref.parent.parent.id, ...d.data() })));
-    });
-    if (user.role === 'admin' && db) {
+      }, (err) => console.warn("Activity logs listener failed:", err));
+
+      approvalSub = onSnapshot(collection(db, 'approvals'), (snap) => {
+        setApprovals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Approval Sync Error:", err));
+      
+      crSub = onSnapshot(collection(db, 'change_requests'), (snap) => {
+        setChangeRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("CR Sync Error:", err));
+      
+      procSub = onSnapshot(collection(db, 'procurements'), (snap) => {
+        setProcurements(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Procurement Sync Error:", err));
+      
+      noteSub = onSnapshot(collection(db, 'notes'), (snap) => {
+        setNotes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Note Sync Error:", err));
+      
+      mediaSub = onSnapshot(collection(db, 'media'), (snap) => {
+        setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Media Sync Error:", err));
+      
+      shipSub = onSnapshot(collection(db, 'shipments'), (snap) => {
+        setShipments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Shipment Sync Error:", err));
+
       proposalSub = onSnapshot(collection(db, 'proposals'), (snap) => {
         setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
+      }, (err) => console.warn("Proposal Sync Error:", err));
+
       bookingSub = onSnapshot(collection(db, 'bookings'), (snap) => {
         setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
+      }, (err) => console.warn("Booking Sync Error:", err));
+
       emailSub = onSnapshot(collection(db, 'emails'), (snap) => {
         setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
@@ -788,6 +802,10 @@ export default function App() {
         setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
     }
+
+    notifSub = db && onSnapshot(query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20)), (snap) => {
+      setUserNotifications(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(n => n.userId === user.id));
+    });
 
     return () => { 
       console.log("[FETCH] Tearing down Data Pipeline...");
@@ -845,14 +863,29 @@ export default function App() {
       const docRef = await addDoc(collection(db, 'proposals'), {
         ...data,
         createdAt: new Date().toISOString(),
-        status: 'pending'
+        status: data.status || 'pending'
       });
-      setProposals(prev => [{ id: docRef.id, ...data }, ...prev]);
-      setNotification({ msg: 'AI Proposal Generated & Saved', type: 'success' });
-      setTimeout(() => setNotification(null), 3000);
+      notify('success', 'Document Generated & Saved');
+      return docRef.id;
     } catch (err) {
       console.error(err);
-      setNotification({ msg: 'Generation failed', type: 'error' });
+      notify('error', 'Generation failed');
+    }
+  };
+
+  const createInvoice = async (data) => {
+    if (!db) return;
+    try {
+      const docRef = await addDoc(collection(db, 'invoices'), {
+        ...data,
+        createdAt: new Date().toISOString(),
+        status: data.status || 'Pending'
+      });
+      notify('success', 'Official Invoice Issued');
+      return docRef.id;
+    } catch (err) {
+      console.error(err);
+      notify('error', 'Issuance failed');
     }
   };
 
@@ -1030,8 +1063,9 @@ export default function App() {
       const fileName = `${Date.now()}_${file.name}`;
       const url = await uploadFile('projects', `${projectId}/${fileName}`, file);
       
-      await addDoc(collection(db, 'projects', projectId, 'media'), { 
+      await addDoc(collection(db, 'media'), { 
         url, 
+        parentId: projectId,
         stageId: parseInt(stageId), 
         type: file.type.startsWith('image/') ? 'image' : 'video',
         createdAt: new Date().toISOString() 
@@ -1044,9 +1078,9 @@ export default function App() {
     }
   };
 
-  const deleteMedia = async (id, projectId) => {
+  const deleteMedia = async (id) => {
     if (!db) return;
-    try { await deleteDoc(doc(db, 'projects', projectId, 'media', id)); notify('success', 'Media removed'); }
+    try { await deleteDoc(doc(db, 'media', id)); notify('success', 'Media removed'); }
     catch(e) { console.error(e); }
   };
 
@@ -1063,17 +1097,18 @@ export default function App() {
   };
 
   const sendWhatsAppUpdate = async (clientId, projectId, stageName) => {
-    const c = dbClients.find(x => x.id === clientId);
-    const p = clients.find(x => x.id === projectId);
-    if (!c || !p) return notify('error', 'Contact context missing');
+    const c = dbClients.find(x => x.id === clientId) || { phone: clientId, name: 'Client' };
+    const p = clients.find(x => x.id === projectId) || { project: 'General Works' };
     
     try {
       notify('pending', `Dispatching WhatsApp to ${c.name}...`);
-      await MessengerService.sendProgressUpdate(c.phone || '+233241112222', c.name, p.project || p.title, stageName);
-      notify('success', 'Update sent successfully');
-      logAction(projectId, 'Notification', `WhatsApp progress update sent: ${stageName}`);
+      const message = stageName.includes(' ') ? stageName : `High-End Update: Hello ${c.name}, your project "${p.project || p.title}" has moved to the ${stageName} phase at Glasstech Fab.`;
+      
+      await MessengerService.sendMessage(c.phone || clientId, message);
+      notify('success', 'WhatsApp update dispatched');
+      if (projectId) logAction(projectId, 'Notification', `WhatsApp update sent: ${stageName}`);
     } catch (err) {
-      notify('error', 'Failed to send WhatsApp');
+      notify('error', 'WhatsApp dispatch failed');
     }
   };
 
@@ -1124,49 +1159,65 @@ export default function App() {
          return;
       }
       
-      const id = data.username || data.phone.replace(/\D/g, '');
-      const proxyEmail = `${data.username}@clients.glasstechfab.com`;
+      // Normalize phone for ID
+      const id = (data.phone || data.username || '').replace(/\D/g, '');
+      if (!id) throw new Error("A valid phone number or username is required.");
+
+      const proxyEmail = `${id}@clients.glasstechfab.com`;
+      const tempPassword = 'unlockme';
       
-      // Create Firebase Auth user
-      await createUserWithEmailAndPassword(auth, proxyEmail, data.password);
+      notify('pending', 'Provisioning client environment...');
+
+      // Check if user already exists in Auth
+      try {
+        await createUserWithEmailAndPassword(auth, proxyEmail, tempPassword);
+      } catch (authErr) {
+        if (authErr.code === 'auth/email-already-in-use') {
+          console.log("Client already has an auth record. Syncing Firestore profile...");
+        } else {
+          throw authErr;
+        }
+      }
       
       const payload = { 
         ...data, 
         id, 
+        username: id,
         email: data.email || proxyEmail,
         role: 'client', 
         status: 'Active', 
         joined: new Date().toISOString(),
         password: '[SECURED]',
-        onboarded: false
+        onboarded: false,
+        requiresPasswordChange: true
       };
-      
-      await setDoc(doc(db, 'users', id), payload);
 
-      // MOCK EMAIL SEND
+      // ACTUALLY SAVE TO FIRESTORE
+      await setDoc(doc(db, 'users', id), payload);
+      
       const welcomeEmail = {
-        to: payload.email,
-        subject: 'Welcome to the Glasstech Hub – Your Project Command Center is Ready',
+        to: data.email || proxyEmail,
+        subject: 'Welcome to Glasstech Hub',
         body: `
           Hi ${data.name},
           Welcome to Glasstech Fabrications. We are thrilled to partner with you!
           Your Project Command Center is ready:
           - URL: glasstechfab.com/login
-          - Username: ${data.username}
-          - Password: ${data.password} (Please change this after login)
+          - Username: ${id}
+          - Password: ${tempPassword} (Please change this after login)
         `
       };
       console.log("ONBOARDING EMAIL SENT:", welcomeEmail);
       
       notify('success', 'Client secured. Welcome email dispatched.');
-      logAction(null, 'CRM', `Onboarded Client: ${data.username}`);
+      logAction(null, 'CRM', `Onboarded Client: ${id}`);
       
       // Send a system notification for the client
       await createNotification(id, "Welcome to Glasstech! Your Project Command Center is now active.", "success", "/portal");
 
     } catch (e) {
       console.error("[CRM] Registration Error:", e);
-      notify('error', e.message.includes('email-already-in-use') ? 'Username already exists.' : 'Failed to register client.');
+      notify('error', e.message.includes('email-already-in-use') ? 'Username/Phone already exists.' : 'Failed to register client.');
     }
   };
 
@@ -1381,18 +1432,9 @@ export default function App() {
     teamMembers, setTeamMembers,
     logs, logAction, 
     invoices, setInvoices,
-    proposals, setProposals,
-    bookings, setBookings,
-    emails, setEmails,
-    shipments, setShipments,
-    createProcurement, updateProcurement, deleteProcurement,
-    createShipment, updateShipment,
-    notes, createNote, deleteNote,
-    media, uploadMedia, deleteMedia,
-    tasks, updateTask: (id, f, pid) => db && updateDoc(doc(db, 'projects', pid, 'tasks', id), f),
-    approvals, createApproval, updateApproval,
-    changeRequests, createChangeRequest, updateChangeRequest,
     payInvoice,
+    createInvoice,
+    createProposal,
     transactions, recordOfflinePayment,
     materials, updateMaterial,
     assets, updateAsset,
@@ -1406,6 +1448,7 @@ export default function App() {
     migrateToFirebase, getSLA, syncCMS, PROJECT_STAGES,
     updateEmailStatus, convertInquiryToProject, sendToProcurement,
     currency, setCurrency, rates,
+    onPortal: (type) => { setLoginType(type); navigate('/login'); },
     formatPrice: (priceStr) => {
       if (!priceStr) return '-';
       const num = typeof priceStr === 'number' ? priceStr : parseFloat(String(priceStr).replace(/[^0-9.]/g, ''));
@@ -1496,13 +1539,15 @@ export default function App() {
           <Route path="/" element={
             <PublicSite 
               {...commonProps} 
-              onPortal={(type) => { setLoginType(type); navigate('/login'); }} 
               onLogoUpload={logoUpload}
             />
           } />
 
           <Route path="/products" element={<ProductsHub {...commonProps} />} />
-          <Route path="/catalog" element={<GlassCatalog {...commonProps} />} />
+          <Route path="/portfolio" element={<Portfolio {...commonProps} />} />
+          <Route path="/portfolio/:projectId" element={<Portfolio {...commonProps} />} />
+          <Route path="/showcase" element={<Showcase {...commonProps} />} />
+
 
           <Route path="/login" element={
             <LoginPage 
@@ -1525,6 +1570,7 @@ export default function App() {
                   setBrand(prev => ({ ...prev, theme: t }));
                   if (db) await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
                 }}
+                syncCatalog={syncCatalogOnly}
                 {...commonProps} 
               />
             ) : <Navigate to="/login" />
@@ -1536,6 +1582,7 @@ export default function App() {
                 client={clients.find(c => c.email === user.email) || user} 
                 onLogout={handleLogout} 
                 onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+                updateClientProfile={updateClientProfile}
                 {...commonProps} 
               />
             ) : <Navigate to="/login" />
