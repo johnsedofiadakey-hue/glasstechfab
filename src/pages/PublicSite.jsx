@@ -258,13 +258,19 @@ export function Hero({ slides, brand, navigate, setPage }) {
       {slides.map((s, i) => (
         <div key={i} style={{
           position: 'absolute', inset: 0, transition: 'opacity 1.5s ease',
-          opacity: active === i ? 1 : 0, zIndex: active === i ? 1 : 0
+          opacity: active === i ? 1 : 0, zIndex: active === i ? 1 : 0,
+          background: '#1A1410' // Solid dark base to prevent flicker
         }}>
-          <img src={s.img} alt="" style={{ 
-            width: '100%', height: '100%', objectFit: 'cover', opacity: 1,
-            transform: active === i ? 'scale(1.05)' : 'scale(1.1)', 
-            transition: 'transform 8s ease-out' 
-          }} />
+          <img 
+            src={s.img} 
+            alt="" 
+            onLoad={(e) => e.target.style.opacity = 1}
+            style={{ 
+              width: '100%', height: '100%', objectFit: 'cover', opacity: 0,
+              transform: active === i ? 'scale(1.05)' : 'scale(1.1)', 
+              transition: 'opacity 1s ease, transform 8s ease-out' 
+            }} 
+          />
           <div style={{
             position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(253,252,251,0.05), rgba(253,252,251,0.5))',
             display: 'flex', alignItems: 'center', padding: '0 5vw'

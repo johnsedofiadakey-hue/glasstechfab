@@ -64,9 +64,13 @@ export default function AdminShowcase({ brand, notify }) {
     }
   };
 
-  const addHotspot = (e, sceneId = null) => {
-    // In a real editor we'd click the image, for now just push a dummy
-    const h = { x: 50, y: 50, title: 'New Hotspot', desc: 'Description here' };
+  const addHotspot = (e) => {
+    if (!newScene.img) return notify('error', 'Upload an image first');
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+    const h = { x, y, title: 'New Detail', desc: 'Technical specifications...' };
     setNewScene(prev => ({ ...prev, hotspots: [...prev.hotspots, h] }));
   };
 
@@ -127,72 +131,111 @@ export default function AdminShowcase({ brand, notify }) {
       {/* ADD MODAL */}
       <AnimatePresence>
         {showAdd && (
-          <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
             <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              style={{ background: '#fff', width: '100%', maxWidth: 600, borderRadius: 24, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              style={{ background: '#fff', width: '100%', maxWidth: 800, maxHeight: '90vh', borderRadius: 32, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 40px 100px rgba(0,0,0,0.4)' }}
             >
-              <div style={{ padding: '24px 32px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>Create Showroom Scene</h2>
-                <button onClick={() => setShowAdd(false)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+              {/* FIXED HEADER */}
+              <div style={{ padding: '24px 32px', borderBottom: '1px solid #F0EBE5', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff' }}>
+                <div>
+                   <h2 style={{ fontSize: 20, fontWeight: 900, margin: 0 }}>Immersive Scene Creator</h2>
+                   <div style={{ fontSize: 11, color: '#B5AFA9', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>{newScene.hotspots.length} active detail hotspots</div>
+                </div>
+                <button onClick={() => setShowAdd(false)} style={{ background: '#F9F7F4', border: 'none', width: 44, height: 44, borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={20} /></button>
               </div>
               
-              <div style={{ padding: 32, display: 'flex', flexDirection: 'column', gap: 20, maxHeight: '70vh', overflowY: 'auto' }}>
-                <div style={{ height: 200, background: '#f9f9f9', borderRadius: 16, border: '2px dashed #ddd', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', position: 'relative', overflow: 'hidden' }} onClick={() => document.getElementById('scene-up').click()}>
-                  {newScene.img ? (
-                    <img src={newScene.img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <>
-                      <ImageIcon size={40} style={{ color: '#ccc', marginBottom: 12 }} />
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#888' }}>{uploading ? 'Uploading...' : 'Click to Upload Scene Image'}</div>
-                    </>
-                  )}
-                  <input id="scene-up" type="file" hidden onChange={handleFileUpload} />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#999', marginBottom: 8 }}>Scene Title</label>
-                  <input value={newScene.title} onChange={e => setNewScene({...newScene, title: e.target.value})} placeholder="e.g. The Presidential Suite" className="p-inp" />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#999', marginBottom: 8 }}>Location</label>
-                  <input value={newScene.location} onChange={e => setNewScene({...newScene, location: e.target.value})} placeholder="e.g. East Legon" className="p-inp" />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', color: '#999', marginBottom: 8 }}>Narrative / Description</label>
-                  <textarea value={newScene.description} onChange={e => setNewScene({...newScene, description: e.target.value})} rows={3} className="p-inp" placeholder="Describe the architectural intent..." />
-                </div>
-
-                <div style={{ padding: 20, background: '#F9F7F4', borderRadius: 16 }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                      <h4 style={{ margin: 0, fontSize: 13, fontWeight: 800 }}>Hotspots ({newScene.hotspots.length})</h4>
-                      <button onClick={addHotspot} style={{ background: ac, color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>+ Add Hotspot</button>
+              {/* SCROLLABLE CONTENT */}
+              <div style={{ padding: 32, flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                   <div style={{ marginBottom: 8 }}>
+                      <label style={{ display: 'block', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: ac, marginBottom: 8 }}>1. Technical Narrative</label>
+                      <input value={newScene.title} onChange={e => setNewScene({...newScene, title: e.target.value})} placeholder="Project Title" className="p-inp" style={{ marginBottom: 12 }} />
+                      <input value={newScene.location} onChange={e => setNewScene({...newScene, location: e.target.value})} placeholder="Location" className="p-inp" style={{ marginBottom: 12 }} />
+                      <textarea value={newScene.description} onChange={e => setNewScene({...newScene, description: e.target.value})} rows={4} className="p-inp" placeholder="Describe the architectural intent and material excellence..." style={{ resize: 'none' }} />
                    </div>
-                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      {newScene.hotspots.map((h, i) => (
-                        <div key={i} style={{ padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #eee', display: 'flex', gap: 10 }}>
-                           <input value={h.title} onChange={e => {
-                             const updated = [...newScene.hotspots];
-                             updated[i].title = e.target.value;
-                             setNewScene({...newScene, hotspots: updated});
-                           }} style={{ flex: 1, border: 'none', fontSize: 12, fontWeight: 700 }} placeholder="Item Name" />
-                           <button onClick={() => {
-                              const updated = [...newScene.hotspots];
-                              updated.splice(i, 1);
-                              setNewScene({...newScene, hotspots: updated});
-                           }} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
-                        </div>
-                      ))}
+
+                   <div>
+                      <label style={{ display: 'block', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: ac, marginBottom: 12 }}>2. Hotspot Registry</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                         {newScene.hotspots.length === 0 && (
+                            <div style={{ padding: 20, border: '1px dashed #F0EBE5', borderRadius: 16, textAlign: 'center', color: '#B5AFA9', fontSize: 12 }}>
+                               Click on the image to place your first technical hotspot.
+                            </div>
+                         )}
+                         {newScene.hotspots.map((h, i) => (
+                           <div key={i} style={{ padding: 16, background: '#F9F7F4', borderRadius: 16, border: '1px solid #F0EBE5' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                 <div style={{ fontSize: 10, fontWeight: 900, color: ac }}>HOTSPOT #{i+1}</div>
+                                 <button onClick={() => {
+                                     const updated = [...newScene.hotspots];
+                                     updated.splice(i, 1);
+                                     setNewScene({...newScene, hotspots: updated});
+                                 }} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                              </div>
+                              <input value={h.title} onChange={e => {
+                                const updated = [...newScene.hotspots];
+                                updated[i].title = e.target.value;
+                                setNewScene({...newScene, hotspots: updated});
+                              }} style={{ width: '100%', background: 'none', border: 'none', borderBottom: '1px solid #DCD7D1', fontSize: 14, fontWeight: 700, padding: '4px 0', marginBottom: 8 }} placeholder="Component Name" />
+                              <textarea value={h.desc} onChange={e => {
+                                const updated = [...newScene.hotspots];
+                                updated[i].desc = e.target.value;
+                                setNewScene({...newScene, hotspots: updated});
+                              }} style={{ width: '100%', background: 'none', border: 'none', fontSize: 12, color: '#625C54', padding: 0, resize: 'none' }} placeholder="Technical detail..." />
+                           </div>
+                         ))}
+                      </div>
                    </div>
+                </div>
+
+                <div>
+                   <label style={{ display: 'block', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: ac, marginBottom: 12 }}>3. Visual Context</label>
+                   <div 
+                     onClick={newScene.img ? addHotspot : () => document.getElementById('scene-up').click()}
+                     style={{ 
+                       width: '100%', height: 450, background: '#F9F7F4', borderRadius: 24, 
+                       border: '2px dashed #DCD7D1', position: 'relative', overflow: 'hidden',
+                       cursor: newScene.img ? 'crosshair' : 'pointer'
+                     }}
+                   >
+                     {newScene.img ? (
+                       <>
+                         <img src={newScene.img} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                         {newScene.hotspots.map((h, i) => (
+                           <div key={i} style={{ 
+                             position: 'absolute', left: `${h.x}%`, top: `${h.y}%`, 
+                             width: 24, height: 24, background: ac, borderRadius: '50%', 
+                             border: '2px solid #fff', transform: 'translate(-50%, -50%)',
+                             display: 'flex', alignItems: 'center', justifyContent: 'center',
+                             color: '#fff', fontSize: 10, fontWeight: 800, boxShadow: '0 0 20px rgba(0,0,0,0.3)'
+                           }}>
+                              {i + 1}
+                           </div>
+                         ))}
+                       </>
+                     ) : (
+                       <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                          <ImageIcon size={40} style={{ color: '#DCD7D1' }} />
+                          <div style={{ fontSize: 12, fontWeight: 800, color: '#B5AFA9' }}>{uploading ? 'Processing Image...' : 'Upload Scene Plate'}</div>
+                       </div>
+                     )}
+                     <input id="scene-up" type="file" hidden onChange={handleFileUpload} />
+                   </div>
+                   {newScene.img && (
+                      <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, color: '#B5AFA9' }}>
+                         <MapPin size={14} />
+                         <span style={{ fontSize: 11, fontWeight: 700 }}>Click anywhere on the image to position a hotspot.</span>
+                      </div>
+                   )}
                 </div>
               </div>
 
-              <div style={{ padding: 32, borderTop: '1px solid #eee', display: 'flex', gap: 12 }}>
-                <button onClick={() => setShowAdd(false)} className="p-btn-dark" style={{ flex: 1, background: '#eee', color: '#333' }}>Cancel</button>
-                <button onClick={saveScene} className="p-btn-gold" style={{ flex: 2 }}>Publish to Showroom</button>
+              {/* FIXED FOOTER */}
+              <div style={{ padding: '24px 32px', borderTop: '1px solid #F0EBE5', display: 'flex', gap: 12, background: '#fff' }}>
+                <button onClick={() => setShowAdd(false)} className="p-btn-light" style={{ flex: 1, height: 56 }}>Discard Draft</button>
+                <button onClick={saveScene} className="p-btn-gold" style={{ flex: 2, height: 56, fontSize: 16 }}>Publish Immersive Scene</button>
               </div>
             </motion.div>
           </div>

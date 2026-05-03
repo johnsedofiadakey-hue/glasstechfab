@@ -3,10 +3,10 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, ChevronRight, Info, Search, 
-  Download, Filter, ArrowRight, ShoppingCart
+  Download, Filter, ArrowRight, ShoppingCart, Zap
 } from 'lucide-react';
 import { PubNav, Footer } from './PublicSite';
-import { GLASS_CATALOG_DATA, GLASS_CATALOG_CATEGORIES } from '../data.jsx';
+// Removed static import of huge data file
 
 const LIGHT_BG = '#FDFCFB';
 const DARK_TEXT = '#1A1410';
@@ -26,7 +26,7 @@ const isMob = (w) => w <= 900;
 
 // --- COMPONENTS ---
 
-const ProductCard = ({ product, onClick, ac, mob }) => {
+const ProductCard = ({ product, onClick, ac, mob, onCompare, isComparing }) => {
   const pCats = Array.isArray(product.cat) ? product.cat : [product.cat];
   const catLabel = pCats[0];
   const descText = product.description || product.desc || "";
@@ -40,10 +40,11 @@ const ProductCard = ({ product, onClick, ac, mob }) => {
       onClick={onClick}
       style={{ 
         background: '#fff', borderRadius: 16, overflow: 'hidden', 
-        border: '1px solid rgba(0,0,0,0.05)', 
+        border: isComparing ? `2px solid ${ac}` : '1px solid rgba(0,0,0,0.05)', 
         cursor: 'pointer',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
-        display: 'flex', flexDirection: 'column'
+        boxShadow: isComparing ? `0 20px 40px ${ac}15` : '0 10px 30px rgba(0,0,0,0.02)',
+        display: 'flex', flexDirection: 'column',
+        position: 'relative'
       }}
     >
       <div style={{ height: mob ? 240 : 280, background: '#F9F7F4', position: 'relative', overflow: 'hidden' }}>
@@ -53,8 +54,20 @@ const ProductCard = ({ product, onClick, ac, mob }) => {
         onError={(e) => { e.target.src = '/kitchen/default.png'; }}
         style={{ width: '100%', height: '100%', objectFit: 'contain', padding: mob ? 10 : 20 }} 
       />
-        <div style={{ position: 'absolute', top: 12, right: 12, padding: '4px 12px', background: 'rgba(255,255,255,0.9)', borderRadius: 100, fontSize: 10, fontWeight: 800, color: ac }}>
-          {catLabel.toUpperCase()}
+        <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 6 }}>
+           <button 
+             onClick={(e) => { e.stopPropagation(); onCompare(product.id); }}
+             style={{ 
+               padding: '6px 12px', background: isComparing ? ac : 'rgba(255,255,255,0.9)', 
+               color: isComparing ? '#fff' : DARK_TEXT, border: 'none', borderRadius: 100, 
+               fontSize: 9, fontWeight: 900, cursor: 'pointer', backdropFilter: 'blur(10px)' 
+             }}
+           >
+              {isComparing ? 'SELECTED' : '+ COMPARE'}
+           </button>
+           <div style={{ padding: '4px 12px', background: 'rgba(255,255,255,0.9)', borderRadius: 100, fontSize: 10, fontWeight: 800, color: ac }}>
+             {catLabel.toUpperCase()}
+           </div>
         </div>
       </div>
       <div style={{ padding: mob ? 20 : 24, flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -74,6 +87,9 @@ const ProductCard = ({ product, onClick, ac, mob }) => {
 };
 
 const DetailModal = ({ product, onClose, ac, navigate, mob }) => {
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || 'Default');
+  const [selectedGlass, setSelectedGlass] = useState(product.options?.[0] || 'Standard');
+
   if (!product) return null;
   return (
     <motion.div 
@@ -98,10 +114,13 @@ const DetailModal = ({ product, onClose, ac, navigate, mob }) => {
         onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', flexWrap: 'wrap', height: '100%', overflowY: 'auto' }}>
-          {/* Left: Image */}
+          {/* Left: Image & Dynamic Finish Switcher */}
           <div style={{ flex: '1 1 500px', background: '#F9F7F4', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: mob ? 20 : 40, minHeight: mob ? 300 : 400 }}>
-            <img 
-              src={product.img} 
+            <motion.img 
+              key={selectedColor}
+              initial={{ opacity: 0.8, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              src={product.finishImages?.[selectedColor] || product.img} 
               alt={product.name} 
               onError={(e) => { e.target.src = '/kitchen/default.png'; }}
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} 
@@ -109,16 +128,72 @@ const DetailModal = ({ product, onClose, ac, navigate, mob }) => {
             <button onClick={onClose} style={{ position: 'absolute', top: 24, left: 24, background: '#fff', border: 'none', padding: 12, borderRadius: '50%', cursor: 'pointer', boxShadow: '0 10px 30px rgba(0,0,0,0.1)' }}>
               <X size={20} />
             </button>
+
+            {/* Selection HUD */}
+            <div style={{ position: 'absolute', bottom: 24, left: 24, right: 24, display: 'flex', gap: 8, justifyContent: 'center' }}>
+               <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.9)', borderRadius: 100, fontSize: 10, fontWeight: 800, backdropFilter: 'blur(10px)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', color: DARK_TEXT }}>
+                 {selectedColor.toUpperCase()}
+               </div>
+               <div style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.9)', borderRadius: 100, fontSize: 10, fontWeight: 800, backdropFilter: 'blur(10px)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', color: ac }}>
+                 {selectedGlass.toUpperCase()}
+               </div>
+            </div>
           </div>
           
-          {/* Right: Info */}
+          {/* Right: Info & Material Switcher */}
           <div style={{ flex: '1 1 400px', padding: mob ? '32px 24px 100px' : '40px 48px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'inline-block', alignSelf: 'flex-start', padding: '4px 12px', background: `${ac}15`, color: ac, fontSize: 10, fontWeight: 900, borderRadius: 100, marginBottom: 20 }}>
               {(Array.isArray(product.cat) ? product.cat[0] : product.cat).toUpperCase()}
             </div>
             <h2 style={{ fontSize: mob ? 24 : 32, fontWeight: 800, margin: '0 0 16px', color: DARK_TEXT }}>{product.name}</h2>
-            <p style={{ fontSize: mob ? 14 : 16, color: 'rgba(26,20,16,0.6)', lineHeight: 1.6, marginBottom: 32 }}>{product.description || product.desc}</p>
             
+            {/* Dynamic Selectors */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 32 }}>
+               {product.colors && (
+                 <div>
+                    <h4 style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(0,0,0,0.3)', marginBottom: 12 }}>Finish Selection</h4>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                       {product.colors.slice(0, 8).map(c => (
+                         <button 
+                           key={c} 
+                           onClick={() => setSelectedColor(c)}
+                           style={{ 
+                             padding: '8px 14px', borderRadius: 8, fontSize: 11, fontWeight: 800, border: 'none', cursor: 'pointer',
+                             background: selectedColor === c ? DARK_TEXT : '#F5F5F5',
+                             color: selectedColor === c ? '#fff' : DARK_TEXT,
+                             transition: 'all 0.2s'
+                           }}
+                         >
+                           {c}
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+               )}
+
+               {product.options && (
+                 <div>
+                    <h4 style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(0,0,0,0.3)', marginBottom: 12 }}>Structural Glass Configuration</h4>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                       {product.options.slice(0, 4).map(o => (
+                         <button 
+                           key={o} 
+                           onClick={() => setSelectedGlass(o)}
+                           style={{ 
+                             padding: '10px 16px', borderRadius: 12, fontSize: 11, fontWeight: 700, border: 'none', cursor: 'pointer',
+                             background: selectedGlass === o ? `${ac}15` : '#F9F9F9',
+                             color: selectedGlass === o ? ac : 'rgba(0,0,0,0.5)',
+                             border: selectedGlass === o ? `1px solid ${ac}` : '1px solid transparent'
+                           }}
+                         >
+                           {o}
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+               )}
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 40 }}>
               <h4 style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(0,0,0,0.3)', margin: 0 }}>Specifications</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -135,9 +210,8 @@ const DetailModal = ({ product, onClose, ac, navigate, mob }) => {
               <button 
                 onClick={() => { 
                   if (onClose) onClose(); 
-                  navigate(`/?page=contact&subject=Quote Request: ${product.name}`);
+                  navigate(`/?page=contact&subject=Quote Request: ${product.name} (${selectedColor}, ${selectedGlass})`);
                 }}
-
                 style={{ width: '100%', padding: '18px', background: DARK_TEXT, color: '#fff', borderRadius: 16, border: 'none', fontWeight: 800, fontSize: 14, cursor: 'pointer' }}
               >
                 Inquire for Procurement
@@ -161,13 +235,22 @@ export default function ProductsHub({ brand, user, onPortal, setPage, content })
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [catalogData, setCatalogData] = useState({ products: [], categories: [] });
+  const [loading, setLoading] = useState(true);
   
   const winW = useWindowWidth();
   const mob = isMob(winW);
   const ac = brand?.color || AC;
 
-  const products = useMemo(() => content?.products || GLASS_CATALOG_DATA || [], [content?.products]);
-  const categories = useMemo(() => content?.categories || GLASS_CATALOG_CATEGORIES || [], [content?.categories]);
+  useEffect(() => {
+    import('../catalog.jsx').then(m => {
+      setCatalogData({ products: m.GLASS_CATALOG_DATA, categories: m.GLASS_CATALOG_CATEGORIES });
+      setLoading(false);
+    });
+  }, []);
+
+  const products = useMemo(() => content?.products || catalogData.products || [], [content?.products, catalogData.products]);
+  const categories = useMemo(() => content?.categories || catalogData.categories || [], [content?.categories, catalogData.categories]);
 
   const GROUPS = [
     { id: 'aluminum', label: 'Aluminum Systems' },
@@ -194,6 +277,17 @@ export default function ProductsHub({ brand, user, onPortal, setPage, content })
     });
   }, [activeGroup, filter, search, products, categories]);
 
+  const [comparing, setComparing] = useState([]);
+  const [showComparison, setShowComparison] = useState(false);
+
+  const toggleCompare = (id) => {
+    setComparing(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id].slice(-3));
+  };
+
+  const compareProducts = useMemo(() => {
+    return products.filter(p => comparing.includes(p.id));
+  }, [comparing, products]);
+
   useEffect(() => {
     if (setSearchParams) {
       try {
@@ -203,7 +297,7 @@ export default function ProductsHub({ brand, user, onPortal, setPage, content })
   }, [activeGroup, filter, setSearchParams]);
 
   return (
-    <div style={{ minHeight: '100vh', background: LIGHT_BG, color: DARK_TEXT, fontFamily: 'var(--font-p)' }}>
+    <div style={{ minHeight: '100vh', background: LIGHT_BG, color: DARK_TEXT, fontFamily: 'var(--font-p)', position: 'relative' }}>
       <PubNav brand={brand} setPage={setPage} activePage="products" onPortal={onPortal} user={user} menuOpen={menuOpen} setMenuOpen={setMenuOpen} navigate={navigate} />
 
       <main style={{ padding: mob ? '100px 20px 100px' : '160px 5vw 100px', maxWidth: 1400, margin: '0 auto' }}>
@@ -211,6 +305,18 @@ export default function ProductsHub({ brand, user, onPortal, setPage, content })
           <h1 style={{ fontSize: mob ? 32 : 56, fontWeight: 800, letterSpacing: '-0.04em', margin: '0 0 16px' }}>Architectural <span style={{ color: ac }}>Catalog.</span></h1>
           <p style={{ color: 'rgba(26,20,16,0.5)', fontSize: mob ? 14 : 18, maxWidth: 600 }}>Explore our curated collection of precision-engineered structural glass and interior finishing systems.</p>
         </div>
+
+        {loading && (
+          <div style={{ padding: '100px 0', textAlign: 'center' }}>
+            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }} style={{ display: 'inline-block' }}>
+              <Zap size={40} color={ac} />
+            </motion.div>
+            <p className="lxf" style={{ marginTop: 20, color: '#B5AFA9' }}>Syncing Global Catalog...</p>
+          </div>
+        )}
+
+        {!loading && (
+          <>
 
         {/* Group Selector */}
         <div style={{ display: 'flex', gap: 12, marginBottom: 32, borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: 12, overflowX: 'auto' }} className="no-scrollbar">
@@ -267,14 +373,108 @@ export default function ProductsHub({ brand, user, onPortal, setPage, content })
           gap: mob ? 24 : 32 
         }}>
           {(filtered || []).map(p => (
-            <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} ac={ac} mob={mob} />
+            <ProductCard 
+              key={p.id} 
+              product={p} 
+              onClick={() => setSelectedProduct(p)} 
+              ac={ac} 
+              mob={mob} 
+              onCompare={toggleCompare}
+              isComparing={comparing.includes(p.id)}
+            />
           ))}
         </div>
-
+        </>
+        )}
       </main>
 
       <Footer brand={brand} setPage={setPage} navigate={navigate} />
 
+      {/* Comparison Tray */}
+      <AnimatePresence>
+        {comparing.length > 0 && (
+          <motion.div 
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            style={{ 
+              position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)', 
+              background: DARK_TEXT, padding: '12px 24px', borderRadius: 100, 
+              display: 'flex', alignItems: 'center', gap: 24, zIndex: 5000,
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ background: ac, color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 900 }}>{comparing.length}</div>
+                <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Items Selected</span>
+             </div>
+             <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.2)' }} />
+             <div style={{ display: 'flex', gap: 12 }}>
+                <button 
+                  onClick={() => setShowComparison(true)}
+                  style={{ background: '#fff', color: DARK_TEXT, border: 'none', padding: '10px 20px', borderRadius: 100, fontSize: 11, fontWeight: 900, cursor: 'pointer' }}
+                >
+                   COMPARE NOW
+                </button>
+                <button 
+                  onClick={() => setComparing([])}
+                  style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: 100, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}
+                >
+                   CLEAR
+                </button>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Comparison Modal */}
+      <AnimatePresence>
+        {showComparison && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{ position: 'fixed', inset: 0, zIndex: 11000, background: '#fff', overflowY: 'auto', padding: mob ? '20px' : '60px 5vw' }}
+          >
+             <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48 }}>
+                   <h2 style={{ fontSize: 32, fontWeight: 800 }}>Technical Comparison</h2>
+                   <button onClick={() => setShowComparison(false)} style={{ padding: 12, background: '#f5f5f5', border: 'none', borderRadius: '50%', cursor: 'pointer' }}><X /></button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${comparing.length}, 1fr)`, gap: 32 }}>
+                   {compareProducts.map(p => (
+                     <div key={p.id}>
+                        <img src={p.img} style={{ width: '100%', height: 200, objectFit: 'contain', background: '#F9F7F4', borderRadius: 16, marginBottom: 24 }} />
+                        <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 12 }}>{p.name}</h3>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                           <div>
+                              <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: ac, marginBottom: 8 }}>Performance</div>
+                              {Object.entries(p.performance || {}).map(([k,v]) => (
+                                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: 12 }}>
+                                   <span style={{ color: 'rgba(0,0,0,0.4)', textTransform: 'capitalize' }}>{k.replace(/([A-Z])/g, ' $1')}</span>
+                                   <span style={{ fontWeight: 700 }}>{v}</span>
+                                </div>
+                              ))}
+                           </div>
+                           <div>
+                              <div style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: ac, marginBottom: 8 }}>Specs</div>
+                              {Object.entries(p.specs || {}).map(([k,v]) => (
+                                <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontSize: 12 }}>
+                                   <span style={{ color: 'rgba(0,0,0,0.4)', textTransform: 'capitalize' }}>{k}</span>
+                                   <span style={{ fontWeight: 700 }}>{v}</span>
+                                </div>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+                   ))}
+                </div>
+             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {selectedProduct && (

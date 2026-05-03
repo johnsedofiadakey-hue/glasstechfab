@@ -19,15 +19,37 @@ export default function AdminLogistics({ containers = [], workOrders = [], clien
   const [activeTab, setActiveTab] = useState('containers'); // 'containers' | 'procurement'
   const [showAddContainer, setShowAddContainer] = useState(false);
 
+  const assets = [
+    { id: 'SC-101', name: 'Spider Crane', siteId: '1', status: 'In Use', user: 'KB' },
+    { id: 'VT-442', name: 'Vacuum Lifter', siteId: '2', status: 'In Use', user: 'AD' },
+    { id: 'LS-991', name: 'Laser Scanner', siteId: '3', status: 'Idle', user: 'SM' }
+  ];
+
   const generateWhatsAppLink = (items) => {
      const text = `*GLASSTECH PROCUREMENT LIST*\n\nItems to source:\n${items.map(i => `- ${i.title || i.name}`).join('\n')}\n\nPlease provide Pro-Forma for these items.`;
      return `https://wa.me/${brand.whatsapp?.replace(/\+/g, '')}?text=${encodeURIComponent(text)}`;
   };
 
   const handleUpdateContainerStatus = async (id, status) => {
-     await props.updateContainer(id, { status, updatedAt: new Date().toISOString() });
-     // Propagate to linked work orders
      const container = containers.find(c => c.id === id);
+     
+     // 🛡️ FINANCIAL GATEKEEPER: Check if linked items are paid for before dispatching/clearing
+     if (['Sea', 'Customs', 'Local'].includes(status)) {
+        const linkedWorkOrders = workOrders.filter(wo => container?.items?.includes(wo.id));
+        const unpaidItems = linkedWorkOrders.filter(wo => {
+           const woInv = (props.invoices || []).find(inv => (inv.projectId === wo.id || inv.title?.includes(wo.id)) && inv.type === 'procurement');
+           return woInv && woInv.status !== 'Paid';
+        });
+
+        if (unpaidItems.length > 0) {
+           alert(`🚨 FINANCIAL BLOCK: ${unpaidItems.length} items in this container have unsettled procurement invoices. Dispatch is restricted.`);
+           return;
+        }
+     }
+
+     await props.updateContainer(id, { status, updatedAt: new Date().toISOString() });
+     
+     // Propagate to linked work orders
      if (container?.items) {
         for (const woId of container.items) {
            await props.updateWorkOrder(woId, { logisticsStatus: status });
@@ -191,11 +213,10 @@ export default function AdminLogistics({ containers = [], workOrders = [], clien
             </table>
          </div>
       )}
-    </div>
-  );
-}
 
-         {/* RIGHT: ASSET ALLOCATION */}
+      {/* RIGHT: ASSET ALLOCATION */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32, marginTop: 40 }}>
+         <div /> {/* Spacer */}
          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div className="p-card" style={{ padding: 24, background: '#1A1410', color: '#fff', borderRadius: 32 }}>
                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>

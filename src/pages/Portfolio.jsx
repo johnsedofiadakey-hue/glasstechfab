@@ -32,31 +32,37 @@ const MasonryCard = ({ project, onClick, ac, mob }) => (
     layout
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    whileHover={mob ? {} : { y: -10 }}
+    whileHover={mob ? {} : { y: -8 }}
     onClick={onClick}
     style={{ 
       width: '100%', cursor: 'pointer',
-      position: 'relative', borderRadius: 16, overflow: 'hidden',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.02)',
-      border: '1px solid rgba(0,0,0,0.05)'
+      position: 'relative', borderRadius: 24, overflow: 'hidden',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.03)',
+      border: '1px solid rgba(0,0,0,0.05)',
+      background: '#fff'
     }}
-
   >
-    <img 
-      src={project.after} 
-      alt={project.title} 
-      style={{ width: '100%', display: 'block', borderRadius: mob ? 0 : 24, transition: 'transform 0.5s' }} 
-    />
-    <div style={{ 
-      position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.8))',
-      opacity: mob ? 1 : 0, transition: 'opacity 0.3s', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-      padding: mob ? 20 : 32
-    }} className="hover-reveal">
-      <div style={{ color: ac, fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 4 }}>{project.cat}</div>
-      <h3 style={{ color: '#fff', fontSize: mob ? 18 : 24, fontWeight: 800, margin: 0 }}>{project.title}</h3>
-      <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: mob ? 11 : 13, marginTop: 4 }}>{project.loc}</p>
+    <div style={{ position: 'relative', overflow: 'hidden' }}>
+      <motion.img 
+        src={project.after} 
+        alt={project.title} 
+        whileHover={{ scale: 1.05 }}
+        transition={{ duration: 0.8 }}
+        style={{ width: '100%', display: 'block', height: mob ? 300 : 400, objectFit: 'cover' }} 
+      />
+      {project.before && (
+        <div style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', padding: '6px 12px', borderRadius: 100, fontSize: 9, fontWeight: 900, color: ac, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <SplitSquareHorizontal size={12} /> B/A VIEW
+        </div>
+      )}
     </div>
-    <style>{`.hover-reveal:hover { opacity: 1; }`}</style>
+    <div style={{ padding: 24 }}>
+      <div style={{ color: ac, fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 8 }}>{project.cat}</div>
+      <h3 style={{ fontSize: 18, fontWeight: 800, margin: '0 0 4px', color: DARK_TEXT }}>{project.title}</h3>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(0,0,0,0.4)', fontSize: 11 }}>
+        <MapPin size={12} /> {project.loc}
+      </div>
+    </div>
   </motion.div>
 );
 
@@ -76,92 +82,109 @@ const ProjectDetail = ({ project, onClose, ac, navigate, mob }) => {
       style={{ position: 'fixed', inset: 0, zIndex: 10000, background: '#fff', overflowY: 'auto', padding: mob ? 0 : '0 0 100px' }}
     >
       {/* Header */}
-      <nav style={{ padding: mob ? '16px 20px' : '24px 5vw', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(20px)', zIndex: 100, borderBottom: '1px solid #eee' }}>
-        <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', color: DARK_TEXT, fontWeight: 800, cursor: 'pointer', fontSize: mob ? 11 : 13 }}>
-          <ArrowLeft size={mob ? 16 : 20} /> ALL PROJECTS
+      <nav style={{ padding: mob ? '16px 20px' : '20px 5vw', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', zIndex: 100, borderBottom: '1px solid #f5f5f5' }}>
+        <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'none', border: 'none', color: DARK_TEXT, fontWeight: 800, cursor: 'pointer', fontSize: 12 }}>
+          <ArrowLeft size={18} /> BACK TO MASTERPIECES
         </button>
-        <div style={{ fontWeight: 900, fontSize: mob ? 12 : 16 }}>{project.title.toUpperCase()}</div>
-        <button onClick={onClose} style={{ padding: 10, background: '#F5F5F5', borderRadius: '50%', border: 'none', cursor: 'pointer' }}>
-          <X size={18} />
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+           <button onClick={() => navigate('/?page=contact')} style={{ padding: '8px 20px', background: ac, color: '#fff', border: 'none', borderRadius: 100, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>REQUEST ESTIMATE</button>
+           <button onClick={onClose} style={{ padding: 8, background: '#F5F5F5', borderRadius: '50%', border: 'none', cursor: 'pointer' }}><X size={18} /></button>
+        </div>
       </nav>
 
-      {/* Hero Section */}
-      <div style={{ padding: mob ? '0' : '40px 5vw', display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(12, 1fr)', gap: mob ? 32 : 48 }}>
+      {/* Hero Content */}
+      <div style={{ padding: mob ? '0' : '40px 5vw', display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(12, 1fr)', gap: mob ? 32 : 64 }}>
         
-        {/* Left: Interactive Media */}
-        <div style={{ gridColumn: mob ? 'auto' : 'span 8', minHeight: mob ? 300 : 600 }}>
-           {project.before && compare ? (
-             <div style={{ position: 'relative', height: mob ? 400 : '100%', width: '100%', overflow: 'hidden', borderRadius: mob ? 0 : 40 }}>
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${project.after})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                <div style={{ position: 'absolute', inset: 0, width: `${p}%`, overflow: 'hidden', borderRight: '2px solid #fff', backgroundImage: `url(${project.before})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-                <input type="range" min="0" max="100" value={p} onChange={e => setP(e.target.value)}
-                  style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '100%', opacity: 0, cursor: 'ew-resize', zIndex: 10, margin: 0 }} />
-                <div style={{ position: 'absolute', top: '50%', left: `${p}%`, transform: 'translate(calc(-50% - 1px), -50%)', width: 44, height: 44, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.3)', pointerEvents: 'none', zIndex: 5 }}>
-                  <SplitSquareHorizontal size={20} color={ac} />
-                </div>
-             </div>
-           ) : (
-             <motion.img 
-              key={activeImg}
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              src={activeImg} 
-              style={{ width: '100%', height: mob ? 400 : '100%', objectFit: 'cover', borderRadius: mob ? 0 : 40 }} 
-             />
-           )}
+        {/* Left: Media & Interaction */}
+        <div style={{ gridColumn: mob ? 'auto' : 'span 8' }}>
+           <div style={{ position: 'relative', height: mob ? 400 : 650, width: '100%', overflow: 'hidden', borderRadius: mob ? 0 : 32, background: '#F9F7F4', boxShadow: '0 30px 60px rgba(0,0,0,0.1)' }}>
+              {project.before && compare ? (
+                <div style={{ position: 'absolute', inset: 0 }}>
+                   <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${project.after})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                   <div style={{ position: 'absolute', inset: 0, width: `${p}%`, overflow: 'hidden', borderRight: '3px solid #fff', backgroundImage: `url(${project.before})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+                   
+                   {/* Labels */}
+                   <div style={{ position: 'absolute', bottom: 24, left: 24, padding: '8px 16px', background: 'rgba(0,0,0,0.6)', color: '#fff', borderRadius: 100, fontSize: 10, fontWeight: 900, backdropFilter: 'blur(10px)', zIndex: 4 }}>BEFORE</div>
+                   <div style={{ position: 'absolute', bottom: 24, right: 24, padding: '8px 16px', background: ac, color: '#fff', borderRadius: 100, fontSize: 10, fontWeight: 900, backdropFilter: 'blur(10px)', zIndex: 4 }}>AFTER</div>
 
-           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 24, padding: mob ? '0 20px' : '0' }}>
-              {project.before && (
-                <button 
-                  onClick={() => setCompare(!compare)}
-                  style={{ width: mob ? '100%' : 'auto', alignSelf: 'flex-start', padding: '16px 24px', background: compare ? ac : '#F5F5F5', color: compare ? '#fff' : DARK_TEXT, borderRadius: 16, border: 'none', fontWeight: 800, fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
-                >
-                   <SplitSquareHorizontal size={16} /> {compare ? 'EXIT COMPARISON' : 'VIEW BEFORE/AFTER'}
-                </button>
+                   <input type="range" min="0" max="100" value={p} onChange={e => setP(e.target.value)}
+                     style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '100%', opacity: 0, cursor: 'ew-resize', zIndex: 10, margin: 0 }} />
+                   
+                   {/* The Handle */}
+                   <div style={{ position: 'absolute', top: '50%', left: `${p}%`, transform: 'translate(calc(-50% - 1px), -50%)', width: 48, height: 48, background: '#fff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 40px rgba(0,0,0,0.4)', pointerEvents: 'none', zIndex: 5 }}>
+                     <SplitSquareHorizontal size={24} color={ac} />
+                   </div>
+                </div>
+              ) : (
+                <motion.img 
+                 key={activeImg}
+                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                 src={activeImg} 
+                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                />
               )}
-              <div style={{ display: 'flex', gap: 12, overflowX: 'auto', paddingBottom: 10 }} className="no-scrollbar">
-                 {(project.imgs || [project.after]).map(img => (
-                   <img key={img} onClick={() => { setActiveImg(img); setCompare(false); }} src={img} style={{ width: 80, height: 80, borderRadius: 12, objectFit: 'cover', cursor: 'pointer', border: activeImg === img && !compare ? `2px solid ${ac}` : '2px solid transparent' }} />
-                 ))}
+           </div>
+
+           <div style={{ marginTop: 24, padding: mob ? '0 20px' : '0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                 <div style={{ display: 'flex', gap: 12 }}>
+                    {(project.imgs || [project.after]).map(img => (
+                      <img key={img} onClick={() => { setActiveImg(img); setCompare(false); }} src={img} style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', cursor: 'pointer', border: activeImg === img && !compare ? `2px solid ${ac}` : '2px solid #f5f5f5', transition: 'all 0.2s' }} />
+                    ))}
+                 </div>
+                 {project.before && (
+                    <button 
+                      onClick={() => setCompare(!compare)}
+                      style={{ padding: '14px 28px', background: compare ? DARK_TEXT : ac, color: '#fff', borderRadius: 16, border: 'none', fontWeight: 900, fontSize: 11, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}
+                    >
+                       <SplitSquareHorizontal size={18} /> {compare ? 'CLOSE TRANSFORMATION' : 'EXPERIENCE TRANSFORMATION'}
+                    </button>
+                 )}
               </div>
            </div>
         </div>
 
-        {/* Right: Project Narrative */}
-        <div style={{ gridColumn: mob ? 'auto' : 'span 4', display: 'flex', flexDirection: 'column', gap: 40, padding: mob ? '0 20px 100px' : '0' }}>
-           <div>
-              <span style={{ color: ac, fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Project Narrative</span>
-              <h2 style={{ fontSize: mob ? 28 : 40, fontWeight: 800, margin: '16px 0', letterSpacing: '-0.04em' }}>The {project.title}</h2>
-              <p style={{ fontSize: mob ? 14 : 16, color: 'rgba(26,20,16,0.6)', lineHeight: 1.6 }}>{project.desc || 'A comprehensive architectural overhaul featuring bespoke Glasstech solutions tailored for structural excellence and luxury aesthetic.'}</p>
-           </div>
-
-           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: mob ? 20 : 32 }}>
-              <div>
-                 <div style={{ color: 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: 900, textTransform: 'uppercase', marginBottom: 6 }}>Location</div>
-                 <div style={{ fontSize: 13, fontWeight: 800 }}>{project.loc}</div>
+        {/* Right: Project Brief */}
+        <div style={{ gridColumn: mob ? 'auto' : 'span 4', padding: mob ? '0 20px 100px' : '0' }}>
+           <div style={{ position: 'sticky', top: 120 }}>
+              <span style={{ color: ac, fontSize: 10, fontWeight: 900, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Case Study: {project.cat}</span>
+              <h2 style={{ fontSize: mob ? 32 : 48, fontWeight: 800, margin: '12px 0 24px', letterSpacing: '-0.03em', color: DARK_TEXT, lineHeight: 1.1 }}>{project.title}</h2>
+              <p style={{ fontSize: 16, color: 'rgba(26,20,16,0.6)', lineHeight: 1.6, marginBottom: 40 }}>{project.desc || 'A premium structural execution showcasing Glasstech’s capability in high-fidelity interior finishing and industrial-grade glass engineering.'}</p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, marginBottom: 40, padding: '32px 0', borderTop: '1px solid #f0f0f0', borderBottom: '1px solid #f0f0f0' }}>
+                 <div>
+                    <div style={{ color: 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: 900, textTransform: 'uppercase', marginBottom: 8 }}>Primary Location</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><MapPin size={14} color={ac} /> {project.loc}</div>
+                 </div>
+                 <div>
+                    <div style={{ color: 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: 900, textTransform: 'uppercase', marginBottom: 8 }}>Project Timeline</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={14} color={ac} /> {project.year || '2024 Delivery'}</div>
+                 </div>
               </div>
-              <div>
-                 <div style={{ color: 'rgba(0,0,0,0.3)', fontSize: 9, fontWeight: 900, textTransform: 'uppercase', marginBottom: 6 }}>Year</div>
-                 <div style={{ fontSize: 13, fontWeight: 800 }}>{project.year || '2024'}</div>
+
+              <div style={{ padding: 32, background: '#F9F7F4', borderRadius: 32, border: '1px solid rgba(0,0,0,0.05)' }}>
+                 <h4 style={{ margin: '0 0 20px', fontSize: 11, fontWeight: 900, textTransform: 'uppercase', color: ac, letterSpacing: '0.1em' }}>Engineering Scope</h4>
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {[
+                      { label: 'System', val: project.style || 'Modern Industrial' },
+                      { label: 'Area Coverage', val: project.area || 'TBD' },
+                      { label: 'Technical Grade', val: 'Industrial Luxury' }
+                    ].map(s => (
+                      <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: 12 }}>
+                         <span style={{ fontSize: 11, color: 'rgba(0,0,0,0.4)', fontWeight: 600 }}>{s.label}</span>
+                         <span style={{ fontSize: 12, fontWeight: 800 }}>{s.val}</span>
+                      </div>
+                    ))}
+                 </div>
+                 <button 
+                   onClick={() => navigate('/?page=contact')}
+                   style={{ width: '100%', marginTop: 32, padding: '20px', background: DARK_TEXT, color: '#fff', border: 'none', borderRadius: 16, fontWeight: 800, cursor: 'pointer', fontSize: 13, transition: 'transform 0.2s' }}
+                   onMouseEnter={e => e.target.style.transform = 'scale(1.02)'}
+                   onMouseLeave={e => e.target.style.transform = 'scale(1)'}
+                 >
+                    PROCURE SIMILAR SYSTEM
+                 </button>
               </div>
-           </div>
-
-           <div style={{ padding: 24, background: '#F9F7F4', borderRadius: 24, border: '1px solid rgba(0,0,0,0.05)' }}>
-              <h4 style={{ margin: '0 0 16px', fontSize: 10, fontWeight: 900, textTransform: 'uppercase', color: ac }}>Technical Scope</h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                 {['Structural Glass Engineering', 'Thermal-Break Installations', 'Precision Finishing'].map(s => (
-                   <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 12, fontWeight: 600 }}>
-                      <CheckCircle size={14} color={ac} /> {s}
-                   </li>
-                 ))}
-              </ul>
-              <button 
-                onClick={() => navigate('/?page=contact')}
-
-                style={{ width: '100%', marginTop: 24, padding: 18, background: DARK_TEXT, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 800, cursor: 'pointer', fontSize: 13 }}
-              >
-                 Request Quote
-              </button>
            </div>
         </div>
       </div>

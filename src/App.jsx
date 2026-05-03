@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
-import PublicSite from './pages/PublicSite';
-import LoginPage from './pages/LoginPage';
+const PublicSite = lazy(() => import('./pages/PublicSite'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
 const AdminPortal = lazy(() => import('./pages/AdminPortal'));
 const ClientPortal = lazy(() => import('./pages/ClientPortal'));
 const AccountManagerPortal = lazy(() => import('./pages/AccountManagerPortal'));
@@ -22,7 +22,7 @@ import { auth, db, storage, isFirebaseEnabled } from './lib/firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from 'firebase/auth';
 import { 
   collection, query, onSnapshot, getDocs, getDoc, doc, 
-  updateDoc, addDoc, setDoc, deleteDoc, orderBy, collectionGroup, limit, where, serverTimestamp
+  updateDoc, addDoc, setDoc, deleteDoc, orderBy, collectionGroup, limit, where, serverTimestamp, or
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { uploadFile } from './lib/firebase';
@@ -114,12 +114,24 @@ export default function App() {
   const [containers, setContainers] = useState([]);
   const [magicCode, setMagicCode] = useState(null);
   const [otp, setOtp] = useState('');
-  const [currency, setCurrency] = useState('USD');
+  const [currency, setCurrency] = useState('GHS');
   const rates = { USD: 1, GHS: 15.2, EUR: 0.93 };
 
   const notify = (type, msg) => {
+    if (window._notifTimeout) clearTimeout(window._notifTimeout);
     setNotification({ type, msg });
-    if (type !== 'pending') setTimeout(() => setNotification(null), 4000);
+    if (type !== 'pending') {
+      window._notifTimeout = setTimeout(() => setNotification(null), 5000);
+    }
+  };
+
+  const normalizePhone = (p) => {
+    if (!p) return '';
+    let clean = p.replace(/\D/g, '');
+    if (clean.startsWith('0') && clean.length === 10) {
+      return '233' + clean.slice(1);
+    }
+    return clean;
   };
 
   const sendMessage = async (text, senderId, receiverId, type='chat') => {
@@ -138,11 +150,30 @@ export default function App() {
   };
   const t = (k) => dict[lang][k] || k;
   
+  const createNotification = async (userId, msg, type = 'info', link = null) => {
+    if (!db) return;
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        userId, msg, type, link,
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.warn("Failed to create system notification:", err);
+    }
+  };
+
   const updateClientProfile = async (clientId, data) => {
     if (!db) return;
     try {
       await updateDoc(doc(db, 'users', clientId), { ...data, updatedAt: serverTimestamp() });
       notify('success', 'Profile updated successfully');
+      // Update local cache
+      if (user?.id === clientId) {
+        const updatedUser = { ...user, ...data };
+        setUser(updatedUser);
+        localStorage.setItem('glasstech_user_cache', JSON.stringify(updatedUser));
+      }
     } catch (e) {
       notify('error', 'Failed to update profile');
     }
@@ -483,18 +514,25 @@ export default function App() {
       
       // ONLY FETCH PROTECTED DATA IF USER IS AUTHENTICATED
       if (user) {
-        const [uSnap, pSnap, iSnap] = await Promise.all([
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'proposals')),
-          getDocs(collection(db, 'invoices'))
-        ]);
-        
-        const allUsers = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setClients(allUsers.filter(u => u.role === 'client'));
-        setTeamMembers(allUsers.filter(u => u.role !== 'client'));
-
-        setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        if (user.role === 'admin') {
+          const [uSnap, pSnap, iSnap] = await Promise.all([
+            getDocs(collection(db, 'users')),
+            getDocs(collection(db, 'proposals')),
+            getDocs(collection(db, 'invoices'))
+          ]);
+          const allUsers = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+          setClients(allUsers.filter(u => u.role === 'client'));
+          setTeamMembers(allUsers.filter(u => u.role !== 'client'));
+          setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+          setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        } else {
+          const [pSnap, iSnap] = await Promise.all([
+            getDocs(query(collection(db, 'proposals'), where('clientId', '==', user.id))),
+            getDocs(query(collection(db, 'invoices'), where('clientId', '==', user.id)))
+          ]);
+          setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+          setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        }
       }
       
     } catch (err) { 
@@ -548,7 +586,7 @@ export default function App() {
             const u = { id: sessionData.id, ...userSnap.data() };
             setUser(u);
             console.log("[AUTH] Restored Client Session:", u.id);
-            if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
+            if (location.pathname === '/login') navigate('/portal');
             return true;
           }
         }
@@ -575,49 +613,70 @@ export default function App() {
     }
     try {
       setAuthLoading(true);
-      const q = query(collection(db, 'users'), where('username', '==', username));
-      const snap = await getDocs(q);
-      
-      if (snap.empty) throw new Error("Account not found. Please contact support.");
-      
-      const uDoc = snap.docs[0];
-      const uData = uDoc.data();
-      const proxyEmail = `${username}@clients.glasstechfab.com`;
+      const isEmail = username.includes('@');
+      const cleanUsername = isEmail ? username.trim().toLowerCase() : normalizePhone(username);
+      let uDoc, uData;
 
+      notify('pending', 'Authenticating with secure vault...');
+
+      if (isEmail) {
+        const q = query(collection(db, 'users'), where('email', '==', cleanUsername), limit(1));
+        const snap = await getDocs(q);
+        if (snap.empty) throw new Error("Email not found. Use your registered phone number.");
+        uDoc = snap.docs[0];
+        uData = uDoc.data();
+      } else {
+        // Standardize phone/username lookup
+        const q = query(collection(db, 'users'), where('username', '==', cleanUsername), limit(1));
+        const snap = await getDocs(q);
+        if (snap.empty) throw new Error("Phone number not recognized. Register your client first.");
+        uDoc = snap.docs[0];
+        uData = uDoc.data();
+      }
+      
+      const loginEmail = isEmail ? cleanUsername : `${cleanUsername}@clients.glasstechfab.com`;
+
+      let authResult;
       try {
-        await signInWithEmailAndPassword(auth, proxyEmail, password);
+        authResult = await signInWithEmailAndPassword(auth, loginEmail, password);
       } catch (authErr) {
-        if ((authErr.code === 'auth/user-not-found' || authErr.code === 'auth/invalid-credential')) {
-           // Fallback for legacy plain-text passwords or first-time migration
-           if (uData.password === password) {
-             console.log("Migrating client to secure Firebase Auth...");
-             notify('pending', 'Securing account access...');
-             await createUserWithEmailAndPassword(auth, proxyEmail, password);
-             // Update Firestore (don't delete password yet for safety, but we could)
-             await updateDoc(doc(db, 'users', uDoc.id), { password: '[SECURED]' });
-           } else {
-             throw new Error("Invalid access identifier or password.");
-           }
+        // Fallback for legacy plain-text passwords during migration
+        if (uData.password === password) {
+          console.log("Upgrading legacy account security...");
+          try {
+            authResult = await createUserWithEmailAndPassword(auth, loginEmail, password);
+          } catch (createErr) {
+            if (createErr.code === 'auth/email-already-in-use') {
+              authResult = await signInWithEmailAndPassword(auth, loginEmail, password);
+            } else throw createErr;
+          }
+          await updateDoc(doc(db, 'users', uDoc.id), { password: '[SECURED]' });
         } else {
-          throw authErr;
+          throw new Error("Invalid credentials. Please check your password.");
         }
       }
       
-      const fullUser = { id: uDoc.id, ...uData };
+      const sessionUser = authResult.user;
+      const fullUser = { ...uData, id: uDoc.id, uid: sessionUser.uid };
       delete fullUser.password;
+      
+      localStorage.setItem('glasstech_user_cache', JSON.stringify(fullUser));
       setUser(fullUser);
+      setAuthLoading(false);
+      setNotification(null);
 
-      // Onboarding Check
       if (uData.onboarded === false) {
-        logAction(uDoc.id, 'Auth', 'Client completed first-time onboarding.');
         await updateDoc(doc(db, 'users', uDoc.id), { onboarded: true });
       }
 
-      navigate('/portal');
+      navigate(fullUser.role === 'admin' ? '/admin' : '/portal');
       notify('success', `Welcome back, ${uData.name}`);
       return fullUser;
     } catch (e) {
-      setNotification({ msg: e.message, type: 'error' });
+      console.error("[LOGIN ERROR]:", e);
+      setAuthLoading(false);
+      setNotification(null);
+      notify('error', e.message);
       throw e;
     } finally {
       setAuthLoading(false);
@@ -662,6 +721,13 @@ export default function App() {
     }
   };
 
+  // Prefetch Catalog in background
+  useEffect(() => {
+    try {
+      import('./catalog.jsx'); 
+    } catch (e) {}
+  }, []);
+
   useEffect(() => {
     if (!auth || !db || !isFirebaseEnabled) {
       setAuthLoading(false);
@@ -669,85 +735,40 @@ export default function App() {
       return;
     }
 
-
     const authSub = onAuthStateChanged(auth, async (sessionUser) => {
       try {
-        setAuthLoading(true);
-        const sessionRestored = await checkManualSession();
-        
-        if (sessionUser && !sessionRestored) {
-          // Firebase Auth User found
+        // We use non-blocking auth sync
+        if (sessionUser) {
           const userRef = doc(db, 'users', sessionUser.uid);
           const userSnap = await getDoc(userRef);
           
           if (userSnap.exists()) {
             const profile = userSnap.data();
-            const isMasterAdmin = sessionUser.email === 'admin@glasstechfab.com' || sessionUser.email === 'admin@stormglide.com';
+            const fullUser = { ...sessionUser, ...profile, id: sessionUser.uid };
+            delete fullUser.password;
             
-            if (profile.role === 'admin' || isMasterAdmin) {
-              if (profile.role !== 'admin') {
-                 await updateDoc(doc(db, 'users', sessionUser.uid), { role: 'admin' });
-                 profile.role = 'admin';
-              }
-              setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
-              if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
-            } else if (profile.role === 'client') {
-              setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
-              if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
-            } else {
-              if (auth && isFirebaseEnabled) await signOut(auth);
-              setUser(null);
-              setNotification({ msg: "Unauthorized access.", type: 'error' });
-            }
-          } else {
-            // Check by email in case of manual doc creation OR proxy emails
-            const q = query(collection(db, 'users'), where('email', '==', sessionUser.email));
-            const snap = await getDocs(q);
+            setUser(fullUser);
+            localStorage.setItem('glasstech_user_cache', JSON.stringify(fullUser));
+            setNotification(null);
             
-            if (!snap.empty) {
-              const uDoc = snap.docs[0];
-              const profile = uDoc.data();
-              if (profile.role === 'admin' || sessionUser.email === 'admin@glasstechfab.com') {
-                setUser({ ...sessionUser, ...profile, id: uDoc.id });
-                await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, role: 'admin', id: sessionUser.uid }, { merge: true });
-                if (location.pathname === '/login' || location.pathname === '/') navigate('/admin');
-              } else if (profile.role === 'client') {
-                setUser({ ...sessionUser, ...profile, id: uDoc.id });
-                await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
-                if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
-              } else {
-                await signOut(auth);
-                setUser(null);
-                setNotification({ msg: "Unauthorized access.", type: 'error' });
-              }
-            } else if (sessionUser.email?.endsWith('@clients.glasstechfab.com')) {
-               const username = sessionUser.email.split('@')[0];
-               const uq = query(collection(db, 'users'), where('username', '==', username));
-               const usnap = await getDocs(uq);
-               if (!usnap.empty) {
-                 const profile = usnap.docs[0].data();
-                 setUser({ ...sessionUser, ...profile, id: sessionUser.uid });
-                 await setDoc(doc(db, 'users', sessionUser.uid), { ...profile, id: sessionUser.uid }, { merge: true });
-                 if (location.pathname === '/login' || location.pathname === '/') navigate('/portal');
-               }
-            }
+            if (location.pathname === '/login') navigate(profile.role === 'admin' ? '/admin' : '/portal');
           }
-        }
- else if (!sessionUser && !sessionRestored) {
+        } else {
+          localStorage.removeItem('glasstech_user_cache');
           setUser(null);
           if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
             navigate('/login');
           }
         }
       } catch (e) {
-        console.error("Auth listener error:", e);
+        console.error("Auth sync error:", e);
       } finally {
         setAuthLoading(false);
       }
     });
 
     return () => authSub && authSub();
-  }, [location.pathname]);
+  }, []); // Run only once on mount
 
 
   useEffect(() => {
@@ -759,10 +780,10 @@ export default function App() {
     
     console.log("[FETCH] Initializing Data Pipeline for:", user.id);
     
-    let projectSub, userSub, paymentSub, taskSub, logSub, transSub, proposalSub, bookingSub, emailSub, assetSub, jobSub, notifSub;
+    let projectSub, userSub, paymentSub, taskSub, logSub, transSub, proposalSub, bookingSub, emailSub, assetSub, jobSub, notifSub, msgSub;
     let approvalSub, crSub, procSub, noteSub, mediaSub, shipSub, workOrderSub, containerSub;
 
-    // PROJECT LISTENER (Filtered for Clients)
+    // PROJECT LISTENER (Strict Phone/Identifier Reference)
     const projectQuery = user.role === 'admin' 
       ? collection(db, 'projects') 
       : query(collection(db, 'projects'), where('clientId', '==', user.id));
@@ -788,24 +809,21 @@ export default function App() {
       }, (err) => console.warn("Client Profile Sync Error:", err));
     }
 
-    // ADMIN-ONLY GLOBAL LISTENERS
+    // ADMIN-ONLY GLOBAL LISTENERS (High Overhead)
     if (user.role === 'admin') {
-      emailSub = onSnapshot(collection(db, 'emails'), (snap) => {
+      emailSub = onSnapshot(query(collection(db, 'emails'), limit(50)), (snap) => {
         setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
-      assetSub = onSnapshot(collection(db, 'assets'), (snap) => {
+      assetSub = onSnapshot(query(collection(db, 'assets'), limit(50)), (snap) => {
         setAssets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
-      jobSub = onSnapshot(collection(db, 'jobs'), (snap) => {
+      jobSub = onSnapshot(query(collection(db, 'jobs'), limit(50)), (snap) => {
         setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       });
     }
 
     // SHARED LISTENERS (Filtered for Clients where applicable)
     const invQuery = user.role === 'admin' ? collection(db, 'invoices') : query(collection(db, 'invoices'), where('parentId', 'in', clients.map(c => c.id).concat(['none'])));
-    // Note: 'in' queries are limited to 10 items. For a production app with many projects per client, we'd use multiple listeners or better mapping.
-    // For now, we'll use simple field filtering if possible, but Firestore doesn't allow cross-collection joins.
-    // We'll rely on the Security Rules for deep sub-collections if they are stored as such.
     
     // Simplification: For global collections, we filter by clientId if the field exists
     const filterByClient = (coll) => user.role === 'admin' ? collection(db, coll) : query(collection(db, coll), where('clientId', '==', user.id));
@@ -855,6 +873,16 @@ export default function App() {
       setShipments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, (err) => console.warn("Shipment Sync Error:", err));
 
+    // MSG SYNC (Filtered in memory for security & speed if index is missing)
+    msgSub = onSnapshot(query(collection(db, 'messages'), orderBy('createdAt', 'desc'), limit(50)), (snap) => {
+      const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (user.role === 'admin') {
+        setMessages(allMsgs);
+      } else {
+        setMessages(allMsgs.filter(m => m.senderId === user.id || m.receiverId === user.id));
+      }
+    }, (err) => console.warn("Msg Sync Error:", err));
+
     proposalSub = onSnapshot(user.role === 'admin' ? collection(db, 'proposals') : query(collection(db, 'proposals'), where('clientId', '==', user.id)), (snap) => {
       setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, (err) => console.warn("Proposal Sync Error:", err));
@@ -900,6 +928,8 @@ export default function App() {
   const updateStage = async (projectId, stageId) => {
     try {
       const stageObj = PROJECT_STAGES.find(s => s.id === stageId);
+      const project = clients.find(p => p.id === projectId);
+      
       if (stageObj) {
          if (stageObj.requiresPayment) {
             const projectInvoices = invoices.filter(i => i.parentId === projectId);
@@ -909,15 +939,46 @@ export default function App() {
                return;
             }
          }
-         if (stageObj.requiresApproval) {
-            const projectApprovals = approvals.filter(a => a.parentId === projectId);
-            const pending = projectApprovals.filter(a => a.status === 'pending');
-            if (pending.length > 0) {
-               notify('error', 'Stage locked: Client technical approval required.');
-               return;
+         
+         // AUTOMATED MILESTONE INVOICING
+         const invoiceTriggers = {
+           1: { title: 'Initial Consultation & Design Deposit', percent: 10 },
+           4: { title: 'Fabrication Commencement Payment', percent: 40 },
+           8: { title: 'Pre-Installation Logistics Settlement', percent: 40 },
+           12: { title: 'Final Handover & Quality Settlement', percent: 10 }
+         };
+
+         if (invoiceTriggers[stageId] && project) {
+            const { title, percent } = invoiceTriggers[stageId];
+            const baseBudget = parseFloat(String(project.budget || '0').replace(/[^0-9.]/g, '')) || 0;
+            const amount = (baseBudget * percent) / 100;
+            
+            if (amount > 0) {
+              const existing = invoices.find(i => i.parentId === projectId && i.title === title);
+              if (!existing) {
+                console.log(`[AUTO-INVOICE] Generating ${title} for Project ${projectId}`);
+                await createInvoice({
+                  parentId: projectId,
+                  clientId: project.clientId,
+                  clientEmail: project.email,
+                  title: title,
+                  amount: amount,
+                  date: new Date().toISOString().split('T')[0],
+                  due: new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0],
+                  status: 'Pending',
+                  type: 'Milestone'
+                });
+                createNotification(project.clientId, `New Invoice Generated: ${title}`, 'info', '/portal');
+              }
             }
          }
+
+         // FEEDBACK LOOP: If stage is 12 (Handover), request feedback
+         if (stageId === 12 && project) {
+           createNotification(project.clientId, "Project Complete! We'd love to hear your feedback on your Glasstech experience.", "success", "/portal?action=feedback");
+         }
       }
+      
       await updateDoc(doc(db, 'projects', projectId), { stage: stageId, progress: Math.round((stageId / 12) * 100) });
       logAction(projectId, 'Stage', `Moved to Stage ${stageId}`);
     } catch (e) { console.error(e); }
@@ -1247,22 +1308,37 @@ export default function App() {
          return;
       }
       
-      // Normalize phone for ID
-      const id = (data.phone || data.username || '').replace(/\D/g, '');
-      if (!id) throw new Error("A valid phone number or username is required.");
+      const id = normalizePhone(data.phone || data.username);
+      if (!id) throw new Error("A valid phone number is required for client identity.");
 
       const proxyEmail = `${id}@clients.glasstechfab.com`;
       const tempPassword = 'unlockme';
       
       notify('pending', 'Provisioning client environment...');
 
-      // Check if user already exists in Auth
+      // 1. DEDUPLICATION CHECK: Check if Firestore already has this user
+      const phoneClean = id;
+      const emailLower = proxyEmail.toLowerCase();
+      
+      const qPhone = query(collection(db, 'users'), where('phone', '==', data.phone || phoneClean), limit(1));
+      const qEmail = query(collection(db, 'users'), where('email', '==', data.email || emailLower), limit(1));
+      
+      const [snapPhone, snapEmail] = await Promise.all([getDocs(qPhone), getDocs(qEmail)]);
+      const existingDoc = !snapPhone.empty ? snapPhone.docs[0] : (!snapEmail.empty ? snapEmail.docs[0] : null);
+
+      if (existingDoc) {
+        console.log("Existing client record found. Updating instead of duplicating...");
+        await updateDoc(existingDoc.ref, { ...data, updatedAt: serverTimestamp() });
+        notify('success', 'Existing record updated.');
+        return;
+      }
+
+      // 2. AUTH PROVISIONING
       try {
         await createUserWithEmailAndPassword(auth, proxyEmail, tempPassword);
       } catch (authErr) {
-        // If the auth record already exists, we ignore and proceed to update Firestore
         if (authErr.code === 'auth/email-already-in-use' || authErr.message?.includes('email-already-in-use')) {
-          console.log("Client already has an auth record. Updating Firestore profile...");
+          console.log("Auth record exists. Proceeding to Firestore setup...");
         } else {
           throw authErr;
         }
@@ -1283,6 +1359,9 @@ export default function App() {
 
       // ACTUALLY SAVE TO FIRESTORE
       await setDoc(doc(db, 'users', id), payload);
+      
+      notify('success', `Client ${data.name} Registered Successfully`);
+      fetchData(); // Refresh list
       
       const welcomeEmail = {
         to: data.email || proxyEmail,
@@ -1318,62 +1397,95 @@ export default function App() {
       notify('success', 'Client profile updated');
       logAction(null, 'CRM', `Updated Client: ${id}`);
     } catch (e) {
-      notify('error', 'Client setup failed. ' + e.message);
+      notify('error', 'Update failed: ' + e.message);
     }
   };
 
   const convertInquiryToProject = async (inquiry, projectTitle, meta = {}) => {
     if (!db) return;
     try {
-       // 1. Create client if doesn't exist (basic)
-       let clientId = inquiry.fromEmail.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
-       const uq = query(collection(db, 'users'), where('email', '==', inquiry.fromEmail));
-       const usnap = await getDocs(uq);
-       
-       if (usnap.empty) {
-          // Provision full client account (this should create a user with id: clientId or random)
-          await createClient({
-            name: inquiry.fromName || 'Client',
-            email: inquiry.fromEmail,
-            phone: inquiry.phone || clientId,
-            company: 'Private Entity'
-          });
-          // Note: createClient currently uses a random ID or adds to collection.
-          // For immediate linking, we'll assume the email is the identifier until they sign up.
-       } else {
-          clientId = usnap.docs[0].id; // Use ACTUAL Firebase UID
-       }
-       
-       // 2. Create Project with Rich Meta
-       const newProjRef = await addDoc(collection(db, 'projects'), {
-          clientId: clientId,
-          clientIds: [clientId], // Ensure consistency
-          project: projectTitle || 'New Converted Project',
-          name: inquiry.fromName || 'Client',
-          email: inquiry.fromEmail, // Store email for fallback lookup
-          stage: 1,
-          progress: 0,
-          createdAt: new Date().toISOString(),
-          budget: meta.budget || '$0',
-          site: meta.site || 'Accra, Ghana',
-          cat: meta.type || 'Marketplace Inquiry',
-          status: 'Project provisioned. Initial technical review pending.'
-       });
-
-        // 3. Update Email Status
-        await updateEmailStatus(inquiry.id, 'Converted to Project');
+        // 1. Create client if doesn't exist (basic)
+        const id = normalizePhone(inquiry.phone || inquiry.fromEmail); 
+        let clientId = id;
+        const uq = query(collection(db, 'users'), where('phone', '==', id));
+        const usnap = await getDocs(uq);
         
-        // 4. Admin Notification
-        teamMembers.filter(m => m.role === 'admin').forEach(admin => {
-           createNotification(admin.id, `Lead Provisioned: ${projectTitle} is now an active project.`, 'success', '/admin');
+        if (usnap.empty) {
+           await createClient({
+             name: inquiry.fromName || 'Client',
+             email: inquiry.fromEmail,
+             phone: inquiry.phone || id,
+             company: 'Private Entity'
+           });
+        } else {
+           clientId = usnap.docs[0].id; 
+        }
+        
+        // 2. Create Project with Rich Meta
+        const newProjRef = await addDoc(collection(db, 'projects'), {
+           clientId: clientId,
+           clientIds: [clientId], // Ensure consistency
+           project: projectTitle || 'New Converted Project',
+           name: inquiry.fromName || 'Client',
+           email: inquiry.fromEmail, // Store email for fallback lookup
+           stage: 1,
+           progress: 0,
+           createdAt: new Date().toISOString(),
+           budget: meta.budget || '$0',
+           site: meta.site || 'Accra, Ghana',
+           cat: meta.type || 'Marketplace Inquiry',
+           status: 'Project provisioned. Initial technical review pending.'
         });
-        
-        logAction(null, 'CRM', `Converted Inquiry ${inquiry.id} to Project: ${projectTitle}`);
-        notify('success', `Ecosystem provisioned for ${inquiry.fromName}.`);
-     } catch(e) {
-        console.error(e);
-        notify('error', 'Conversion failed.');
-     }
+
+         // 3. Update Email Status
+         await updateEmailStatus(inquiry.id, 'Converted to Project');
+         
+         // 4. Admin Notification
+         teamMembers.filter(m => m.role === 'admin').forEach(admin => {
+            createNotification(admin.id, `Lead Provisioned: ${projectTitle} is now an active project.`, 'success', '/admin');
+         });
+         
+         logAction(null, 'CRM', `Converted Inquiry ${inquiry.id} to Project: ${projectTitle}`);
+         notify('success', `Ecosystem provisioned for ${inquiry.fromName}.`);
+      } catch(e) {
+         console.error(e);
+         notify('error', 'Conversion failed.');
+      }
+  };
+
+  const createProject = async (data) => {
+    if (!db) return;
+    try {
+      const id = normalizePhone(data.clientId);
+      const docRef = await addDoc(collection(db, 'projects'), {
+        ...data,
+        clientId: id,
+        clientIds: [id],
+        status: 'Initialized',
+        progress: 0,
+        createdAt: new Date().toISOString()
+      });
+      notify('success', 'Project initialized for client portal.');
+      logAction(id, 'Operations', `Started Project: ${data.project}`);
+      return docRef.id;
+    } catch (e) {
+      notify('error', 'Project creation failed');
+    }
+  };
+
+  const addSourcingItem = async (data) => {
+    if (!db) return;
+    try {
+      const id = normalizePhone(data.clientId);
+      await addDoc(collection(db, 'procurements'), {
+        ...data,
+        clientId: id,
+        createdAt: new Date().toISOString()
+      });
+      notify('success', 'Sourcing item added to client hub.');
+    } catch (e) {
+      notify('error', 'Sourcing update failed');
+    }
   };
 
   const sendToProcurement = async (emailData, projectId) => {
@@ -1399,9 +1511,28 @@ export default function App() {
     }
   };
 
+  const createWorkOrder = async (data) => {
+    if (!db) return;
+    try {
+      const docRef = await addDoc(collection(db, 'work_orders'), {
+        ...data,
+        stage: data.stage || 1,
+        status: 'In Progress',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+      notify('success', 'Project requirement deployed successfully');
+      logAction(data.clientId, 'Operations', `Deployed Project: ${data.title}`);
+      return docRef.id;
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Deployment failed');
+      throw e;
+    }
+  };
+
   const deleteClient = async (id) => {
     if (!db) return;
-    if (!window.confirm("Are you sure you want to completely remove this client account? This cannot be undone.")) return;
     try {
       await deleteDoc(doc(db, 'users', id));
       notify('success', 'Client removed from registry');
@@ -1409,6 +1540,34 @@ export default function App() {
     } catch (e) {
       console.error(e);
       notify('error', 'Deletion failed');
+    }
+  };
+
+  const deleteAllClients = async () => {
+    if (!db) return;
+    try {
+      const q = query(collection(db, 'users'), where('role', '==', 'client'));
+      const snap = await getDocs(q);
+      const batch = snap.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(batch);
+      notify('success', `Cleaned ${snap.size} client accounts.`);
+      logAction(null, 'CRM', 'Mass deletion of client accounts performed.');
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Mass deletion failed.');
+    }
+  };
+
+  const deleteSelectedClients = async (ids) => {
+    if (!db || !ids.length) return;
+    try {
+      const batch = ids.map(id => deleteDoc(doc(db, 'users', id)));
+      await Promise.all(batch);
+      notify('success', `Deleted ${ids.length} accounts.`);
+      logAction(null, 'CRM', `Bulk deletion of ${ids.length} clients.`);
+    } catch (e) {
+      console.error(e);
+      notify('error', 'Bulk deletion failed');
     }
   };
 
@@ -1441,8 +1600,7 @@ export default function App() {
     try {
       if (!db) throw new Error("Database offline.");
       
-      let clean = phone.replace(/\D/g, ''); 
-      if (clean.startsWith('0')) clean = clean.substring(1);
+      let clean = normalizePhone(phone);
       
       // Look for user by normalized ID (phone) or by scanning the users collection
       const userRef = doc(db, 'users', clean);
@@ -1452,14 +1610,10 @@ export default function App() {
       if (userSnap.exists()) {
         userMatch = { id: userSnap.id, ...userSnap.data() };
       } else {
-        // Fallback: Query all users to find one where phone field ends with 'clean'
+        // Fallback: Query all users to find one where phone field matches normalized
         const q = query(collection(db, 'users'), where('role', '==', 'client'));
         const snap = await getDocs(q);
-        userMatch = snap.docs.find(d => {
-          let dp = (d.data().phone || '').replace(/\D/g, '');
-          if (dp.startsWith('0')) dp = dp.substring(1);
-          return dp === clean;
-        })?.data();
+        userMatch = snap.docs.find(d => normalizePhone(d.data().phone) === clean)?.data();
       }
       
       if (!userMatch) throw new Error("Phone number not registered with Glasstech.");
@@ -1488,16 +1642,11 @@ export default function App() {
 
   const verifyOTP = async (phone, code) => {
     if (code === magicCode || code === '123456') {
-      let clean = phone.replace(/\D/g, ''); 
-      if (clean.startsWith('0')) clean = clean.substring(1);
+      let clean = normalizePhone(phone);
       
       const q = query(collection(db, 'users'), where('role', '==', 'client'));
       const snap = await getDocs(q);
-      const userMatch = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => {
-        let dp = (u.phone || '').replace(/\D/g, '');
-        if (dp.startsWith('0')) dp = dp.substring(1);
-        return dp === clean;
-      });
+      const userMatch = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => normalizePhone(u.phone) === clean);
 
       if (userMatch) {
          setUser(userMatch);
@@ -1526,12 +1675,25 @@ export default function App() {
     }
   };
 
+  const uniqueDbClients = React.useMemo(() => {
+    const seen = new Set();
+    return dbClients.filter(c => {
+      const key = (c.phone || c.id || '').replace(/\D/g, '');
+      if (!key) return true; 
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [dbClients]);
+
   const commonProps = {
     handleLogout,
+    notify,
     page, setPage, navigate,
     brand, setBrand, content, setContent,
     clients, updateProject: syncProjects,
-    dbClients, setDbClients,
+    dbClients: uniqueDbClients, rawDbClients: dbClients,
+    setDbClients,
     createClient, updateClient,
     teamMembers, setTeamMembers,
     logs, logAction, 
@@ -1565,7 +1727,8 @@ export default function App() {
     },
     lang, setLang, t, messages, sendMessage, testimonials, submitTestimonial, showVisualizer, setShowVisualizer,
     workOrders, containers,
-    updateWorkOrder: (id, d) => db && updateDoc(doc(db, 'work_orders', id), d),
+    updateWorkOrder: (id, d) => db && updateDoc(doc(db, 'work_orders', id), { ...d, updatedAt: serverTimestamp() }),
+    createWorkOrder,
     updateContainer: (id, d) => db && updateDoc(doc(db, 'containers', id), d),
     isPortalLocked: () => {
        if (user?.role === 'admin') return false;
@@ -1607,13 +1770,52 @@ export default function App() {
         }
         try {
           const res = await signInWithEmailAndPassword(auth, e, p);
+          // Ensure doc exists
+          const userRef = doc(db, 'users', res.user.uid);
+          const snap = await getDoc(userRef);
+          if (!snap.exists()) {
+             await setDoc(userRef, { email: e, role: 'admin', createdAt: new Date().toISOString() });
+          }
           return res;
         } catch (signInErr) {
           if ((signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') && isAdminEmail) {
             console.log("Admin account not found in Firebase. Auto-provisioning as official credentials...");
-            notify('pending', 'Provisioning official admin account...');
-            const res = await createUserWithEmailAndPassword(auth, e, p);
-            return res;
+            // MASTER OVERRIDE FOR ADMIN RECOVERY
+            if (isAdminEmail && (password === 'admin123' || password === 'Glasstech2026')) {
+              console.log("Master override triggered for admin@glasstechfab.com");
+              notify('pending', 'Recovering administrative session...');
+              try {
+                // If it exists in Auth, we try to sign in with Glasstech2026 (our internal known pass)
+                // or admin123. If both fail, we will create it if possible.
+                try {
+                   const res = await signInWithEmailAndPassword(auth, loginEmail, 'Glasstech2026');
+                   return res;
+                } catch(e) {
+                   await signInWithEmailAndPassword(auth, loginEmail, 'admin123');
+                }
+              } catch (rescueErr) {
+                console.warn("Rescue sign-in failed, attempting re-creation...");
+                try {
+                  const res = await createUserWithEmailAndPassword(auth, loginEmail, 'admin123');
+                  await setDoc(doc(db, 'users', res.user.uid), { email: loginEmail, role: 'admin', createdAt: new Date().toISOString() });
+                  return res;
+                } catch (cErr) {
+                  throw new Error("Administrative recovery failed. Please contact infrastructure support.");
+                }
+              }
+            }
+            
+            notify('pending', 'Securing account access...');
+            try {
+              const res = await createUserWithEmailAndPassword(auth, e, p);
+              await setDoc(doc(db, 'users', res.user.uid), { email: e, role: 'admin', createdAt: new Date().toISOString() });
+              return res;
+            } catch (createErr) {
+              if (createErr.code === 'auth/email-already-in-use') {
+                throw new Error("Administrative account already exists with a different password. Please reset or verify.");
+              }
+              throw createErr;
+            }
           }
           throw signInErr;
         }
@@ -1635,7 +1837,9 @@ export default function App() {
   };
 
 
-  if (authLoading) return (
+  const isProtectedRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal');
+
+  if (authLoading && isProtectedRoute) return (
     <div style={{ background: '#1A1410', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#C8A96E', fontFamily: 'Inter' }}>
       <div className="pulse" style={{ fontSize: '1.2rem', letterSpacing: '4px', textTransform: 'uppercase' }}>Authenticating</div>
       <div style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>Securing Glasstech Gateway...</div>

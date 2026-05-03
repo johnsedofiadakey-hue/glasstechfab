@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, Receipt, Clock, CheckCircle, Plus, Users, FileText, Truck, AlertTriangle, Target, Activity, Sparkles, TrendingUp
 } from 'lucide-react';
@@ -10,15 +10,20 @@ import { REV } from '../../data';
 
 export default function AdminDashboard({ clients, invoices, proposals, brand, getSLA, stats, ...props }) {
   const ac = brand.color || '#C8A96E';
-  const isMobile = window.innerWidth <= 768;
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
   
-  const totalRev = (invoices || []).filter(i => i?.status === 'Paid').reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
-  const pendingInvs = (invoices || []).filter(i => i?.status === 'Pending' || i?.status === 'pending');
-  const totalUnpaid = pendingInvs.reduce((a, i) => a + parseFloat(i.amount?.replace(/[$,]/g, '') || 0), 0);
-  const pendingApprovals = (props.approvals || []).filter(a => a.status === 'pending').length;
-  const delayedProjects = (clients || []).filter(c => getSLA && c ? getSLA(c).delayed : false).length;
-  const activeJobs = (props.jobs || []).filter(j => j.stage !== 'ready').length;
-  const activeShipments = (props.procurements || []).filter(p => p.isShipment && p.status !== 'Delivered').length;
+  const totalRev = (invoices || []).filter(i => i?.status === 'Paid').reduce((a, i) => a + parseFloat(String(i?.amount || '0').replace(/[$,]/g, '') || 0), 0);
+  const pendingInvs = (invoices || []).filter(i => i?.status === 'Pending' || i?.status === 'pending' || i?.status === 'Unpaid');
+  const totalUnpaid = pendingInvs.reduce((a, i) => a + parseFloat(String(i?.amount || '0').replace(/[$,]/g, '') || 0), 0);
+  const pendingApprovals = (props.approvals || []).filter(a => a?.status === 'pending' || a?.status === 'Pending').length;
+  const delayedProjects = (clients || []).filter(c => getSLA && c ? getSLA(c)?.delayed : false).length;
+  const activeJobs = (props.jobs || []).filter(j => j?.stage !== 'ready' && j?.stage !== 'Completed').length;
+  const activeShipments = (props.procurements || []).filter(p => p?.isShipment && p?.status !== 'Delivered' && p?.status !== 'delivered').length;
 
   const dashboardStats = [
     { label: 'Settled Revenue', value: `$${(totalRev / 1000).toFixed(1)}k`, icon: <DollarSign size={22} />, sub: 'Validated liquidity', color: '#16A34A', trend: 18 },
@@ -40,9 +45,10 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
     }
 
     (invoices || []).forEach(inv => {
-        if (inv.status?.toLowerCase() === 'paid') {
+        if (inv?.status?.toLowerCase() === 'paid' && inv?.date) {
             const date = new Date(inv.date);
-            const amt = parseFloat(inv.amount?.replace(/[$,]/g, '') || 0) / 1000;
+            if (isNaN(date.getTime())) return;
+            const amt = parseFloat(String(inv.amount || '0').replace(/[$,]/g, '') || 0) / 1000;
             const m = months[date.getMonth()];
             if (revenueMap[m] !== undefined) {
                 revenueMap[m] += amt;
@@ -64,54 +70,124 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
       
       {/* 1. OPERATIONS COMMAND CONTROL */}
       <div className="glass-matrix" style={{ 
-        padding: isMobile ? '20px' : '24px 32px', 
+        padding: isMobile ? '32px 24px' : '40px 48px', 
         display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: isMobile ? 'flex-start' : 'center', 
+        flexDirection: 'column',
+        gap: 32,
         background: '#1A1410', 
         color: '#fff', 
-        borderRadius: isMobile ? 24 : 32, 
+        borderRadius: isMobile ? 32 : 48, 
         border: 'none',
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: isMobile ? 20 : 0
+        boxShadow: '0 40px 100px rgba(0,0,0,0.2)'
       }}>
-        <div style={{ display: 'flex', gap: isMobile ? 20 : 32, alignItems: 'center', width: isMobile ? '100%' : 'auto', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', color: ac, fontWeight: 800, textTransform: 'uppercase', marginBottom: 4 }}>Command System</div>
-            <div className="lxfh" style={{ fontSize: isMobile ? 20 : 24, fontWeight: 300 }}>Operations Control</div>
+            <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.25em', color: ac, fontWeight: 800, textTransform: 'uppercase', marginBottom: 8 }}>Global Control Center</div>
+            <div className="lxfh" style={{ fontSize: isMobile ? 28 : 40, fontWeight: 300, letterSpacing: '-0.03em' }}>System Oversight</div>
           </div>
-          {!isMobile && <div style={{ width: 1, height: 40, background: 'rgba(255,255,255,0.1)' }} />}
           <div style={{ display: 'flex', gap: 12 }}>
-            <button 
-              onClick={() => props.setView('operations')} 
-              className="p-btn-gold lxf" 
-              style={{ padding: isMobile ? '10px 16px' : '12px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}
-            >
-              <Users size={16} /> <span className={isMobile ? "mob-hide" : ""}>Stakeholder Registry</span>
-            </button>
-            <button 
-              onClick={() => typeof props.setMod === 'function' && props.setMod('AddProject')} 
-              className="p-btn-dark lxf" 
-              style={{ padding: isMobile ? '10px 16px' : '12px 24px', borderRadius: 12, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8, color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }}
-            >
-              <Plus size={16} /> <span className={isMobile ? "mob-hide" : ""}>Deploy Project</span>
-            </button>
-          </div>
-        </div>
-        
-        <div style={{ display: 'flex', gap: isMobile ? 24 : 40, width: isMobile ? '100%' : 'auto', borderTop: isMobile ? '1px solid rgba(255,255,255,0.1)' : 'none', paddingTop: isMobile ? 16 : 0 }}>
-           <div style={{ textAlign: isMobile ? 'left' : 'right', flex: isMobile ? 1 : 'none' }}>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>Live Logistics</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, color: '#16A34A', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6, justifyContent: isMobile ? 'flex-start' : 'flex-end' }}><Truck size={14} /> {activeShipments} Tracking</div>
-           </div>
-           <div style={{ textAlign: 'right', flex: isMobile ? 1 : 'none' }}>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>Production Load</div>
-              <div style={{ fontSize: isMobile ? 16 : 18, color: '#fff', fontWeight: 400 }}>{activeJobs} Active Jobs</div>
-           </div>
-        </div>
+               <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', fontWeight: 800 }}>Production Load</div>
+               <div style={{ fontSize: isMobile ? 16 : 18, color: '#fff', fontWeight: 400 }}>{activeJobs} Active Jobs</div>
+            </div>
+         </div>
+      </div>
+
+      {/* 1.5 ADMIN WATCHDOG (SYSTEM HEALTH MONITOR) */}
+      <div className="p-card" style={{ 
+        padding: 32, 
+        background: 'linear-gradient(135deg, #1A1410 0%, #2A2420 100%)', 
+        borderRadius: 32, 
+        color: '#fff',
+        display: 'grid',
+        gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
+        gap: 40,
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+         <div style={{ position: 'absolute', top: -100, right: -100, width: 300, height: 300, background: `${ac}10`, filter: 'blur(100px)', borderRadius: '50%' }} />
+         
+         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+               <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: ac }}>
+                  <Target size={20} />
+               </div>
+               <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.1em', color: 'rgba(255,255,255,0.5)', fontWeight: 800 }}>Total Value in Transit</div>
+            </div>
+            <div className="lxfh" style={{ fontSize: 32, letterSpacing: '-0.03em' }}>
+              ${(( (props.containers || []).filter(c => c.status !== 'Delivered').reduce((acc, c) => acc + (c.value || 25000), 0) ) / 1000).toFixed(1)}k
+            </div>
+            <div style={{ fontSize: 11, color: '#16A34A', fontWeight: 700 }}>Active Shipments Risk</div>
+         </div>
+
+         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+               <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16A34A' }}>
+                  <TrendingUp size={20} />
+               </div>
+               <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.1em', color: 'rgba(255,255,255,0.5)', fontWeight: 800 }}>Settled Liquidity</div>
+            </div>
+            <div className="lxfh" style={{ fontSize: 32, letterSpacing: '-0.03em' }}>
+               ${(totalRev / 1000).toFixed(1)}k
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Valid cash on hand</div>
+         </div>
+
+         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+               <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#EF4444' }}>
+                  <AlertTriangle size={20} />
+               </div>
+               <div className="lxf eyebrow" style={{ fontSize: 10, letterSpacing: '.1em', color: 'rgba(255,255,255,0.5)', fontWeight: 800 }}>Awaiting Release</div>
+            </div>
+            <div className="lxfh" style={{ fontSize: 32, letterSpacing: '-0.03em' }}>
+               ${(( (clients || []).filter(c => c.stage >= 11).reduce((acc, c) => acc + parseFloat(c.amount?.replace(/[$,]/g, '') || 0), 0) ) / 1000).toFixed(1)}k
+            </div>
+            <div style={{ fontSize: 11, color: '#EF4444', fontWeight: 700 }}>Installation Escrow</div>
+         </div>
+
+         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, justifyContent: 'center' }}>
+            <div className="lxf eyebrow" style={{ fontSize: 9, letterSpacing: '.2em', color: ac, fontWeight: 900, marginBottom: 8 }}>Ecosystem Health</div>
+            <div style={{ height: 40, background: 'rgba(255,255,255,0.05)', borderRadius: 12, display: 'flex', alignItems: 'center', padding: '0 12px', gap: 12 }}>
+               <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${(totalRev + totalUnpaid) === 0 ? 100 : Math.min(100, (totalRev / (totalRev + totalUnpaid)) * 100)}%`, height: '100%', background: ac }} />
+               </div>
+               <span style={{ fontSize: 12, fontWeight: 900 }}>{(totalRev + totalUnpaid) === 0 ? 100 : Math.round((totalRev / (totalRev + totalUnpaid)) * 100)}%</span>
+            </div>
+         </div>
       </div>
  
-      {/* 2. CORE METRICS OVERVIEW */}
+      {/* 2. OPERATIONAL SEQUENCE GUIDE */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 24, marginBottom: 32 }}>
+         {[
+           { step: '01', label: 'Onboard', sub: 'Stakeholder Registry', color: ac, icon: <Users size={20} />, view: 'operations' },
+           { step: '02', label: 'Deploy', sub: 'Initialize Project', color: '#B45309', icon: <Plus size={20} />, view: 'operations' },
+           { step: '03', label: 'Execute', sub: 'Production & Logistics', color: '#1A1410', icon: <Activity size={20} />, view: 'installations' },
+           { step: '04', label: 'Settle', sub: 'Financial Ledger', color: '#16A34A', icon: <DollarSign size={20} />, view: 'financials' },
+         ].map(s => (
+           <div 
+            key={s.step} 
+            onClick={() => props.setView(s.view)}
+            className="p-card" 
+            style={{ 
+              padding: 24, display: 'flex', flexDirection: 'column', gap: 16, cursor: 'pointer',
+              border: '1px solid var(--border)', background: '#fff', position: 'relative', overflow: 'hidden',
+              borderRadius: 24
+            }}
+           >
+              <div style={{ position: 'absolute', right: -10, top: -10, fontSize: 64, fontWeight: 900, opacity: 0.03, color: '#000' }}>{s.step}</div>
+              <div style={{ width: 48, height: 48, borderRadius: 12, background: s.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 {s.icon}
+              </div>
+              <div>
+                 <div className="lxf" style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#B5AFA9', letterSpacing: 1 }}>Step {s.step}</div>
+                 <div className="lxfh" style={{ fontSize: 20, marginTop: 4 }}>{s.label}</div>
+                 <div className="lxf" style={{ fontSize: 12, color: '#6A635C' }}>{s.sub}</div>
+              </div>
+           </div>
+         ))}
+      </div>
+
+      {/* 3. CORE METRICS OVERVIEW */}
       <div className="kpi-grid">
         {dashboardStats.map((s, i) => (
           <div key={i} className="p-card" style={{ padding: 32, background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)', borderRadius: 24, border: '1px solid rgba(255,255,255,0.5)' }}>

@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { db } from '../lib/firebase';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+// Removed static import of huge data file
 
 const LIGHT_BG = '#FDFCFB';
 const DARK_TEXT = '#1A1410';
@@ -114,26 +115,36 @@ const Hotspot = ({ h, ac, mob }) => {
 export default function LuxeShowcase({ brand }) {
   const [scenes, setScenes] = useState([]);
   const [active, setActive] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [winW, setWinW] = useState(window.innerWidth);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!db) {
-      setScenes(DEFAULT_SCENES);
-      return;
-    }
-    const q = query(collection(db, 'showcase'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      setScenes(data.length > 0 ? data : DEFAULT_SCENES);
-    }, (err) => {
-      console.error(err);
-      setScenes(DEFAULT_SCENES);
-    });
-    return unsub;
+    const loadData = async () => {
+      const m = await import('../catalog.jsx');
+      const def = m.DEFAULT_SCENES;
+      
+      if (!db) {
+        setScenes(def);
+        setLoading(false);
+        return;
+      }
+      const q = query(collection(db, 'showcase'), orderBy('createdAt', 'desc'));
+      const unsub = onSnapshot(q, (snap) => {
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        setScenes(data.length > 0 ? data : def);
+        setLoading(false);
+      }, (err) => {
+        console.error(err);
+        setScenes(def);
+        setLoading(false);
+      });
+      return unsub;
+    };
+    loadData();
   }, []);
 
-  const scene = scenes[active] || DEFAULT_SCENES[0];
+  const scene = scenes[active];
   const ac = brand?.color || AC;
   const mob = winW <= 900;
 
@@ -148,27 +159,89 @@ export default function LuxeShowcase({ brand }) {
 
   return (
     <div style={{ height: '100vh', width: '100vw', background: '#000', overflow: 'hidden', position: 'relative', fontFamily: 'var(--font-p)' }}>
-      
+      {loading ? (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#1A1410' }}>
+           <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}>
+              <Zap size={48} color={ac} />
+           </motion.div>
+        </div>
+      ) : (
+        <>
       {/* Cinematic Background */}
       <AnimatePresence mode="wait">
         <motion.div
           key={scene.id}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          style={{ position: 'absolute', inset: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2 }}
+          style={{ position: 'absolute', inset: 0, overflow: 'hidden' }}
         >
-          <img src={scene.img} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: mob ? 0.7 : 0.8 }} alt={scene.title} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.1), rgba(0,0,0,0.9))' }} />
-          
-          {/* Hotspots */}
-          {scene.hotspots.map((h, i) => <Hotspot key={i} h={h} ac={ac} mob={mob} />)}
+          {/* Panoramic Pan-Scan for Mobile / Immersive Scale for Desktop */}
+          <motion.div
+            initial={mob ? { x: '-20%' } : { scale: 1.1 }}
+            animate={mob ? { x: '0%' } : { scale: 1 }}
+            transition={mob ? { 
+              duration: 15, 
+              repeat: Infinity, 
+              repeatType: 'reverse', 
+              ease: 'linear' 
+            } : { duration: 1.5 }}
+            style={{ 
+              width: mob ? '150%' : '100%', 
+              height: '100%', 
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              overflow: 'hidden'
+            }}
+          >
+            <img 
+              src={scene.img} 
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'cover', 
+                opacity: mob ? 0.7 : 0.8,
+              }} 
+              alt={scene.title} 
+            />
+
+            {/* Hotspots Synced with Image */}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 10 }}>
+              {(scene.hotspots || []).map((h, i) => (
+                <Hotspot key={i} h={h} ac={ac} mob={mob} />
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Dynamic Glass Reflection Overlay */}
+          <motion.div 
+            animate={{ 
+              opacity: [0.1, 0.3, 0.1],
+              x: ['-100%', '100%']
+            }}
+            transition={{ 
+              duration: 8, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+            style={{ 
+              position: 'absolute', 
+              inset: 0, 
+              background: 'linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%)',
+              pointerEvents: 'none',
+              zIndex: 2
+            }}
+          />
+
+          {/* Cinematic Gradient Vignette */}
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent, rgba(0,0,0,0.9))', zIndex: 3 }} />
         </motion.div>
       </AnimatePresence>
 
       {/* Floating Interface */}
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', flexDirection: 'column', padding: mob ? '20px' : '40px 5vw' }}>
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', display: 'flex', flexDirection: 'column', padding: mob ? '20px' : '40px 5vw', zIndex: 100 }}>
         
         {/* Top Nav */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pointerEvents: 'auto' }}>
@@ -185,13 +258,51 @@ export default function LuxeShowcase({ brand }) {
            </button>
            
            {!mob && (
-             <button onClick={() => navigate('/products')} style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', borderRadius: 100, fontSize: 10, fontWeight: 800, textTransform: 'uppercase', cursor: 'pointer', letterSpacing: '0.1em' }}>View Product Catalog</button>
+             <div style={{ display: 'flex', gap: 8 }}>
+               {scenes.map((s, i) => (
+                 <motion.img 
+                   key={s.id} 
+                   src={s.img} 
+                   onClick={() => setActive(i)}
+                   whileHover={{ scale: 1.1 }}
+                   style={{ width: 60, height: 40, objectFit: 'cover', borderRadius: 6, cursor: 'pointer', border: active === i ? `2px solid ${ac}` : '2px solid transparent', opacity: active === i ? 1 : 0.6 }}
+                 />
+               ))}
+             </div>
            )}
         </div>
 
-        {/* Center: Controls */}
+        {/* Center: Controls & Swipe Area */}
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
            <button onClick={prev} style={{ pointerEvents: 'auto', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: mob ? 12 : 20, borderRadius: '50%', cursor: 'pointer', backdropFilter: 'blur(10px)' }}><ChevronLeft size={mob ? 24 : 32} /></button>
+           <div 
+             style={{ flex: 1, height: '60vh', pointerEvents: 'none' }} 
+             draggable="false"
+             onMouseDown={(e) => {
+               const startX = e.pageX;
+               const onMouseUp = (upEvent) => {
+                 const diff = upEvent.pageX - startX;
+                 if (Math.abs(diff) > 50) {
+                   if (diff > 0) prev();
+                   else next();
+                 }
+                 window.removeEventListener('mouseup', onMouseUp);
+               };
+               window.addEventListener('mouseup', onMouseUp);
+             }}
+             onTouchStart={(e) => {
+               const startX = e.touches[0].pageX;
+               const onTouchEnd = (endEvent) => {
+                 const diff = endEvent.changedTouches[0].pageX - startX;
+                 if (Math.abs(diff) > 50) {
+                   if (diff > 0) prev();
+                   else next();
+                 }
+                 window.removeEventListener('touchend', onTouchEnd);
+               };
+               window.addEventListener('touchend', onTouchEnd);
+             }}
+           />
            <button onClick={next} style={{ pointerEvents: 'auto', background: 'rgba(255,255,255,0.1)', border: 'none', color: '#fff', padding: mob ? 12 : 20, borderRadius: '50%', cursor: 'pointer', backdropFilter: 'blur(10px)' }}><ChevronRight size={mob ? 24 : 32} /></button>
         </div>
 
@@ -232,6 +343,8 @@ export default function LuxeShowcase({ brand }) {
         transition={{ duration: 12, ease: 'linear' }}
         style={{ position: 'absolute', bottom: 0, left: 0, height: 3, background: ac }}
       />
+        </>
+      )}
     </div>
   );
 }

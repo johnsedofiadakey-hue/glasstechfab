@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LogOut, Check, Calendar, Clock, User, 
-  Briefcase, Activity, Mail, Phone, MapPin
+  Briefcase, Activity, Mail, Phone, MapPin,
+  Folder, DollarSign, MessageSquare, Image, FileText,
+  ChevronRight, LayoutDashboard, Settings, Hammer, Ship
 } from 'lucide-react';
 import { 
   PAv, PSBadge, NotificationBell
@@ -9,132 +11,165 @@ import {
 
 export default function AccountManagerPortal({ user, brand, onLogout, ...props }) {
   const ac = brand.color || '#C8A96E';
-  const { clients, bookings, tasks, updateTask } = props;
-  const [tab, setTab] = useState('tasks');
-  const [fStage, setFStage] = useState('all');
-  const [fStatus, setFStatus] = useState('all');
+  const { clients, bookings, tasks, updateTask, workOrders = [], containers = [] } = props;
+  const [tab, setTab] = useState('dash');
   
   const member = user || {};
-  const myClients = (clients || []).filter(c => c?.managerId === user?.id);
-  const myBookings = (bookings || []).filter(b => b?.pm_id === user?.id || (b?.date && b.date.startsWith('2026-03')));
-  const myTasks = (tasks || []).filter(t => {
-    const isMe = (t?.assignedTo || t?.assigned_to) === user?.id;
-    const isStage = fStage === 'all' || String(t?.stage) === fStage;
-    const isStatus = fStatus === 'all' || t?.status === fStatus;
-    return isMe && isStage && isStatus;
-  });
+  const myWorkOrders = (workOrders || []).filter(wo => wo.managerId === user?.id || wo.assignedTo === user.id);
+  const myClients = (clients || []).filter(c => myWorkOrders.some(wo => wo.clientId === c.id));
 
-  const renderContent = () => {
-    switch (tab) {
-      case 'projects':
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300 }}>Active Installations</h1>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              {myClients.map(c => (
-                <div key={c.id} className="p-card" style={{ padding: 20 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
-                    <PAv i={c.av} s={42} c={ac} />
-                    <PSBadge s={c.status} />
-                  </div>
-                  <div className="lxfh" style={{ fontSize: 20, fontWeight: 400, color: '#1A1410', marginBottom: 4 }}>{c.name}</div>
-                  <div className="lxf" style={{ fontSize: 12, color: '#7A6E62', marginBottom: 14 }}>{c.project}</div>
-                  <div className="prog" style={{ marginBottom: 8 }}><div className="prog-f" style={{ width: `${c.progress}%`, background: ac }} /></div>
-                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{c.progress}% complete</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      case 'tasks':
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20 }}>
-              <h1 className="lxfh" style={{ fontSize: 44, fontWeight: 300 }}>My Tasks</h1>
-              
-              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                 <select className="p-inp" style={{ fontSize: 11, padding: '6px 12px' }} value={fStage} onChange={e => setFStage(e.target.value)}>
-                    <option value="all">All Stages</option>
-                    {[1,2,3,4,5,6,7].map(s => <option key={s} value={s}>Stage {s}</option>)}
-                 </select>
-                 <select className="p-inp" style={{ fontSize: 11, padding: '6px 12px' }} value={fStatus} onChange={e => setFStatus(e.target.value)}>
-                    <option value="all">All Status</option>
-                    <option value="pending">Pending</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                 </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
-              {myTasks.length === 0 && <div className="p-card lxf" style={{ padding: 40, textAlign: 'center', gridColumn: 'span 2', color: '#B5AFA9' }}>No matching tasks found.</div>}
-              {myTasks.map(t => (
-                <div key={t.id} className="p-card" style={{ padding: 20 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-                    <span className="eyebrow lxf" style={{ fontSize: 9 }}>Stage {t.stage} · {t.project_title}</span>
-                    <PSBadge s={t.status} />
-                  </div>
-                  <h3 className="lxfh" style={{ fontSize: 18, fontWeight: 500, marginBottom: 6 }}>{t.title}</h3>
-                  <p className="lxf" style={{ fontSize: 13, color: '#7A6E62', marginBottom: 16 }}>{t.description}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', display: 'flex', alignItems: 'center', gap: 4 }}><Clock size={12} /> Due: {t.dueDate || t.due_date}</div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {t.status === 'pending' && <button onClick={() => updateTask(t.id, { status: 'in_progress' }, t.parentId)} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontWeight: 600, fontSize: 11, cursor: 'pointer' }}>Start Task</button>}
-                      {t.status === 'in_progress' && <button onClick={() => updateTask(t.id, { status: 'completed' }, t.parentId)} className="lxf" style={{ background: 'none', border: 'none', color: '#16A34A', fontWeight: 600, fontSize: 11, cursor: 'pointer' }}>Complete</button>}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      case 'profile':
-        return (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24 }}>
-            <div className="p-card" style={{ padding: 24, textAlign: 'center' }}>
-              <PAv i={member.av} s={120} c={ac} />
-              <h2 className="lxfh" style={{ fontSize: 24, marginTop: 16 }}>{member.name}</h2>
-              <div className="lxf" style={{ fontSize: 14, color: ac, fontWeight: 600 }}>{member.role}</div>
-              <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ fontSize: 13, color: '#7A6E62', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center' }}><Mail size={14} /> {member.email}</div>
-              </div>
-            </div>
-            <div className="p-card" style={{ padding: 24 }}>
-              <h3 className="eyebrow lxf" style={{ marginBottom: 16 }}>Bio</h3>
-              <p className="lxf" style={{ fontSize: 14, color: '#7A6E62', lineHeight: 1.8 }}>{member.bio || 'Premium designer focused on creating exceptional spaces.'}</p>
-            </div>
-          </div>
-        );
-      default:
-        return <div style={{ padding: 40, textAlign: 'center', color: '#B5AFA9' }}>Coming soon.</div>;
-    }
-  };
+  const stats = [
+    { label: 'Active Folders', value: myWorkOrders.length, icon: <Folder size={20} /> },
+    { label: 'My Stakeholders', value: myClients.length, icon: <User size={20} /> },
+    { label: 'Due Tasks', value: (tasks || []).filter(t => t.assignedTo === user.id && t.status !== 'completed').length, icon: <Activity size={20} /> }
+  ];
 
   return (
-    <div className="lxf lx-scroll" style={{ minHeight: '100vh', background: '#F9F7F4', '--ac': ac }}>
-      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 28 }} /> : <div className="lxfh" style={{ fontSize: 22 }}>{brand.name}</div>}
-          <div style={{ height: 18, width: 1, background: 'rgba(0,0,0,.1)' }} />
-          <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9', letterSpacing: '.16em', textTransform: 'uppercase' }}>Operations Team Portal</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <NotificationBell notifications={props.userNotifications || props.notifications} onMarkRead={props.markNotificationRead} />
-          <PAv i={member?.av} s={32} c={ac} />
-          <div><div className="lxf" style={{ fontSize: 13, fontWeight: 500 }}>{member?.name || 'User'}</div><div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>{member?.role}</div></div>
-          <button onClick={onLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', marginLeft: 16 }}><LogOut size={16} /></button>
-        </div>
-      </div>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#F9F7F4' }}>
+       {/* OPERATIONS SIDEBAR */}
+       <aside style={{ width: 280, background: '#1A1410', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '32px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
+             {brand.logo ? <img src={brand.logo} alt="logo" style={{ height: 32 }} /> : <div className="lxfh" style={{ fontSize: 20, color: ac }}>G</div>}
+             <div className="lxfh" style={{ color: '#fff', fontSize: 16 }}>Ops Center</div>
+          </div>
 
-      <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,.07)', padding: '0 32px', display: 'flex', gap: 0 }}>
-        {[['tasks', 'My Tasks'], ['projects', 'Projects'], ['schedule', 'Schedule'], ['profile', 'Profile']].map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} className={`p-tab lxf${tab === id ? ' active' : ''}`}>{label}</button>
-        ))}
-      </div>
+          <nav style={{ flex: 1, padding: '0 12px' }}>
+             {[
+                { id: 'dash', label: 'Command', icon: <LayoutDashboard size={18} /> },
+                { id: 'folders', label: 'Work Orders', icon: <Folder size={18} /> },
+                { id: 'tasks', label: 'Field Tasks', icon: <Hammer size={18} /> },
+                { id: 'chat', label: 'Messages', icon: <MessageSquare size={18} /> },
+                { id: 'profile', label: 'My Access', icon: <User size={18} /> }
+             ].map(i => (
+               <button 
+                 key={i.id} 
+                 onClick={() => setTab(i.id)}
+                 style={{ 
+                   width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                   background: tab === i.id ? 'rgba(200, 169, 110, 0.1)' : 'none',
+                   border: 'none', borderRadius: 12, cursor: 'pointer',
+                   color: tab === i.id ? ac : 'rgba(255,255,255,0.4)',
+                   transition: 'all 0.2s', marginBottom: 4
+                 }}
+               >
+                  {i.icon}
+                  <span style={{ fontSize: 14, fontWeight: tab === i.id ? 700 : 500 }}>{i.label}</span>
+               </button>
+             ))}
+          </nav>
 
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '36px 32px' }}>
-        {renderContent()}
-      </div>
+          <div style={{ padding: 24, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+             <button onClick={onLogout} style={{ background: 'none', border: 'none', color: '#EF4444', opacity: 0.6, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <LogOut size={16} /> Logout
+             </button>
+          </div>
+       </aside>
+
+       {/* MAIN OPERATIONS VIEW */}
+       <main style={{ flex: 1, padding: '40px 60px', overflowY: 'auto' }}>
+          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 48 }}>
+             <div>
+                <h1 className="lxfh" style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>Ops Command</h1>
+                <p style={{ fontSize: 13, color: '#B5AFA9', fontWeight: 600 }}>Welcome back, {member.name}</p>
+             </div>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+                <NotificationBell notifications={props.userNotifications} onMarkRead={props.markNotificationRead} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                   <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 14, fontWeight: 700 }}>{member.name}</div>
+                      <div style={{ fontSize: 10, color: ac, fontWeight: 800, textTransform: 'uppercase' }}>{member.role}</div>
+                   </div>
+                   <PAv i={member.av} s={40} c={ac} />
+                </div>
+             </div>
+          </header>
+
+          {/* STATS STRIP */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, marginBottom: 48 }}>
+             {stats.map(s => (
+               <div key={s.label} className="p-card" style={{ padding: 24, background: '#fff', border: '1px solid #F0EBE5' }}>
+                  <div style={{ color: ac, marginBottom: 12 }}>{s.icon}</div>
+                  <div style={{ fontSize: 24, fontWeight: 900 }}>{s.value}</div>
+                  <div style={{ fontSize: 12, color: '#B5AFA9', fontWeight: 700, textTransform: 'uppercase' }}>{s.label}</div>
+               </div>
+             ))}
+          </div>
+
+          {/* CONTENT AREA */}
+          <div className="fade-in">
+             {tab === 'dash' && (
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 32 }}>
+                   <div className="p-card" style={{ padding: 32 }}>
+                      <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 24 }}>Active Work Orders</h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                         {myWorkOrders.length > 0 ? myWorkOrders.map(wo => (
+                           <div key={wo.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, background: '#F9F7F4', borderRadius: 16 }}>
+                              <div>
+                                 <div style={{ fontSize: 14, fontWeight: 700 }}>{wo.title}</div>
+                                 <div style={{ fontSize: 11, color: '#B5AFA9' }}>{wo.id} • {wo.project}</div>
+                              </div>
+                              <PSBadge s={wo.status} />
+                           </div>
+                         )) : (
+                           <div style={{ padding: 40, textAlign: 'center', color: '#B5AFA9', fontSize: 13 }}>No active work orders assigned to you.</div>
+                         )}
+                      </div>
+                   </div>
+
+                   <div className="p-card" style={{ padding: 24 }}>
+                      <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 20 }}>Site Pulse</h3>
+                      {/* Simple list of recent site photos or updates */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                         {(props.media || []).slice(0, 5).map(m => (
+                           <div key={m.id} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                              <img src={m.url} style={{ width: 48, height: 48, borderRadius: 8, objectFit: 'cover' }} />
+                              <div>
+                                 <div style={{ fontSize: 12, fontWeight: 700 }}>{m.caption?.slice(0, 20)}...</div>
+                                 <div style={{ fontSize: 10, color: '#B5AFA9' }}>{new Date(m.createdAt).toLocaleDateString()}</div>
+                              </div>
+                           </div>
+                         ))}
+                      </div>
+                   </div>
+                </div>
+             )}
+             
+             {tab === 'tasks' && (
+                <div className="p-card" style={{ padding: 32 }}>
+                   <h3 style={{ fontSize: 20, fontWeight: 800, marginBottom: 24 }}>Field Task List</h3>
+                   {/* Simplified task list matching the new ERP style */}
+                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+                      {(tasks || []).filter(t => t.assignedTo === user.id).map(t => (
+                        <div key={t.id} style={{ padding: 20, background: '#F9F7F4', borderRadius: 20, border: '1px solid #F0EBE5' }}>
+                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                              <div style={{ fontSize: 10, fontWeight: 900, color: ac }}>{t.project_title}</div>
+                              <PSBadge s={t.status} />
+                           </div>
+                           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{t.title}</div>
+                           <div style={{ fontSize: 12, color: '#625C54' }}>{t.description}</div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+             )}
+
+             {tab === 'profile' && (
+                <div className="p-card" style={{ padding: 40, maxWidth: 600 }}>
+                   <div style={{ display: 'flex', gap: 32, alignItems: 'center', marginBottom: 40 }}>
+                      <PAv i={member.av} s={100} c={ac} />
+                      <div>
+                         <h2 style={{ fontSize: 24, fontWeight: 900, marginBottom: 4 }}>{member.name}</h2>
+                         <div style={{ fontSize: 14, color: ac, fontWeight: 700 }}>{member.role}</div>
+                      </div>
+                   </div>
+                   <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                      <div><label style={{ fontSize: 10, fontWeight: 900, color: '#B5AFA9', textTransform: 'uppercase' }}>Email</label><div style={{ fontSize: 15 }}>{member.email}</div></div>
+                      <div><label style={{ fontSize: 10, fontWeight: 900, color: '#B5AFA9', textTransform: 'uppercase' }}>Access Role</label><div style={{ fontSize: 15 }}>Production Supervisor</div></div>
+                   </div>
+                </div>
+             )}
+          </div>
+       </main>
     </div>
   );
 }

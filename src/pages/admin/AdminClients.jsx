@@ -1,70 +1,65 @@
 import React, { useState } from 'react';
 import { 
-  Search, 
-  Plus, 
-  X, 
-  UserPlus, 
-  Trash2, 
-  Edit2, 
-  Mail, 
-  Phone, 
-  Info,
-  ChevronRight,
-  ShieldCheck,
-  Building,
-  Shield,
-  Command,
-  Zap,
-  Globe,
-  Settings
+  Search, Plus, X, UserPlus, Trash2, Edit2, Mail, Phone, 
+  Info, ChevronRight, ShieldCheck, Building, Shield, Command,
+  Zap, Globe, Settings, Folder, DollarSign, Activity, AlertCircle,
+  Key, MoreVertical, Briefcase, CheckSquare, Square, AlertTriangle
 } from 'lucide-react';
-import { PAv } from '../../components/Shared';
+import { PAv, PSBadge } from '../../components/Shared';
 
-export default function AdminClients({ dbClients, createClient, updateClient, deleteClient, resetUserPassword, brand, ...props }) {
+export default function AdminClients({ dbClients, createClient, updateClient, deleteClient, deleteSelectedClients, deleteAllClients, resetUserPassword, brand, ...props }) {
   const [showAdd, setShowAdd] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [search, setSearch] = useState('');
-  const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '', username: '', password: '' });
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [confirmDelete, setConfirmDelete] = useState(null); 
+  const [newC, setNewC] = useState({ name: '', email: '', phone: '', company: '' });
+  const [loading, setLoading] = useState(false);
 
-  const ac = brand.color || '#B08D57';
+  const ac = brand.color || '#C8A96E';
+  const { invoices = [], workOrders = [] } = props;
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.length === filtered.length) setSelectedIds([]);
+    else setSelectedIds(filtered.map(c => c.id));
+  };
 
   const resetForm = () => {
-    setNewC({ name: '', email: '', phone: '', company: '', username: '', password: '' });
+    setNewC({ name: '', email: '', phone: '', company: '' });
     setEditingClient(null);
     setShowAdd(false);
   };
 
   const handleSubmit = async () => {
-    if (!newC.name || !newC.phone) {
-      return alert("Required: Full Name and Phone Number");
-    }
-    
-    if (editingClient) {
-      await updateClient(editingClient.id, newC);
-    } else {
-      await createClient(newC);
-    }
-    resetForm();
-  };
-
-  const handleResetPassword = () => {
-    const fresh = prompt("Enter new access password for " + editingClient.name);
-    if (fresh) {
-      resetUserPassword(editingClient.id, fresh);
+    if (!newC.name || !newC.phone) return alert("Required: Full Name and Phone Number");
+    setLoading(true);
+    try {
+      if (editingClient) await updateClient(editingClient.id, newC);
+      else await createClient(newC);
+      resetForm();
+    } finally {
+      setLoading(false);
     }
   };
 
   const startEdit = (c) => {
     setEditingClient(c);
-    setNewC({ 
-      name: c.name || '', 
-      email: c.email || '', 
-      phone: c.phone || '', 
-      company: c.company || '', 
-      username: c.username || '',
-      password: c.password || ''
-    });
+    setNewC({ name: c.name || '', email: c.email || '', phone: c.phone || '', company: c.company || '' });
     setShowAdd(true);
+  };
+
+  const handleConfirmedDelete = async () => {
+    if (!confirmDelete) return;
+    if (confirmDelete.type === 'single') await deleteClient(confirmDelete.id);
+    else if (confirmDelete.type === 'multi') await deleteSelectedClients(selectedIds);
+    else if (confirmDelete.type === 'all') await deleteAllClients();
+    
+    setConfirmDelete(null);
+    setSelectedIds([]);
   };
 
   const filtered = (dbClients || []).filter(c => 
@@ -75,144 +70,171 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
   );
 
   return (
-    <div className="p-fade admin-clients-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+    <div className="p-fade admin-clients-container" style={{ padding: '20px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 }}>
         <div>
-          <h2 className="lxfh" style={{ fontSize: 32, marginBottom: 6, fontWeight: 300 }}>Stakeholder Registry</h2>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: ac }}></div>
-            <p className="lxf" style={{ color: '#666', fontSize: 13, letterSpacing: '0.02em' }}>Managing {dbClients?.length || 0} production entities</p>
-          </div>
+          <h2 className="lxfh" style={{ fontSize: 28, fontWeight: 700, color: '#1A1410' }}>Client Directory</h2>
+          <p className="lxf" style={{ color: '#B5AFA9', fontSize: 13, marginTop: 4 }}>Manage your clients and track their project status.</p>
         </div>
-        <button onClick={() => setShowAdd(true)} className="p-btn-gold lxf" style={{ padding: '14px 28px', borderRadius: 4, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <UserPlus size={18} /> Register Client
-        </button>
+        <div style={{ display: 'flex', gap: 12 }}>
+          {selectedIds.length > 0 && (
+            <button onClick={() => setConfirmDelete({ type: 'multi' })} className="p-btn-dark" style={{ background: '#EF4444', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px' }}>
+              <Trash2 size={18} /> Delete Selected
+            </button>
+          )}
+          <button onClick={() => setConfirmDelete({ type: 'all' })} className="p-btn-dark" style={{ background: '#1A1410', color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px', opacity: 0.5 }}>
+            <AlertCircle size={18} /> Delete All
+          </button>
+          <button onClick={() => setShowAdd(true)} className="p-btn-dark" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 24px' }}>
+            <UserPlus size={18} /> Add New Client
+          </button>
+        </div>
       </div>
 
-      <div className="p-card" style={{ padding: 0, overflow: 'hidden', border: 'none', background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(10px)', borderRadius: 24, boxShadow: '0 20px 40px rgba(0,0,0,0.03)' }}>
-        <div style={{ padding: '24px 32px', background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.04)', display: 'flex', alignItems: 'center' }}>
-          <Search size={20} color={ac} style={{ marginRight: 20 }} />
-          <input 
-            type="text" 
-            placeholder="Search Stakeholder Database..." 
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            style={{ background: 'none', border: 'none', width: '100%', fontSize: 16, outline: 'none', color: '#1A1410' }}
-            className="lxf"
-          />
-        </div>
+      <div style={{ marginBottom: 32, display: 'flex', gap: 16 }}>
+         <div style={{ flex: 1, position: 'relative' }}>
+            <Search style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#B5AFA9' }} size={18} />
+            <input 
+               className="p-inp" 
+               style={{ paddingLeft: 48, height: 56, borderRadius: 16, background: '#F9F7F4', border: '1px solid #F0EBE5' }} 
+               placeholder="Find client..." 
+               value={search}
+               onChange={e => setSearch(e.target.value)}
+            />
+         </div>
+         <select 
+           value={props.currency} 
+           onChange={e => props.setCurrency(e.target.value)}
+           style={{ height: 56, padding: '0 20px', borderRadius: 16, border: '1px solid #F0EBE5', background: '#fff', fontSize: 14, fontWeight: 700 }}
+         >
+           <option value="GHS">GHS (₵)</option>
+           <option value="USD">USD ($)</option>
+         </select>
+      </div>
 
-        <div style={{ padding: 40 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 32 }}>
-            {filtered.map(client => (
-              <div key={client.id} className="p-card" style={{ padding: 0, border: '1px solid rgba(0,0,0,0.04)', background: '#fff', borderRadius: 20, overflow: 'hidden', transition: 'transform 0.3s' }}>
-                <div style={{ padding: 32, paddingBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                   <div style={{ width: 64, height: 64, borderRadius: 16, background: '#1A1410', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 300 }} className="lxfh">
-                      {client.name?.[0]}
-                   </div>
-                   <div style={{ display: 'flex', gap: 10 }}>
-                      <button onClick={() => startEdit(client)} style={{ background: '#F9F7F4', border: 'none', padding: 12, borderRadius: 12, color: '#1A1410', cursor: 'pointer' }}><Edit2 size={18} /></button>
-                      <button onClick={() => deleteClient(client.id)} style={{ background: '#FFF1F1', border: 'none', padding: 12, borderRadius: 12, color: '#EF4444', cursor: 'pointer' }}><Trash2 size={18} /></button>
-                   </div>
-                </div>
+      <div className="p-card" style={{ padding: 0, overflow: 'hidden', border: '1px solid #F0EBE5' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <thead style={{ background: '#F9F7F4', borderBottom: '1px solid #F0EBE5' }}>
+            <tr>
+              <th style={{ padding: '16px 24px', width: 40 }}>
+                <button onClick={toggleAll} style={{ background: 'none', border: 'none', cursor: 'pointer', color: selectedIds.length === filtered.length ? ac : '#B5AFA9' }}>
+                   {selectedIds.length === filtered.length ? <CheckSquare size={20} /> : <Square size={20} />}
+                </button>
+              </th>
+              <th style={{ padding: '16px 24px', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: '#B5AFA9' }}>Stakeholder</th>
+              <th style={{ padding: '16px 24px', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: '#B5AFA9' }}>Entity / Company</th>
+              <th style={{ padding: '16px 24px', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: '#B5AFA9' }}>Operational Pulse</th>
+              <th style={{ padding: '16px 24px', fontSize: 10, textTransform: 'uppercase', letterSpacing: 1, color: '#B5AFA9', textAlign: 'right' }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(client => {
+              const myProjects = (workOrders || []).filter(wo => wo.clientId === client.id);
+              const latestProject = myProjects[myProjects.length - 1];
+              const isSelected = selectedIds.includes(client.id);
+              return (
+                <tr key={client.id} style={{ borderBottom: '1px solid #F9F7F4', background: isSelected ? `${ac}08` : 'transparent' }} className="table-row-hover">
+                  <td style={{ padding: '20px 24px' }}>
+                    <button onClick={() => toggleSelect(client.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: isSelected ? ac : '#B5AFA9' }}>
+                       {isSelected ? <CheckSquare size={20} /> : <Square size={20} />}
+                    </button>
+                  </td>
+                  <td style={{ padding: '20px 24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <PAv i={client.name?.[0]} s={40} c={ac} />
+                      <div>
+                        <div className="lxfh" style={{ fontSize: 15, fontWeight: 700 }}>{client.name}</div>
+                        <div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.phone}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: '20px 24px' }}>
+                     <div style={{ fontSize: 14, fontWeight: 600 }}>{client.company || 'Private Portfolio'}</div>
+                     <div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div>
+                  </td>
+                  <td style={{ padding: '20px 24px' }}>
+                    {latestProject ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: ac }} />
+                        <span className="lxf" style={{ fontSize: 13 }}>{latestProject.title}</span>
+                      </div>
+                    ) : (
+                      <span className="lxf" style={{ fontSize: 12, color: '#B5AFA9' }}>Standby</span>
+                    )}
+                  </td>
+                  <td style={{ padding: '20px 24px', textAlign: 'right' }}>
+                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                      <button onClick={() => props.onSelectClient?.(client.id)} className="p-btn-dark" style={{ height: 36, padding: '0 16px', fontSize: 11 }}>Hub</button>
+                      <button onClick={() => startEdit(client)} style={{ background: '#F9F7F4', border: 'none', padding: 10, borderRadius: 8, color: '#1A1410', cursor: 'pointer' }}><Edit2 size={16} /></button>
+                      <button onClick={() => setConfirmDelete({ type: 'single', id: client.id })} style={{ background: '#FFF1F1', border: 'none', padding: 10, borderRadius: 8, color: '#EF4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
-                <div style={{ padding: 32 }}>
-                  <div className="lxfh" style={{ fontSize: 24, marginBottom: 8, fontWeight: 400, color: '#1A1410' }}>{client.name}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: ac, marginBottom: 24, fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                    <Building size={14} />
-                    {client.company || 'Private Portfolio'}
-                  </div>
-                  
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 32 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#6A635C' }} className="lxf">
-                        <Mail size={18} color="#B5AFA9" /> {client.email}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14, color: '#6A635C' }} className="lxf">
-                        <Zap size={18} color={ac} /> <span style={{ fontWeight: 700 }}>{client.username}</span>
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#F9F7F4', padding: 24, borderRadius: 16 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <div className="lxf" style={{ fontSize: 10, color: '#B5AFA9', fontWeight: 800, textTransform: 'uppercase' }}>Security Layer</div>
-                      <ShieldCheck size={16} color="#16A34A" />
-                    </div>
-                    <div className="lxf" style={{ fontSize: 13, color: '#1A1410', lineHeight: 1.5 }}>
-                      Authenticated via <b>WhatsApp/OTP</b> and Biometric credentials.
-                    </div>
-                  </div>
-                </div>
-
-                <div onClick={() => props.onSelectClient?.(client.id)} style={{ padding: '20px 32px', background: '#1A1410', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', color: '#fff' }}>
-                  <span className="lxf" style={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Access Command Center</span>
-                  <ChevronRight size={18} color={ac} />
-                </div>
+      {/* CUSTOM DELETE CONFIRMATION MODAL */}
+      {confirmDelete && (
+        <div className="overlay-modal" style={{ background: 'rgba(26,20,16,0.9)', backdropFilter: 'blur(20px)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+           <div className="modal-box" style={{ background: '#fff', width: '100%', maxWidth: 400, borderRadius: 24, padding: 32, textAlign: 'center' }}>
+              <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#FFF1F1', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                 <AlertTriangle size={32} />
               </div>
-            ))}
-          </div>
+              <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 8 }}>Confirm Deletion</h3>
+              <p style={{ fontSize: 14, color: '#B5AFA9', marginBottom: 32 }}>
+                 {confirmDelete.type === 'all' ? 'Are you sure you want to delete ALL clients? This is a master reset.' : 
+                  confirmDelete.type === 'multi' ? `Are you sure you want to delete ${selectedIds.length} selected clients?` :
+                  'Are you sure you want to remove this client? This action is permanent.'}
+              </p>
+              <div style={{ display: 'flex', gap: 12 }}>
+                 <button onClick={() => setConfirmDelete(null)} style={{ flex: 1, height: 50, borderRadius: 12, border: '1px solid #F0EBE5', background: 'none', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
+                 <button onClick={handleConfirmedDelete} style={{ flex: 1, height: 50, borderRadius: 12, border: 'none', background: '#EF4444', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Delete</button>
+              </div>
+           </div>
         </div>
-      </div>
+      )}
 
       {showAdd && (
         <div className="overlay-modal" style={{ background: 'rgba(18,18,18,0.8)', backdropFilter: 'blur(20px)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal-box" style={{ 
-            maxWidth: 640, width: '90%', borderRadius: 12, border: '1px solid rgba(255,255,255,0.1)', 
-            background: '#ffffff', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.3)' 
+            background: '#fff', width: '100%', maxWidth: 500, borderRadius: 32, padding: 40,
+            boxShadow: '0 40px 100px rgba(0,0,0,0.5)'
           }}>
-            <div style={{ padding: '32px 40px', background: '#121212', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div className="lxf eyebrow" style={{ color: ac, marginBottom: 8, fontSize: 10 }}>Secure Registration</div>
-                <h2 className="lxfh" style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>{editingClient ? 'Edit Profile' : 'Initialize Stakeholder'}</h2>
-              </div>
-              <button onClick={resetForm} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.5)' }}><X size={24} /></button>
-            </div>
-
-            <div style={{ padding: 40, maxHeight: '80vh', overflowY: 'auto' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 32 }}>
-                
-                <section>
-                  <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>1. Primary Identity</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-                    <div className="p-form-group">
-                      <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Full Legal Name / Entity</label>
-                      <input className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.name} onChange={e => setNewC({ ...newC, name: e.target.value })} placeholder="e.g. John Doe / Global Tech Ltd" />
-                    </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                      <div className="p-form-group">
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Email Address</label>
-                        <input type="email" className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.email} onChange={e => setNewC({ ...newC, email: e.target.value })} placeholder="email@domain.com" />
-                      </div>
-                      <div className="p-form-group">
-                        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#121212', marginBottom: 8, textTransform: 'uppercase' }}>Phone Number</label>
-                        <input className="p-inp" style={{ padding: '14px 16px', borderRadius: 8 }} value={newC.phone} onChange={e => setNewC({ ...newC, phone: e.target.value })} placeholder="+233..." />
-                      </div>
-                    </div>
-                  </div>
-                </section>
-
-                <section>
-                  <div className="lxf eyebrow" style={{ fontSize: 10, color: '#B5AFA9', marginBottom: 20 }}>2. Managed Credentials</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-                    <div style={{ background: '#F9F7F4', padding: 20, borderRadius: 12, border: '1px dashed #F0EBE5' }}>
-                       <div style={{ fontSize: 13, fontWeight: 700, color: ac, marginBottom: 4 }}>AUTO-GENERATED PORTAL ACCESS</div>
-                       <p style={{ fontSize: 12, color: '#666', margin: 0 }}>
-                         The system will use the <b>Phone Number</b> as the Username. 
-                         Initial password will be <b>unlockme</b>. 
-                         The client will be prompted to change this on their first login.
-                       </p>
-                    </div>
-                  </div>
-                </section>
-
-                <div style={{ paddingTop: 8, borderTop: '1px solid #eee', display: 'flex', gap: 16 }}>
-                  <button onClick={resetForm} style={{ flex: 1, padding: '18px', borderRadius: 8, border: '1px solid #eee', background: '#fff', color: '#666', fontWeight: 700, cursor: 'pointer' }}>Cancel</button>
-                  <button onClick={handleSubmit} className="minimal-btn" style={{ flex: 2, padding: '18px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: 14 }}>
-                     <ShieldCheck size={20} /> {editingClient ? 'Finalize Updates' : 'Commit Registration'}
-                  </button>
+             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 32 }}>
+                <h3 className="lxfh" style={{ fontSize: 24, margin: 0 }}>{editingClient ? 'Modify Stakeholder' : 'Register Stakeholder'}</h3>
+                <button onClick={resetForm} style={{ background: 'none', border: 'none', color: '#B5AFA9', cursor: 'pointer' }}><X size={24} /></button>
+             </div>
+             
+             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div className="p-field">
+                   <label style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 800, color: '#B5AFA9', marginBottom: 8, display: 'block' }}>Full Legal Name</label>
+                   <input className="p-inp" value={newC.name} onChange={e => setNewC({...newC, name: e.target.value})} placeholder="e.g. Samuel Amissah" />
                 </div>
-              </div>
-            </div>
+                <div className="p-field">
+                   <label style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 800, color: '#B5AFA9', marginBottom: 8, display: 'block' }}>Operational Email</label>
+                   <input className="p-inp" value={newC.email} onChange={e => setNewC({...newC, email: e.target.value})} placeholder="e.g. sam@enterprise.com" />
+                </div>
+                <div className="p-field">
+                   <label style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 800, color: '#B5AFA9', marginBottom: 8, display: 'block' }}>Direct Phone (Primary ID)</label>
+                   <input className="p-inp" value={newC.phone} onChange={e => setNewC({...newC, phone: e.target.value})} placeholder="e.g. +233 ..." />
+                </div>
+                <div className="p-field">
+                   <label style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 800, color: '#B5AFA9', marginBottom: 8, display: 'block' }}>Company / Entity</label>
+                   <input className="p-inp" value={newC.company} onChange={e => setNewC({...newC, company: e.target.value})} placeholder="e.g. Amissah Developments" />
+                </div>
+             </div>
+
+             <button 
+                onClick={handleSubmit}
+                disabled={loading}
+                className="p-btn-dark" 
+                style={{ width: '100%', marginTop: 40, height: 60, fontSize: 16, borderRadius: 20, opacity: loading ? 0.5 : 1 }}
+             >
+                {loading ? 'Processing...' : (editingClient ? 'Finalize Modifications' : 'Initialize Account')}
+             </button>
           </div>
         </div>
       )}

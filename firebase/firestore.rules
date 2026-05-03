@@ -10,23 +10,19 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated() && (
         request.auth.token.email.matches(".*@glasstechfab.com") ||
-        request.auth.token.email == "contact@glasstech.com.gh" ||
-        request.auth.uid == "qRcOaTkJ6rYmjha9jNAadrYW6pK2" || // Super Admin
-        request.auth.uid == "pBkrb38P9NaXXjIILQXlqxxC33p2" || // Factory Admin
-        request.auth.uid == "GQL4qVw3NIe9XVq8gZFkuU4Q9dD3" || // Authorized Test Account
-        request.auth.uid == "GQL4qVw3NIe9XVq8gZFkuU4Q9dd3"    // Current Active UID
+        request.auth.token.email.matches(".*@stormglide.com") ||
+        request.auth.token.email == "contact@glasstech.com.gh"
       );
     }
 
-    function isOwner(clientId) {
-      return isAuthenticated() && request.auth.uid == clientId;
+    function isClient(clientId) {
+      return isAuthenticated() && (request.auth.uid == clientId || request.auth.token.email.replace("@clients.glasstechfab.com", "") == clientId);
     }
 
     // --- USER PROFILES ---
     match /users/{userId} {
-      allow get: if isAuthenticated();
-      allow list: if isAdmin();
-      allow write: if isAdmin() || request.auth.uid == userId;
+      allow get, list: if true;
+      allow write: if isAdmin() || (isAuthenticated() && (request.auth.uid == userId || isClient(userId)));
     }
 
     // --- OPERATIONS: JOBS & ASSETS ---
@@ -41,140 +37,58 @@ service cloud.firestore {
 
     // --- PROJECTS & CLIENT DATA ---
     match /projects/{projectId} {
-      // Allow read if user is Admin OR the owner of the project (by UID or Email)
-      allow get: if isAdmin() || isOwner(resource.data.clientId) || (isAuthenticated() && request.auth.token.email == resource.data.email);
-      allow list: if isAdmin() || (isAuthenticated() && (request.query.limit <= 100)); // Allow clients to query projects
+      allow get: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && request.auth.token.email == resource.data.email);
+      allow list: if isAdmin() || (isAuthenticated() && (request.query.limit <= 100));
       allow write: if isAdmin();
 
-      // Deep Sub-collections (Payments, Media, Notes, Tasks)
       match /{subcollection}/{docId} {
-        allow get: if isAdmin() || isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.clientId);
-        allow list: if isAdmin() || isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data.clientId);
+        allow get, list: if isAdmin() || isClient(get(/databases/$(database)/documents/projects/$(projectId)).data.clientId);
         allow write: if isAdmin();
       }
     }
 
-    // --- PUBLIC & SHARED COLLECTIONS ---
-    match /bookings/{bookingId} {
-      allow read: if isAdmin();
-      allow create: if true; // Public can book
-    }
-    
-    match /proposals/{proposalId} {
-      allow read, write: if isAdmin();
+    match /bookings/{bookingId} { allow read: if isAdmin(); allow create: if true; }
+    match /proposals/{proposalId} { 
+      allow read: if isAdmin() || isClient(resource.data.clientId); 
+      allow write: if isAdmin(); 
     }    
-    match /cms_content/{docId} {
-      allow read, write: if true;
-    }
-
-    match /settings/{docId} {
-       allow read, write: if true;
-    }
+    match /cms_content/{docId} { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{docId} { allow read: if true; allow write: if isAdmin(); }
+    
     match /notifications/{notifId} {
-      allow read: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+      allow read: if isAdmin() || (isAuthenticated() && (request.auth.uid == resource.data.userId || isClient(resource.data.userId)));
       allow create: if true; 
-      allow update, delete: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.userId);
+      allow update, delete: if isAdmin() || (isAuthenticated() && (request.auth.uid == resource.data.userId || isClient(resource.data.userId)));
     }
 
-    match /portfolio/{projId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /products/{prodId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /testimonials/{testId} {
-      allow read: if true; // Public can see testimonials
-      allow create: if true; // Public can submit
-      allow update, delete: if isAdmin();
-    }
+    match /portfolio/{projId} { allow read: if true; allow write: if isAdmin(); }
+    match /products/{prodId} { allow read: if true; allow write: if isAdmin(); }
+    match /testimonials/{testId} { allow read: if true; allow create: if true; allow update, delete: if isAdmin(); }
 
     match /messages/{msgId} {
-      allow read: if isAdmin() || (isAuthenticated() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId));
+      allow read: if isAdmin() || (isAuthenticated() && (request.auth.uid == resource.data.senderId || request.auth.uid == resource.data.receiverId || isClient(resource.data.senderId) || isClient(resource.data.receiverId)));
       allow create: if isAuthenticated();
       allow delete: if isAdmin();
     }
 
-    match /showcase/{sceneId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
+    match /showcase/{sceneId} { allow read: if true; allow write: if isAdmin(); }
     match /emails/{emailId} {
       allow read: if isAdmin() || (isAuthenticated() && request.auth.token.email == resource.data.to);
       allow write: if isAdmin();
-      allow create: if true; // Public can send inquiries
+      allow create: if true; 
     }
 
-    match /work_orders/{id} {
-      allow get: if isAuthenticated();
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin();
-    }
-    match /containers/{id} {
-      allow get: if isAuthenticated();
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin();
-    }
-    // --- GLOBAL ADMIN COLLECTIONS ---
-    match /transactions/{txId} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /shipments/{shipId} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /invoices/{invId} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /tasks/{taskId} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /procurements/{procId} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /activity_logs/{logId} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin();
-      allow write: if isAdmin(); 
-    }
-    match /messages/{msgId} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAuthenticated();
-      allow write: if isAuthenticated(); 
-    }
-    match /approvals/{id} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /change_requests/{id} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /notes/{id} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /media/{id} { 
-      allow get: if isAuthenticated(); 
-      allow list: if isAdmin() || (isAuthenticated() && resource.data.clientId == request.auth.uid);
-      allow write: if isAdmin(); 
-    }
-    match /testimonials/{id} { allow read: if true; allow write: if isAuthenticated(); }
+    match /work_orders/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /containers/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /transactions/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /invoices/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /tasks/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /procurements/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /activity_logs/{id} { allow read: if isAdmin(); allow write: if isAdmin(); }
+    match /approvals/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /change_requests/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /notes/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /media/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
+    match /shipments/{id} { allow read: if isAdmin() || isClient(resource.data.clientId) || (isAuthenticated() && resource.data.clientEmail == request.auth.token.email); allow write: if isAdmin(); }
   }
 }

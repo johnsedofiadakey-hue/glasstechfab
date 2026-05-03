@@ -13,7 +13,7 @@ export default function AdminStaff({ team = [], brand, ...props }) {
   const ac = brand.color || '#C8A96E';
   
   const addMember = () => {
-    alert('Invite new staff via Supabase Dashboard to enable login.');
+    alert('Invite new staff via Firebase Console to enable login.');
   };
 
   const updateM = (id, fields) => {

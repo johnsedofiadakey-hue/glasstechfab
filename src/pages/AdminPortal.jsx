@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import AdminLayout from './admin/AdminLayout';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminClients from './admin/AdminClients';
@@ -6,8 +7,6 @@ import AdminInstallations from './admin/AdminInstallations';
 import AdminLogistics from './admin/AdminLogistics';
 import AdminCMS from './admin/AdminCMS';
 import AdminPortfolio from './admin/AdminPortfolio';
-import AdminBookings from './admin/AdminBookings';
-import AdminAnalytics from './admin/AdminAnalytics';
 import AdminEmailCenter from './admin/AdminEmailCenter';
 import AdminStaff from './admin/AdminStaff';
 import AdminSystem from './admin/AdminSystem';
@@ -20,7 +19,23 @@ import AdminShowcase from './admin/AdminShowcase';
 import AdminFinancials from './admin/AdminFinancials';
 
 export default function AdminPortal({ user, onLogout, onPreview, content, setContent, ...props }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [view, setView] = useState('dash');
+
+  useEffect(() => {
+    const path = location.pathname.split('/').pop();
+    if (path && path !== 'admin' && path !== '') {
+      setView(path);
+    } else {
+      setView('dash');
+    }
+  }, [location.pathname]);
+
+  const handleSetView = (newView) => {
+    setView(newView);
+    navigate(`/admin/${newView}`);
+  };
   const [showAI, setShowAI] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [mod, setMod] = useState(null); // 'AddClient', 'AddProject', etc.
@@ -47,18 +62,14 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
     };
     switch (view) {
       case 'dash': return <AdminDashboard {...common} />;
-      case 'operations': return <AdminClients {...common} />;
+      case 'operations': return <AdminClients {...common} deleteSelectedClients={props.deleteSelectedClients} deleteAllClients={props.deleteAllClients} currency={props.currency} setCurrency={props.setCurrency} />;
       case 'client-hub': return <ClientHub clientId={selectedClientId} onBack={() => setView('operations')} {...common} />;
       case 'logistics': return <AdminLogistics {...common} />;
       case 'installations': return <AdminInstallations {...common} />;
       case 'cms': return <AdminCMS {...common} onPreview={onPreview} />;
       case 'portfolio': return <AdminPortfolio {...common} />;
       case 'showcase': return <AdminShowcase {...common} />;
-      case 'bookings': return <AdminBookings {...common} />;
-      case 'analytics': return <AdminAnalytics {...common} />;
-      case 'chat': return <AdminChat {...common} />;
       case 'staff': return <AdminStaff {...common} />;
-      case 'testimonials': return <AdminTestimonials {...common} />;
       case 'financials': return <AdminFinancials {...common} />;
       case 'system': return <AdminSystem onReset={props.migrateToFirebase} syncCatalog={props.syncCatalog} {...common} />;
       case 'email': return <AdminEmailCenter {...common} convertInquiry={props.convertInquiryToProject} updateEmailStatus={props.updateEmailStatus} />;
@@ -73,7 +84,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       onPreview={onPreview} 
       brand={brand} 
       view={view} 
-      setView={setView}
+      setView={handleSetView}
       userNotifications={props.userNotifications || props.notifications}
       markNotificationRead={props.markNotificationRead}
       {...props}

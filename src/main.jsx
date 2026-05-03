@@ -1,7 +1,10 @@
-import { StrictMode, Component } from 'react'
+import React, { StrictMode, Component } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+
+// Project-wide safety net for legacy/minified React references
+window.React = React;
 
 import { BrowserRouter } from 'react-router-dom'
 

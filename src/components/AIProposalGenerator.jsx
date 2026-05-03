@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Sparkles, ArrowRight, ArrowLeft, Check, 
   Layers, Ruler, Palette, FileText, Send 
@@ -33,7 +33,7 @@ export default function AIProposalGenerator({ open, onClose, onSubmit, brand, in
   });
   
   // Update data when initialData changes (if modal is reused)
-  React.useEffect(() => {
+  useEffect(() => {
     if (open && initialData) {
       setData(prev => ({
         ...prev,
