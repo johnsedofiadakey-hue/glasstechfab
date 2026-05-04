@@ -1732,14 +1732,22 @@ export default function App() {
   };
 
   const uniqueDbClients = React.useMemo(() => {
-    const seen = new Set();
-    return dbClients.filter(c => {
+    const registry = {};
+    dbClients.forEach(c => {
       const key = (c.phone || c.id || '').replace(/\D/g, '');
-      if (!key) return true; 
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
+      if (!key) return;
+      if (!registry[key]) {
+        registry[key] = { ...c };
+      } else {
+        // MERGE LOGIC: Combine data from both objects, keeping the most complete fields
+        registry[key] = {
+          ...registry[key],
+          ...Object.fromEntries(Object.entries(c).filter(([_, v]) => v !== null && v !== undefined && v !== '')),
+          id: registry[key].id // Preserve the original ID as the primary key if possible
+        };
+      }
     });
+    return Object.values(registry);
   }, [dbClients]);
 
   const commonProps = {

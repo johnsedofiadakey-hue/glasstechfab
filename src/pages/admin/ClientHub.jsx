@@ -47,16 +47,22 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
   );
 
   const activeWorkOrder = myWorkOrders.find(wo => wo.id === activeWorkOrderId) || myWorkOrders[0];
-  const myInvoices = (props.invoices || []).filter(i => i.clientId === clientId || i.clientId === client?.id || i.clientEmail === client?.email);
+  const myInvoices = (props.invoices || []).filter(i => 
+    i.clientId === clientId || 
+    i.clientId === client?.id || 
+    i.clientId === client?.phone ||
+    i.clientEmail === client?.email
+  );
   const totalInvoiced = myInvoices.reduce((acc, i) => acc + (parseFloat(String(i.amount).replace(/[^0-9.]/g, '')) || 0), 0);
   const totalPaid = myInvoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + (parseFloat(String(i.amount).replace(/[^0-9.]/g, '')) || 0), 0);
-
+  
   const hubTabs = [
-    { id: 'status', label: 'Feed & Status', icon: <LayoutDashboard size={16} /> },
+    { id: 'status', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+    { id: 'production', label: 'Production', icon: <Hammer size={16} /> },
     { id: 'sourcing', label: 'Sourcing Hub', icon: <Package size={16} /> },
-    { id: 'support', label: 'Secure Support', icon: <MessageSquare size={16} /> },
     { id: 'logistics', label: 'Logistics', icon: <Truck size={16} /> },
     { id: 'finance', label: 'Payments', icon: <DollarSign size={16} /> },
+    { id: 'support', label: 'Secure Support', icon: <MessageSquare size={16} /> },
   ];
 
   return (
@@ -76,18 +82,18 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                </div>
             </div>
          </div>
-         <div style={{ display: 'flex', gap: 12 }}>
+         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
             {hubTabs.map(t => (
                <button 
                  key={t.id} 
                  onClick={() => setTab(t.id)}
                  className="lxf"
                  style={{ 
-                   height: 48, padding: '0 20px', borderRadius: 14, 
+                   height: 40, padding: '0 16px', borderRadius: 12, 
                    background: tab === t.id ? '#1A1410' : '#F9F7F4', 
                    color: tab === t.id ? '#fff' : '#1A1410',
-                   border: '1px solid #F0EBE5', display: 'flex', alignItems: 'center', gap: 10,
-                   fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.3s ease'
+                   border: '1px solid #F0EBE5', display: 'flex', alignItems: 'center', gap: 8,
+                   fontWeight: 700, fontSize: 12, cursor: 'pointer', transition: 'all 0.3s ease'
                  }}
                >
                   {t.icon} {t.label}
@@ -105,10 +111,10 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                       <h3 className="lxfh" style={{ fontSize: 20 }}>Project Evolution</h3>
                       <button 
-                        onClick={() => props.createProject({ clientId: client.id, project: 'Structural Installation', cat: 'Glass Fabrication', budget: '0', stage: 1 })}
+                        onClick={() => props.createProject({ clientId: client.id, project: 'Santeo project', cat: 'Glass Fabrication', budget: '0', stage: 1 })}
                         className="p-btn-dark" style={{ height: 40, padding: '0 20px', fontSize: 12 }}
                       >
-                        <Plus size={16} /> Start Project
+                        <Plus size={16} /> Deploy New Phase
                       </button>
                    </div>
                   
@@ -117,49 +123,137 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                         <div style={{ padding: 32 }}>
                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
                               <div>
-                                 <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 4 }}>{wo.title}</h4>
+                                 <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 4 }}>{wo.title || wo.project}</h4>
                                  <div className="lxf" style={{ fontSize: 11, color: '#B5AFA9' }}>Reference: {wo.id.toUpperCase()}</div>
                               </div>
-                              <PSBadge s={PROJECT_STAGES[wo.stage]?.name || 'Planning'} c={ac} />
+                              <PSBadge s={PROJECT_STAGES.find(s => s.id === wo.stage)?.name || 'Planning'} c={ac} />
                            </div>
                            
                            {/* PROGRESS BAR */}
                            <div style={{ height: 6, background: '#F9F7F4', borderRadius: 3, overflow: 'hidden', marginBottom: 12 }}>
-                              <div style={{ height: '100%', width: `${(wo.stage / 6) * 100}%`, background: ac, transition: 'width 1s ease' }} />
+                              <div style={{ height: '100%', width: `${((wo.stage || 1) / 12) * 100}%`, background: ac, transition: 'width 1s ease' }} />
                            </div>
                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#B5AFA9', letterSpacing: 1 }}>
-                              <span>Initialization</span>
-                              <span>QC Verified</span>
-                              <span>Final Delivery</span>
+                              <span>Design</span>
+                              <span>Fabrication</span>
+                              <span>Local Delivery</span>
                            </div>
                         </div>
                         <div style={{ padding: '16px 32px', background: '#F9F7F4', borderTop: '1px solid #F0EBE5', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                            <div style={{ display: 'flex', gap: 16 }}>
                               <div className="lxf" style={{ fontSize: 11, color: '#6A635C' }}><Package size={14} style={{ marginBottom: -3, marginRight: 4 }} /> {wo.components || 'Standard'} Components</div>
-                              <button 
-                                onClick={() => { props.notify('pending', 'Initializing AI Vision Audit...'); setTimeout(() => props.notify('success', 'AI AUDIT: Structural alignment verified.'), 2000); }}
-                                style={{ background: 'none', border: 'none', color: ac, fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
-                              >
-                                <Zap size={14} /> AI Audit
-                              </button>
                            </div>
                            <div style={{ display: 'flex', gap: 12 }}>
-                              <button 
-                                onClick={() => props.updateProjectStage(wo.id, wo.stage)} 
-                                style={{ background: '#fff', border: '1px solid #F0EBE5', borderRadius: 8, height: 32, padding: '0 12px', fontSize: 10, fontWeight: 700, cursor: 'pointer' }}
-                              >
-                                Manual Invoice Trigger
-                              </button>
-                              <button onClick={() => setTab('logistics')} style={{ background: 'none', border: 'none', color: ac, fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Track Shipment <ChevronRight size={14} /></button>
+                              <button onClick={() => { setTab('production'); setActiveWorkOrderId(wo.id); }} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Manage Steps <ChevronRight size={14} /></button>
                            </div>
                         </div>
                      </div>
                   )) : (
                      <div style={{ padding: 80, textAlign: 'center', background: '#fff', borderRadius: 32, border: '1px dashed #F0EBE5' }}>
                         <Briefcase size={48} color="#F0EBE5" style={{ marginBottom: 20 }} />
-                        <p className="lxf" style={{ color: '#B5AFA9' }}>No active requirements deployed.</p>
+                        <p className="lxf" style={{ color: '#B5AFA9' }}>No active requirements deployed for this stakeholder.</p>
                      </div>
                   )}
+               </div>
+            )}
+
+            {tab === 'production' && (
+               <div className="fade-in">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                     <h3 className="lxfh" style={{ fontSize: 20 }}>Fabrication & Installation Steps</h3>
+                     <div style={{ display: 'flex', gap: 12 }}>
+                        {myWorkOrders.map(wo => (
+                           <button 
+                             key={wo.id}
+                             onClick={() => setActiveWorkOrderId(wo.id)}
+                             style={{ 
+                               padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700,
+                               background: activeWorkOrderId === wo.id ? ac : '#fff',
+                               color: activeWorkOrderId === wo.id ? '#1A1410' : '#B5AFA9',
+                               border: '1px solid #F0EBE5'
+                             }}
+                           >
+                              {wo.title || wo.project}
+                           </button>
+                        ))}
+                     </div>
+                  </div>
+                  
+                  {activeWorkOrder ? (
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
+                        <div className="p-card" style={{ padding: 32, border: '1px solid #F0EBE5' }}>
+                           <div style={{ position: 'relative', paddingLeft: 40 }}>
+                              <div style={{ position: 'absolute', left: 15, top: 0, bottom: 0, width: 2, background: '#F0EBE5' }} />
+                              {PROJECT_STAGES.map((s, idx) => {
+                                 const isCurrent = (activeWorkOrder.stage || 1) === s.id;
+                                 const isPast = (activeWorkOrder.stage || 1) > s.id;
+                                 return (
+                                    <div key={s.id} style={{ display: 'flex', gap: 20, marginBottom: 24, position: 'relative' }}>
+                                       <div 
+                                          onClick={() => props.updateStage && props.updateStage(activeWorkOrder.id, s.id)}
+                                          style={{ 
+                                             position: 'absolute', left: -40, width: 32, height: 32, borderRadius: '50%', 
+                                             background: isPast ? s.color : '#fff',
+                                             border: isPast ? `2px solid ${s.color}` : isCurrent ? `2px solid ${s.color}` : '2px solid #DFD9D1',
+                                             display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                             zIndex: 2, cursor: 'pointer', transition: 'all .3s'
+                                          }}
+                                       >
+                                          {isPast ? <CheckCircle2 size={16} color="#fff" /> : <div style={{ width: 8, height: 8, borderRadius: '50%', background: isCurrent ? s.color : '#DFD9D1' }} />}
+                                       </div>
+                                       <div style={{ flex: 1 }}>
+                                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                             <div className="lxf" style={{ fontSize: 15, fontWeight: isCurrent ? 800 : 500, color: isCurrent ? '#1A1410' : '#B5AFA9' }}>{s.name}</div>
+                                             {isCurrent && <button onClick={() => props.updateStage(activeWorkOrder.id, s.id + 1)} className="p-btn-gold" style={{ padding: '4px 12px', fontSize: 10 }}>Complete Stage</button>}
+                                          </div>
+                                       </div>
+                                    </div>
+                                 );
+                              })}
+                           </div>
+                        </div>
+                        <AdminTasks projectId={activeWorkOrderId} projectTitle={activeWorkOrder.project} {...props} brand={brand} />
+                     </div>
+                  ) : (
+                     <div style={{ padding: 40, textAlign: 'center', background: '#fff', borderRadius: 24, border: '1px dashed #F0EBE5' }}>
+                        Select a project to manage production steps.
+                     </div>
+                  )}
+               </div>
+            )}
+
+            {tab === 'logistics' && (
+               <div className="fade-in">
+                  <h3 className="lxfh" style={{ fontSize: 20, marginBottom: 24 }}>Logistics & Shipping</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                     {(props.containers || []).filter(c => c.items?.some(woId => myWorkOrders.some(mwo => mwo.id === woId))).map(c => (
+                        <div key={c.id} className="p-card" style={{ padding: 32, border: '1px solid #F0EBE5' }}>
+                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
+                              <div>
+                                 <div style={{ fontSize: 10, fontWeight: 800, color: '#B5AFA9', textTransform: 'uppercase' }}>Shipment Reference</div>
+                                 <div className="lxfh" style={{ fontSize: 18 }}>{c.shipmentRef}</div>
+                              </div>
+                              <PSBadge s={c.status} />
+                           </div>
+                           <div style={{ display: 'flex', justifyContent: 'space-between', background: '#F9F7F4', padding: 20, borderRadius: 16 }}>
+                              <div>
+                                 <div style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase' }}>ETA</div>
+                                 <div style={{ fontSize: 14, fontWeight: 800 }}>{c.eta}</div>
+                              </div>
+                              <div>
+                                 <div style={{ fontSize: 10, color: '#B5AFA9', textTransform: 'uppercase', textAlign: 'right' }}>Vessel</div>
+                                 <div style={{ fontSize: 14, fontWeight: 800, textAlign: 'right' }}>{c.vessel || 'TBD'}</div>
+                              </div>
+                           </div>
+                        </div>
+                     ))}
+                     {(!props.containers || props.containers.filter(c => c.items?.some(woId => myWorkOrders.some(mwo => mwo.id === woId))).length === 0) && (
+                        <div style={{ padding: 60, textAlign: 'center', background: '#fff', borderRadius: 32, border: '1px dashed #F0EBE5' }}>
+                           <Truck size={40} color="#F0EBE5" style={{ marginBottom: 16 }} />
+                           <p style={{ color: '#B5AFA9' }}>No active shipments linked to this stakeholder.</p>
+                        </div>
+                     )}
+                  </div>
                </div>
             )}
 
@@ -214,7 +308,7 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                        onClick={() => props.addSourcingItem({ clientId: client.id, status: 'Pending', name: 'New Component' })}
                        className="p-btn-dark" style={{ height: 40, padding: '0 20px', fontSize: 12 }}
                      >
-                       <Plus size={16} /> Add Sourcing Item
+                        <Plus size={16} /> Add Sourcing Item
                      </button>
                   </div>
                   <div className="p-card" style={{ padding: 32, border: '1px solid #F0EBE5' }}>
@@ -279,41 +373,40 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
          {/* SIDEBAR */}
          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
             <div className="p-card" style={{ padding: 32, background: '#1A1410', color: '#fff', borderRadius: 32 }}>
-               <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 24, color: ac }}>Financial Summary</h4>
+               <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 24, color: ac }}>Financial Ledger</h4>
                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                     <span className="lxf" style={{ opacity: 0.6, fontSize: 13 }}>Total Invoiced</span>
+                     <span className="lxf" style={{ opacity: 0.6, fontSize: 13 }}>Invoiced to Date</span>
                      <span className="lxfh" style={{ fontSize: 18 }}>{props.formatPrice(totalInvoiced)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                     <span className="lxf" style={{ opacity: 0.6, fontSize: 13 }}>Total Paid</span>
+                     <span className="lxf" style={{ opacity: 0.6, fontSize: 13 }}>Verified Payments</span>
                      <span className="lxfh" style={{ fontSize: 18, color: '#16A34A' }}>{props.formatPrice(totalPaid)}</span>
                   </div>
                   <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', margin: '8px 0' }} />
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                     <span className="lxf" style={{ opacity: 0.6, fontSize: 13, fontWeight: 800 }}>Outstanding</span>
+                     <span className="lxf" style={{ opacity: 0.6, fontSize: 13, fontWeight: 800 }}>Balance Due</span>
                      <span className="lxfh" style={{ fontSize: 22, color: ac }}>{props.formatPrice(totalInvoiced - totalPaid)}</span>
                   </div>
                </div>
             </div>
 
             <div className="p-card" style={{ padding: 32, border: '1px solid #F0EBE5' }}>
-               <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 24 }}>System Credentials</h4>
+               <h4 className="lxfh" style={{ fontSize: 18, marginBottom: 24 }}>System Identity</h4>
                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                     <span style={{ color: '#B5AFA9' }}>Portal Username</span>
+                     <span style={{ color: '#B5AFA9' }}>Primary ID</span>
                      <span style={{ fontWeight: 800 }}>{client.id}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                     <span style={{ color: '#B5AFA9' }}>Initial Key</span>
-                     <span style={{ fontWeight: 800, color: ac }}>unlockme</span>
+                     <span style={{ color: '#B5AFA9' }}>Verified Phone</span>
+                     <span style={{ fontWeight: 800 }}>{client.phone}</span>
                   </div>
                </div>
-               <button onClick={() => alert("Credentials sent.")} className="p-btn-dark" style={{ width: '100%', marginTop: 24, height: 44, fontSize: 11 }}>Resend Access Link</button>
+               <button onClick={() => alert("Credentials sent.")} className="p-btn-dark" style={{ width: '100%', marginTop: 24, height: 44, fontSize: 11 }}>Sync Portal Access</button>
             </div>
          </div>
 
-      </div>
     </div>
   );
 }

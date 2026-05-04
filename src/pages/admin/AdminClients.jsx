@@ -66,7 +66,8 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
     c.name?.toLowerCase().includes(search.toLowerCase()) || 
     c.company?.toLowerCase().includes(search.toLowerCase()) ||
     c.username?.toLowerCase().includes(search.toLowerCase()) ||
-    c.email?.toLowerCase().includes(search.toLowerCase())
+    c.email?.toLowerCase().includes(search.toLowerCase()) ||
+    c.phone?.replace(/\D/g, '').includes(search.replace(/\D/g, ''))
   );
 
   return (
