@@ -8,59 +8,12 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { db } from '../lib/firebase';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-// Removed static import of huge data file
+import { collection, onSnapshot, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { DEFAULT_SCENES as CATALOG_DEFAULTS } from '../catalog.jsx';
 
 const LIGHT_BG = '#FDFCFB';
 const DARK_TEXT = '#1A1410';
 const AC = '#C8A96E';
-
-const DEFAULT_SCENES = [
-  {
-    id: 'def-1',
-    title: 'The Panoramic Penthouse',
-    location: 'Airport Residential, Accra',
-    img: 'https://images.unsplash.com/photo-1519302959554-a75be0afc82a?q=80&w=2084&auto=format&fit=crop',
-    description: 'A study in transparency and structural integrity. Our ultra-narrow sliding systems dissolve the boundary between interior luxury and the city skyline.',
-    hotspots: [
-      { x: 40, y: 50, title: '103 Extremely Narrow Sliding', desc: '1.3mm visible stile for maximum glass area.', specs: { thickness: '24mm DGU', rating: 'SLA Level 5', finish: 'Anodized Black' } },
-      { x: 75, y: 30, title: 'Tempered Low-E Glazing', desc: 'Thermal break technology for heat reduction.', specs: { u_value: '1.1 W/m²K', solar_gain: '0.28', clarity: '92%' } }
-    ]
-  },
-  {
-    id: 'def-2',
-    title: 'The Innovation Facility',
-    location: 'Spintex Industrial Area',
-    img: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2070&auto=format&fit=crop',
-    description: 'Where precision meets scale. Our fabrication facility utilizes high-tech CNC processing to ensure sub-millimeter accuracy for every component.',
-    hotspots: [
-      { x: 50, y: 60, title: 'CNC Glass Processing', desc: 'Automated edge grinding and drilling for structural safety.', specs: { precision: '±0.2mm', speed: '45m/min', max_size: '3000x6000mm' } },
-      { x: 20, y: 40, title: 'Toughening Line', desc: 'High-speed tempering for maximum mechanical strength.', specs: { temp: '700°C', stress: '>95 MPa', standard: 'EN 12150' } }
-    ]
-  },
-  {
-    id: 'def-3',
-    title: 'Structural Luxe Interior',
-    location: 'East Legon',
-    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop',
-    description: 'Bespoke interior finishing where architectural glass partitions define luxury living and working spaces.',
-    hotspots: [
-      { x: 30, y: 50, title: 'Frameless Glass Wall', desc: 'Floor-to-ceiling glass systems with recessed aluminum tracks.', specs: { height: '3.2m', glass: '12mm Monolithic', finish: 'Satin Bronze' } },
-      { x: 60, y: 40, title: 'Acoustic Laminated Glass', desc: 'High-performance sound reduction for private suites.', specs: { stc_rating: '42 dB', interlayer: '0.76mm PVB', thickness: '13.52mm' } }
-    ]
-  },
-  {
-    id: 'def-4',
-    title: 'Reflective Facade Detail',
-    location: 'Tema Waterfront',
-    img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',
-    description: 'High-performance curtain wall systems engineered for the harsh West African climate.',
-    hotspots: [
-      { x: 45, y: 55, title: 'Structural Silicone Glazing', desc: 'Frameless exterior appearance with mechanical fixings.', specs: { wind_load: '3.5 kPa', sealant: 'Dow Corning 993', movement: '±25%' } },
-      { x: 70, y: 40, title: 'Solar Control Coating', desc: 'Reflective coating for energy efficiency and privacy.', specs: { shgc: '0.22', vlt: '18%', reflectance: '34%' } }
-    ]
-  }
-];
 
 
 const Hotspot = ({ h, ac, mob }) => {
@@ -121,21 +74,36 @@ export default function LuxeShowcase({ brand }) {
 
   useEffect(() => {
     const loadData = async () => {
-      const m = await import('../catalog.jsx');
-      const def = m.DEFAULT_SCENES;
+      const def = CATALOG_DEFAULTS;
       
       if (!db) {
         setScenes(def);
         setLoading(false);
         return;
       }
-      const q = query(collection(db, 'showcase'), orderBy('createdAt', 'desc'));
+      const q = query(collection(db, 'showcase')); 
       const unsub = onSnapshot(q, (snap) => {
         const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setScenes(data.length > 0 ? data : def);
+        
+        // AUTO-REPAIR HOOK: If document exists but is missing createdAt, we inject it for sorting
+        data.forEach(d => {
+          if (!d.createdAt && db) {
+            updateDoc(doc(db, 'showcase', d.id), { createdAt: new Date().toISOString() });
+          }
+        });
+
+        // 🚀 UNIFIED MERGE LOGIC: Default scenes are always available, Firestore overrides/supplements
+        const merged = [...def];
+        data.forEach(d => {
+           const idx = merged.findIndex(m => m.id === d.id);
+           if (idx > -1) merged[idx] = d;
+           else merged.push(d);
+        });
+
+        setScenes(merged.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)));
         setLoading(false);
       }, (err) => {
-        console.error(err);
+        console.warn("Showcase Sync Failure:", err);
         setScenes(def);
         setLoading(false);
       });

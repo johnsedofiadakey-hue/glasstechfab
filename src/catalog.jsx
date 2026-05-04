@@ -1046,24 +1046,44 @@ export const DEFAULT_SCENES = [
     id: 'def-1',
     title: 'The Panoramic Penthouse',
     location: 'Airport Residential, Accra',
-    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1600&q=80',
-    description: 'A study in transparency and structural integrity.',
-    hotspots: [{ x: 40, y: 50, title: '103 Extremely Narrow Sliding', desc: '1.3mm stile.' }]
+    img: 'https://images.unsplash.com/photo-1519302959554-a75be0afc82a?q=80&w=2084&auto=format&fit=crop',
+    description: 'A study in transparency and structural integrity. Our ultra-narrow sliding systems dissolve the boundary between interior luxury and the city skyline.',
+    hotspots: [
+      { x: 40, y: 50, title: '103 Extremely Narrow Sliding', desc: '1.3mm visible stile for maximum glass area.', specs: { thickness: '24mm DGU', rating: 'SLA Level 5', finish: 'Anodized Black' } },
+      { x: 75, y: 30, title: 'Tempered Low-E Glazing', desc: 'Thermal break technology for heat reduction.', specs: { u_value: '1.1 W/m²K', solar_gain: '0.28', clarity: '92%' } }
+    ]
   },
   {
     id: 'def-2',
-    title: 'Modern Minimalist Villa',
-    location: 'Cantonments',
-    img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80',
-    description: 'Clean lines and heavy-duty engineering.',
-    hotspots: [{ x: 50, y: 60, title: 'Z3 Pivot Statement Door', desc: 'Pivot system.' }]
+    title: 'The Innovation Facility',
+    location: 'Spintex Industrial Area',
+    img: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2070&auto=format&fit=crop',
+    description: 'Where precision meets scale. Our fabrication facility utilizes high-tech CNC processing to ensure sub-millimeter accuracy for every component.',
+    hotspots: [
+      { x: 50, y: 60, title: 'CNC Glass Processing', desc: 'Automated edge grinding and drilling for structural safety.', specs: { precision: '±0.2mm', speed: '45m/min', max_size: '3000x6000mm' } },
+      { x: 20, y: 40, title: 'Toughening Line', desc: 'High-speed tempering for maximum mechanical strength.', specs: { temp: '700°C', stress: '>95 MPa', standard: 'EN 12150' } }
+    ]
   },
   {
     id: 'def-3',
-    title: 'The Culinary Studio',
+    title: 'Structural Luxe Interior',
     location: 'East Legon',
-    img: 'https://images.unsplash.com/photo-1556911223-e1534ff6f755?auto=format&fit=crop&w=1600&q=80',
-    description: 'Bespoke kitchen engineering.',
-    hotspots: [{ x: 30, y: 50, title: 'Luxe Cabinetry', desc: 'Architectural wardrobes.' }]
+    img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop',
+    description: 'Bespoke interior finishing where architectural glass partitions define luxury living and working spaces.',
+    hotspots: [
+      { x: 30, y: 50, title: 'Frameless Glass Wall', desc: 'Floor-to-ceiling glass systems with recessed aluminum tracks.', specs: { height: '3.2m', glass: '12mm Monolithic', finish: 'Satin Bronze' } },
+      { x: 60, y: 40, title: 'Acoustic Laminated Glass', desc: 'High-performance sound reduction for private suites.', specs: { stc_rating: '42 dB', interlayer: '0.76mm PVB', thickness: '13.52mm' } }
+    ]
+  },
+  {
+    id: 'def-4',
+    title: 'Reflective Facade Detail',
+    location: 'Tema Waterfront',
+    img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',
+    description: 'High-performance curtain wall systems engineered for the harsh West African climate.',
+    hotspots: [
+      { x: 45, y: 55, title: 'Structural Silicone Glazing', desc: 'Frameless exterior appearance with mechanical fixings.', specs: { wind_load: '3.5 kPa', sealant: 'Dow Corning 993', movement: '±25%' } },
+      { x: 70, y: 40, title: 'Solar Control Coating', desc: 'Reflective coating for energy efficiency and privacy.', specs: { shgc: '0.22', vlt: '18%', reflectance: '34%' } }
+    ]
   }
 ];

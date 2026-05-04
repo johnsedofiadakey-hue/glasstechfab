@@ -337,7 +337,7 @@ export default function App() {
 
       // 5. Initialise Showroom (Collection)
       for (const scene of DEFAULT_SCENES) {
-        await setDoc(doc(db, 'showcase', scene.id), scene, { merge: true });
+        await setDoc(doc(db, 'showcase', scene.id), { ...scene, createdAt: new Date().toISOString() }, { merge: true });
       }
 
       for (const item of ALL_PROJECT_DATA) {
@@ -684,7 +684,7 @@ export default function App() {
       }
       
       const sessionUser = authResult.user;
-      const fullUser = { ...uData, id: uDoc.id, uid: sessionUser.uid };
+      const fullUser = { ...uData, id: normalizePhone(uData.phone || uDoc.id), uid: sessionUser.uid };
       delete fullUser.password;
       
       localStorage.setItem('glasstech_user_cache', JSON.stringify(fullUser));
@@ -1507,7 +1507,10 @@ export default function App() {
   const createProject = async (data) => {
     if (!db) return;
     try {
-      const id = normalizePhone(data.clientId);
+      const rawId = typeof data.clientId === 'object' ? data.clientId?.id : data.clientId;
+      const id = normalizePhone(rawId);
+      if (!id) throw new Error("Identifier Validation Failed: Client ID is required.");
+
       const docRef = await addDoc(collection(db, 'projects'), {
         ...data,
         clientId: id,
@@ -1527,7 +1530,8 @@ export default function App() {
   const addSourcingItem = async (data) => {
     if (!db) return;
     try {
-      const id = normalizePhone(data.clientId);
+      const rawId = typeof data.clientId === 'object' ? data.clientId?.id : data.clientId;
+      const id = normalizePhone(rawId);
       await addDoc(collection(db, 'procurements'), {
         ...data,
         clientId: id,
@@ -1700,9 +1704,10 @@ export default function App() {
       const userMatch = snap.docs.map(d => ({ id: d.id, ...d.data() })).find(u => normalizePhone(u.phone) === clean);
 
       if (userMatch) {
-         setUser(userMatch);
+         const hardenedUser = { ...userMatch, id: clean };
+         setUser(hardenedUser);
          localStorage.setItem('glasstech_session', JSON.stringify({
-           id: userMatch.id,
+           id: clean,
            phone: phone,
            expiry: Date.now() + (24 * 60 * 60 * 1000)
          }));

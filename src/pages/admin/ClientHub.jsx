@@ -19,7 +19,13 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
   const ac = brand.color || '#C8A96E';
   
   const client = dbClients.find(c => c.id === clientId) || dbClients.find(c => c.phone === clientId) || dbClients.find(c => c.email === clientId);
-  const myWorkOrders = (props.workOrders || []).filter(wo => wo.clientId === clientId || wo.clientId === client?.id);
+  
+  // 🛡️ Identity Hardening: Use normalized identifiers for filtering
+  const hId = (client?.phone || client?.id || clientId);
+  const myWorkOrders = (props.workOrders || []).filter(wo => {
+    const wCId = wo.clientId;
+    return wCId === hId || wCId === client?.id || wCId === client?.phone;
+  });
   
   const [activeWorkOrderId, setActiveWorkOrderId] = useState(null);
   const [tab, setTab] = useState('status');
@@ -164,7 +170,11 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                      <p className="lxf" style={{ fontSize: 11, color: '#16A34A', fontWeight: 800, marginTop: 4 }}>ENC-256 LAYER ACTIVE</p>
                   </div>
                   <div style={{ flex: 1, padding: 32, overflowY: 'auto', background: '#FDFCFB', display: 'flex', flexDirection: 'column', gap: 16 }}>
-                     {(props.messages || []).filter(m => m.senderId === client.id || m.receiverId === client.id).sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)).map((m, i) => {
+                     {(props.messages || []).filter(m => 
+                        m.senderId === hId || m.receiverId === hId || 
+                        m.senderId === client?.id || m.receiverId === client?.id ||
+                        m.senderId === client?.phone || m.receiverId === client?.phone
+                     ).sort((a,b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0)).map((m, i) => {
                         const isMe = m.senderId === 'admin';
                         return (
                            <div key={i} style={{ 

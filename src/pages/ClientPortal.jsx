@@ -22,11 +22,16 @@ export default function ClientPortal({ user, dbClients = [], clients = [], ...pr
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const client = dbClients[0] || {};
-  const myProjects = clients.filter(p => p.clientId === user?.id || p.clientIds?.includes(user?.id));
-  const myInvoices = (props.invoices || []).filter(i => i.clientId === user?.id);
-  const myTasks = (props.tasks || []).filter(t => t.clientId === user?.id);
-  const myMessages = (props.messages || []).filter(m => m.senderId === user?.id || m.receiverId === user?.id);
+  const client = dbClients.find(c => c.id === user?.id) || dbClients[0] || {};
+  
+  // 🛡️ Identity Hardening: Filter using both explicit ID and phone reference
+  const uId = user?.id;
+  const uPhone = user?.phone;
+  
+  const myProjects = clients.filter(p => p.clientId === uId || p.clientIds?.includes(uId) || p.clientId === uPhone);
+  const myInvoices = (props.invoices || []).filter(i => i.clientId === uId || i.clientId === uPhone);
+  const myTasks = (props.tasks || []).filter(t => t.clientId === uId || t.clientId === uPhone);
+  const myMessages = (props.messages || []).filter(m => m.senderId === uId || m.receiverId === uId || m.senderId === uPhone || m.receiverId === uPhone);
 
   const ac = props.brand?.color || '#C8A96E';
 
