@@ -257,18 +257,22 @@ export function Hero({ slides, brand, navigate, setPage }) {
     <section style={{ height: '100vh', position: 'relative', background: LIGHT_BG, overflow: 'hidden' }}>
       {slides.map((s, i) => (
         <div key={i} style={{
-          position: 'absolute', inset: 0, transition: 'opacity 1.5s ease',
+          position: 'absolute', inset: 0, transition: 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
           opacity: active === i ? 1 : 0, zIndex: active === i ? 1 : 0,
-          background: '#1A1410' // Solid dark base to prevent flicker
+          background: '#1A1410' 
         }}>
           <img 
             src={s.img} 
             alt="" 
-            onLoad={(e) => e.target.style.opacity = 1}
+            onLoad={(e) => {
+              e.target.style.opacity = 1;
+              e.target.style.filter = 'blur(0)';
+            }}
             style={{ 
               width: '100%', height: '100%', objectFit: 'cover', opacity: 0,
-              transform: active === i ? 'scale(1.05)' : 'scale(1.1)', 
-              transition: 'opacity 1s ease, transform 8s ease-out' 
+              filter: 'blur(20px)',
+              transform: active === i ? 'scale(1.02)' : 'scale(1.1)', 
+              transition: 'opacity 0.6s ease-out, filter 1s ease-out, transform 12s ease-out' 
             }} 
           />
           <div style={{

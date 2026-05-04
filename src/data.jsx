@@ -67,8 +67,8 @@ export const PORTFOLIO_DATA = [
 ];
 
 export const HERO_SLIDES = [
-  { img: 'https://images.unsplash.com/photo-1519302959554-a75be0afc82a?q=80&w=2084&auto=format&fit=crop', title: 'Complete Interior\nSolutions.', sub: 'Total finishing for luxury developments.' },
-  { img: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2070&auto=format&fit=crop', title: 'Precision\nFabrication.', sub: 'Advanced glass processing.' }
+  { img: '/hero_seo.png', title: 'Complete Interior\nSolutions.', sub: 'Industrial precision for West Africa’s most ambitious architectural projects.' },
+  { img: 'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=2070&auto=format&fit=crop', title: 'Architectural\nPrecision.', sub: 'Premier structural glass and luxury aluminum finishing systems.' }
 ];
 
 export const SERVICES_DATA = [

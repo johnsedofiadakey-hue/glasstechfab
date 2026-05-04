@@ -128,8 +128,15 @@ export default function App() {
   const normalizePhone = (p) => {
     if (!p) return '';
     let clean = p.replace(/\D/g, '');
+    // Standardize to 233 format
     if (clean.startsWith('0') && clean.length === 10) {
       return '233' + clean.slice(1);
+    }
+    if (clean.length === 9) {
+      return '233' + clean;
+    }
+    if (clean.startsWith('233') && clean.length === 12) {
+      return clean;
     }
     return clean;
   };
@@ -215,6 +222,12 @@ export default function App() {
           if (doc.id === 'brand' && !c.logo) {
             const upgraded = { ...c, logo: '/logo.png' };
             syncCMS('brand', upgraded);
+            newContent[doc.id] = upgraded;
+          }
+          // 🚀 AUTO-REPAIR: Upgrade legacy hero images to premium ones
+          if (doc.id === 'hero' && c.slides?.some(s => s.img?.includes('photo-1519302959554'))) {
+            const upgraded = { ...c, slides: HERO_SLIDES };
+            syncCMS('hero', upgraded);
             newContent[doc.id] = upgraded;
           }
         }
@@ -626,11 +639,25 @@ export default function App() {
         uDoc = snap.docs[0];
         uData = uDoc.data();
       } else {
-        // Standardize phone/username lookup
-        const q = query(collection(db, 'users'), where('username', '==', cleanUsername), limit(1));
+        // --- IDENTITY HARDENING: Mult-Format Phone Lookup ---
+        const phoneVariants = [
+          cleanUsername, 
+          cleanUsername.startsWith('233') ? '0' + cleanUsername.slice(3) : cleanUsername,
+          cleanUsername.startsWith('233') ? cleanUsername.slice(3) : cleanUsername
+        ];
+        
+        const q = query(collection(db, 'users'), where('phone', 'in', phoneVariants), limit(1));
         const snap = await getDocs(q);
-        if (snap.empty) throw new Error("Phone number not recognized. Register your client first.");
-        uDoc = snap.docs[0];
+        
+        if (snap.empty) {
+          // Fallback to username lookup
+          const q2 = query(collection(db, 'users'), where('username', '==', cleanUsername), limit(1));
+          const snap2 = await getDocs(q2);
+          if (snap2.empty) throw new Error("Identifier not recognized. Register your client first.");
+          uDoc = snap2.docs[0];
+        } else {
+          uDoc = snap.docs[0];
+        }
         uData = uDoc.data();
       }
       
@@ -718,6 +745,81 @@ export default function App() {
     } catch (e) {
       notify('error', e.message || 'Failed to update password');
       throw e;
+    }
+  };
+
+  // --- PROJECT PROVISIONING ENGINE ---
+  const convertInquiryToProject = async (inquiry, projectTitle, details) => {
+    if (!db) return;
+    try {
+      notify('pending', `Provisioning industrial ecosystem for ${inquiry.fromName}...`);
+      
+      // 1. Create/Ensure User
+      const userId = inquiry.fromEmail?.replace(/[.@]/g, '_') || normalizePhone(inquiry.fromPhone) || `USR_${Date.now()}`;
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          id: userId,
+          name: inquiry.fromName,
+          email: inquiry.fromEmail || `${userId}@clients.glasstechfab.com`,
+          phone: inquiry.fromPhone || '',
+          role: 'client',
+          status: 'Active',
+          joined: new Date().toISOString(),
+          onboarded: false
+        });
+      }
+
+      // 2. Create Project
+      const projectId = `PRJ_${Date.now()}`;
+      const projectRef = doc(db, 'projects', projectId);
+      await setDoc(projectRef, {
+        id: projectId,
+        title: projectTitle,
+        project: projectTitle,
+        clientId: userId,
+        clientIds: [userId],
+        stage: 1, // Phase 1: Initialization
+        progress: 5,
+        budget: details.budget || '$0',
+        cat: details.type || 'Commercial',
+        address: details.site || '',
+        createdAt: new Date().toISOString(),
+        managerId: user?.id || 'admin',
+        status: 'Live'
+      });
+
+      // 3. Create Initial Work Order
+      const woId = `WO_${projectId}_INITIAL`;
+      await setDoc(doc(db, 'work_orders', woId), {
+        id: woId,
+        projectId: projectId,
+        clientId: userId,
+        title: `Site Survey & Initialization: ${projectTitle}`,
+        stage: 1,
+        status: 'In Progress',
+        createdAt: new Date().toISOString()
+      });
+
+      // 4. Update Inquiry Status
+      await updateDoc(doc(db, 'emails', inquiry.id), { 
+        status: 'Converted', 
+        projectId: projectId,
+        convertedAt: new Date().toISOString() 
+      });
+
+      // 5. Create Notification
+      await createNotification(userId, `Welcome to Glasstech! Your project "${projectTitle}" has been provisioned. Access your portal to track progress.`, 'success', '/portal');
+
+      notify('success', `Ecosystem Deployed: Project ${projectId} is now live.`);
+      logAction(projectId, 'Provisioning', `Administrator converted inquiry ${inquiry.id} into active project.`, projectTitle);
+      
+      fetchData(); // Refresh local state
+    } catch (err) {
+      console.error("Provisioning failed:", err);
+      notify('error', 'Project provisioning failed: ' + err.message);
     }
   };
 
@@ -1401,57 +1503,6 @@ export default function App() {
     }
   };
 
-  const convertInquiryToProject = async (inquiry, projectTitle, meta = {}) => {
-    if (!db) return;
-    try {
-        // 1. Create client if doesn't exist (basic)
-        const id = normalizePhone(inquiry.phone || inquiry.fromEmail); 
-        let clientId = id;
-        const uq = query(collection(db, 'users'), where('phone', '==', id));
-        const usnap = await getDocs(uq);
-        
-        if (usnap.empty) {
-           await createClient({
-             name: inquiry.fromName || 'Client',
-             email: inquiry.fromEmail,
-             phone: inquiry.phone || id,
-             company: 'Private Entity'
-           });
-        } else {
-           clientId = usnap.docs[0].id; 
-        }
-        
-        // 2. Create Project with Rich Meta
-        const newProjRef = await addDoc(collection(db, 'projects'), {
-           clientId: clientId,
-           clientIds: [clientId], // Ensure consistency
-           project: projectTitle || 'New Converted Project',
-           name: inquiry.fromName || 'Client',
-           email: inquiry.fromEmail, // Store email for fallback lookup
-           stage: 1,
-           progress: 0,
-           createdAt: new Date().toISOString(),
-           budget: meta.budget || '$0',
-           site: meta.site || 'Accra, Ghana',
-           cat: meta.type || 'Marketplace Inquiry',
-           status: 'Project provisioned. Initial technical review pending.'
-        });
-
-         // 3. Update Email Status
-         await updateEmailStatus(inquiry.id, 'Converted to Project');
-         
-         // 4. Admin Notification
-         teamMembers.filter(m => m.role === 'admin').forEach(admin => {
-            createNotification(admin.id, `Lead Provisioned: ${projectTitle} is now an active project.`, 'success', '/admin');
-         });
-         
-         logAction(null, 'CRM', `Converted Inquiry ${inquiry.id} to Project: ${projectTitle}`);
-         notify('success', `Ecosystem provisioned for ${inquiry.fromName}.`);
-      } catch(e) {
-         console.error(e);
-         notify('error', 'Conversion failed.');
-      }
-  };
 
   const createProject = async (data) => {
     if (!db) return;

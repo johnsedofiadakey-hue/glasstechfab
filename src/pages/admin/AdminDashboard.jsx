@@ -159,30 +159,45 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
       {/* 2. OPERATIONAL SEQUENCE GUIDE */}
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 24, marginBottom: 32 }}>
          {[
-           { step: '01', label: 'Onboard', sub: 'Stakeholder Registry', color: ac, icon: <Users size={20} />, view: 'operations' },
-           { step: '02', label: 'Deploy', sub: 'Initialize Project', color: '#B45309', icon: <Plus size={20} />, view: 'operations' },
-           { step: '03', label: 'Execute', sub: 'Production & Logistics', color: '#1A1410', icon: <Activity size={20} />, view: 'installations' },
-           { step: '04', label: 'Settle', sub: 'Financial Ledger', color: '#16A34A', icon: <DollarSign size={20} />, view: 'financials' },
+           { step: '01', label: 'Onboard', sub: 'Stakeholder Registry', color: ac, icon: <Users size={20} />, view: 'operations', action: 'Add Client' },
+           { step: '02', label: 'Deploy', sub: 'Initialize Project', color: '#B45309', icon: <Plus size={20} />, view: 'email', action: 'Process Inquiries' },
+           { step: '03', label: 'Execute', sub: 'Production & Logistics', color: '#1A1410', icon: <Activity size={20} />, view: 'logistics', action: 'Track Shipments' },
+           { step: '04', label: 'Settle', sub: 'Financial Ledger', color: '#16A34A', icon: <DollarSign size={20} />, view: 'financials', action: 'Review Invoices' },
          ].map(s => (
            <div 
             key={s.step} 
-            onClick={() => props.setView(s.view)}
-            className="p-card" 
+            className="p-card dash-step-card" 
             style={{ 
-              padding: 24, display: 'flex', flexDirection: 'column', gap: 16, cursor: 'pointer',
+              padding: 24, display: 'flex', flexDirection: 'column', gap: 16,
               border: '1px solid var(--border)', background: '#fff', position: 'relative', overflow: 'hidden',
-              borderRadius: 24
+              borderRadius: 24, transition: 'all 0.3s ease'
             }}
            >
               <div style={{ position: 'absolute', right: -10, top: -10, fontSize: 64, fontWeight: 900, opacity: 0.03, color: '#000' }}>{s.step}</div>
-              <div style={{ width: 48, height: 48, borderRadius: 12, background: s.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                 {s.icon}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', zIndex: 1 }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: s.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                   {s.icon}
+                </div>
+                <button 
+                  onClick={() => props.setView(s.view)}
+                  className="p-btn-light" 
+                  style={{ padding: '6px 10px', fontSize: 9, borderRadius: 8, fontWeight: 800, background: 'rgba(0,0,0,0.03)', border: 'none' }}
+                >
+                  GO TO HUB
+                </button>
               </div>
-              <div>
+              <div style={{ zIndex: 1 }}>
                  <div className="lxf" style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', color: '#B5AFA9', letterSpacing: 1 }}>Step {s.step}</div>
                  <div className="lxfh" style={{ fontSize: 20, marginTop: 4 }}>{s.label}</div>
                  <div className="lxf" style={{ fontSize: 12, color: '#6A635C' }}>{s.sub}</div>
               </div>
+              <button 
+                onClick={() => props.setView(s.view)}
+                className="p-btn-dark" 
+                style={{ width: '100%', marginTop: 8, padding: '10px', fontSize: 11, background: s.color, color: '#fff', border: 'none', borderRadius: 12, fontWeight: 700 }}
+              >
+                {s.action}
+              </button>
            </div>
          ))}
       </div>

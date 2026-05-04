@@ -37,12 +37,15 @@ export default function AdminLogistics({ containers = [], workOrders = [], clien
      if (['Sea', 'Customs', 'Local'].includes(status)) {
         const linkedWorkOrders = workOrders.filter(wo => container?.items?.includes(wo.id));
         const unpaidItems = linkedWorkOrders.filter(wo => {
-           const woInv = (props.invoices || []).find(inv => (inv.projectId === wo.id || inv.title?.includes(wo.id)) && inv.type === 'procurement');
-           return woInv && woInv.status !== 'Paid';
+           const woInv = (props.invoices || []).find(inv => 
+             (inv.projectId === wo.id || inv.title?.includes(wo.id) || inv.projectId === container.id) 
+             && (inv.type === 'procurement' || inv.category === 'Materials')
+           );
+           return woInv && (woInv.status !== 'Paid' && woInv.status !== 'paid');
         });
 
         if (unpaidItems.length > 0) {
-           alert(`🚨 FINANCIAL BLOCK: ${unpaidItems.length} items in this container have unsettled procurement invoices. Dispatch is restricted.`);
+           props.notify('error', `FINANCIAL BLOCK: ${unpaidItems.length} items have unsettled invoices. Dispatch restricted.`);
            return;
         }
      }
@@ -256,6 +259,13 @@ export default function AdminLogistics({ containers = [], workOrders = [], clien
             </div>
          </div>
       </div>
+      {/* SOURCING MODAL placeholder - can be expanded later */}
+      {activeTab === 'procurement' && workOrders.length === 0 && (
+        <div style={{ textAlign: 'center', padding: 80, color: '#B5AFA9' }}>
+           <RefreshCw size={48} className="spin" style={{ marginBottom: 16, opacity: 0.2 }} />
+           <p>Initializing Sourcing Engine...</p>
+        </div>
+      )}
     </div>
   );
 }
