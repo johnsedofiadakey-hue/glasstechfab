@@ -26,14 +26,6 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
       label: 'Clients',
       items: [
         { id: 'operations', label: 'Client Directory', icon: <Users size={18} /> },
-        { id: 'email', label: 'Message Hub', icon: <Mail size={18} /> },
-      ]
-    },
-    {
-      label: 'Production',
-      items: [
-        { id: 'installations', label: 'Project Steps', icon: <Activity size={18} /> },
-        { id: 'logistics', label: 'Shipping Info', icon: <Truck size={18} /> },
       ]
     },
     {

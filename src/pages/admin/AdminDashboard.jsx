@@ -160,8 +160,8 @@ export default function AdminDashboard({ clients, invoices, proposals, brand, ge
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)', gap: 24, marginBottom: 32 }}>
          {[
            { step: '01', label: 'Onboard', sub: 'Stakeholder Registry', color: ac, icon: <Users size={20} />, view: 'operations', action: 'Add Client' },
-           { step: '02', label: 'Deploy', sub: 'Initialize Project', color: '#B45309', icon: <Plus size={20} />, view: 'email', action: 'Process Inquiries' },
-           { step: '03', label: 'Execute', sub: 'Production & Logistics', color: '#1A1410', icon: <Activity size={20} />, view: 'logistics', action: 'Track Shipments' },
+           { step: '02', label: 'Deploy', sub: 'Initialize Project', color: '#B45309', icon: <Plus size={20} />, view: 'operations', action: 'Manage Hubs' },
+           { step: '03', label: 'Execute', sub: 'Production & Logistics', color: '#1A1410', icon: <Activity size={20} />, view: 'operations', action: 'Track Progress' },
            { step: '04', label: 'Settle', sub: 'Financial Ledger', color: '#16A34A', icon: <DollarSign size={20} />, view: 'financials', action: 'Review Invoices' },
          ].map(s => (
            <div 
