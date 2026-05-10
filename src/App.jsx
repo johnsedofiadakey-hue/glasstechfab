@@ -502,62 +502,36 @@ export default function App() {
       setAuthLoading(true);
       const isEmail = username.includes('@');
       const cleanUsername = isEmail ? username.trim().toLowerCase() : normalizePhone(username);
-      let uDoc, uData;
+      const loginEmail = isEmail ? cleanUsername : `${cleanUsername}@clients.glasstechfab.com`;
 
       notify('pending', 'Authenticating with secure vault...');
-
-      if (isEmail) {
-        const q = query(collection(db, 'users'), where('email', '==', cleanUsername), limit(1));
-        const snap = await getDocs(q);
-        if (snap.empty) throw new Error("Email not found. Use your registered phone number.");
-        uDoc = snap.docs[0];
-        uData = uDoc.data();
-      } else {
-        // --- IDENTITY HARDENING: Mult-Format Phone Lookup ---
-        const phoneVariants = [
-          cleanUsername, 
-          cleanUsername.startsWith('233') ? '0' + cleanUsername.slice(3) : cleanUsername,
-          cleanUsername.startsWith('233') ? cleanUsername.slice(3) : cleanUsername
-        ];
-        
-        const q = query(collection(db, 'users'), where('phone', 'in', phoneVariants), limit(1));
-        const snap = await getDocs(q);
-        
-        if (snap.empty) {
-          // Fallback to username lookup
-          const q2 = query(collection(db, 'users'), where('username', '==', cleanUsername), limit(1));
-          const snap2 = await getDocs(q2);
-          if (snap2.empty) throw new Error("Identifier not recognized. Register your client first.");
-          uDoc = snap2.docs[0];
-        } else {
-          uDoc = snap.docs[0];
-        }
-        uData = uDoc.data();
-      }
-      
-      const loginEmail = isEmail ? cleanUsername : `${cleanUsername}@clients.glasstechfab.com`;
 
       let authResult;
       try {
         authResult = await signInWithEmailAndPassword(auth, loginEmail, password);
       } catch (authErr) {
-        // Fallback for legacy plain-text passwords during migration
-        if (uData.password === password) {
-          console.log("Upgrading legacy account security...");
-          try {
-            authResult = await createUserWithEmailAndPassword(auth, loginEmail, password);
-          } catch (createErr) {
-            if (createErr.code === 'auth/email-already-in-use') {
-              authResult = await signInWithEmailAndPassword(auth, loginEmail, password);
-            } else throw createErr;
-          }
-          await updateDoc(doc(db, 'users', uDoc.id), { password: '[SECURED]' });
-        } else {
-          throw new Error("Invalid credentials. Please check your password.");
-        }
+        throw new Error("Invalid credentials or profile not found.");
       }
-      
+
       const sessionUser = authResult.user;
+      const docId = isEmail ? sessionUser.uid : cleanUsername;
+      
+      // Now read the document!
+      let uDoc = await getDoc(doc(db, 'users', docId));
+      
+      // Fallback for email users who might have document ID as email or uid
+      if (isEmail && !uDoc.exists()) {
+        const q = query(collection(db, 'users'), where('email', '==', cleanUsername), limit(1));
+        const snap = await getDocs(q);
+        if (!snap.empty) uDoc = snap.docs[0];
+      }
+
+      if (!uDoc.exists()) {
+        throw new Error("Profile document not located in secure storage.");
+      }
+
+      const uData = uDoc.data();
+      
       const fullUser = { ...uData, id: normalizePhone(uData.phone || uDoc.id), uid: sessionUser.uid };
       delete fullUser.password;
       
@@ -1261,8 +1235,25 @@ export default function App() {
     if (!db) return;
     try {
       await deleteDoc(doc(db, 'users', id));
-      notify('success', 'Client removed from registry');
-      logAction(null, 'CRM', `Deleted Client: ${id}`);
+      
+      // Cleanup ghost records associated with this client
+      const collectionsToCleanup = [
+        'projects', 'work_orders', 'invoices', 'tasks', 
+        'approvals', 'change_requests', 'procurements'
+      ];
+      
+      for (const coll of collectionsToCleanup) {
+        try {
+          const q = query(collection(db, coll), where('clientId', '==', id));
+          const snap = await getDocs(q);
+          await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+        } catch (err) {
+          console.warn(`Failed to cleanup ${coll}:`, err);
+        }
+      }
+      
+      notify('success', 'Client and associated records removed');
+      logAction(null, 'CRM', `Deleted Client and records: ${id}`);
     } catch (e) {
       console.error(e);
       notify('error', 'Deletion failed');
