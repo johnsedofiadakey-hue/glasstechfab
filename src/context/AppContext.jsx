@@ -107,7 +107,7 @@ export const AppProvider = ({ children }) => {
     // 1. PROJECT LISTENER
     const projectQuery = user.role === 'admin' 
       ? collection(db, 'projects') 
-      : query(collection(db, 'projects'), where('clientId', '==', user.id));
+      : query(collection(db, 'projects'), where('clientId', '==', user.id), limit(100));
 
     const unsubProject = onSnapshot(projectQuery, (snap) => {
       setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title || d.data().project })));
@@ -142,9 +142,12 @@ export const AppProvider = ({ children }) => {
       setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     }, (err) => console.warn("Global Task Sync Error:", err));
 
-    const unsubLogs = onSnapshot(user.role === 'admin' ? query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)) : query(collection(db, 'activity_logs'), where('clientId', '==', user.id)), (snap) => {
-      setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Activity logs listener failed:", err));
+    let unsubLogs = () => {};
+    if (user.role === 'admin') {
+      unsubLogs = onSnapshot(query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)), (snap) => {
+        setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, (err) => console.warn("Activity logs listener failed:", err));
+    }
 
     const unsubApprovals = onSnapshot(user.role === 'admin' ? collection(db, 'approvals') : query(collection(db, 'approvals'), where('clientId', '==', user.id)), (snap) => {
       setApprovals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
