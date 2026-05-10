@@ -1142,21 +1142,15 @@ export default function App() {
       
       notify('success', `Client ${data.name} Registered Successfully`);
       
-      const welcomeEmail = {
-        to: data.email || proxyEmail,
-        subject: 'Welcome to Glasstech Hub',
-        body: `
-          Hi ${data.name},
-          Welcome to Glasstech Fabrications. We are thrilled to partner with you!
-          Your Project Command Center is ready:
-          - URL: glasstechfab.com/login
-          - Username: ${id}
-          - Password: ${tempPassword} (Please change this after login)
-        `
-      };
-      console.log("ONBOARDING EMAIL SENT:", welcomeEmail);
+      const message = `Hi ${data.name},\nWelcome to Glasstech Fabrications. We are thrilled to partner with you!\nYour Project Command Center is ready:\n- URL: glasstechfab.com/login\n- Username: ${id}\n- Password: ${tempPassword}\nPlease change your password after login.`;
       
-      notify('success', 'Client secured. Welcome email dispatched.');
+      try {
+        await MessengerService.sendMessage(data.phone || id, message);
+        notify('success', 'Client secured. Credentials sent via WhatsApp.');
+      } catch (wsErr) {
+        console.warn("WhatsApp dispatch failed:", wsErr);
+        notify('success', 'Client secured. (WhatsApp dispatch failed, please share credentials manually)');
+      }
       logAction(null, 'CRM', `Onboarded Client: ${id}`);
       
       // Send a system notification for the client

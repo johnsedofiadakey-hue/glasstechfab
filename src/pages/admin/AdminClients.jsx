@@ -151,7 +151,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
                   </td>
                   <td style={{ padding: '20px 24px' }}>
                      <div style={{ fontSize: 14, fontWeight: 600 }}>{client.company || 'Private Portfolio'}</div>
-                     <div style={{ fontSize: 11, color: '#B5AFA9' }}>{client.email}</div>
+
                   </td>
                   <td style={{ padding: '20px 24px' }}>
                     {latestProject ? (
@@ -214,10 +214,7 @@ export default function AdminClients({ dbClients, createClient, updateClient, de
                    <label style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 800, color: '#B5AFA9', marginBottom: 8, display: 'block' }}>Full Legal Name</label>
                    <input className="p-inp" value={newC.name} onChange={e => setNewC({...newC, name: e.target.value})} placeholder="e.g. Samuel Amissah" />
                 </div>
-                <div className="p-field">
-                   <label style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 800, color: '#B5AFA9', marginBottom: 8, display: 'block' }}>Operational Email</label>
-                   <input className="p-inp" value={newC.email} onChange={e => setNewC({...newC, email: e.target.value})} placeholder="e.g. sam@enterprise.com" />
-                </div>
+
                 <div className="p-field">
                    <label style={{ fontSize: 10, textTransform: 'uppercase', fontWeight: 800, color: '#B5AFA9', marginBottom: 8, display: 'block' }}>Direct Phone (Primary ID)</label>
                    <input className="p-inp" value={newC.phone} onChange={e => setNewC({...newC, phone: e.target.value})} placeholder="e.g. +233 ..." />
