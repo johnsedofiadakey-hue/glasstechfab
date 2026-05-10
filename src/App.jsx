@@ -86,6 +86,25 @@ export default function App() {
 
 
 
+  useEffect(() => {
+    if (!isFirebaseEnabled) {
+      setAuthLoading(false);
+      return;
+    }
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const cachedUser = localStorage.getItem('glasstech_user_cache');
+        if (cachedUser) {
+          setUser(JSON.parse(cachedUser));
+        }
+      } else {
+        setUser(null);
+      }
+      setAuthLoading(false);
+    });
+    return unsubscribe;
+  }, []);
+
   const normalizePhone = (p) => {
     if (!p) return '';
     let clean = p.replace(/\D/g, '');
