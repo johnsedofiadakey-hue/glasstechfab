@@ -79,6 +79,8 @@ export const PROCESS_STEPS = [
   {n:'01',title:'Technical Survey',body:'Measurements.',img:'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&q=80'}
 ];
 
+
+
 export const ROOM_GALLERY = {
   'Living Room':['https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?w=700&q=80']
 };
@@ -177,3 +179,22 @@ export const DEFAULT_SCENES = [
     ]
   }
 ];
+
+export const INITIAL_CONTENT = {
+  hero: { slides: HERO_SLIDES },
+  about: {
+    ...ABOUT_DATA,
+    founder: 'John Dakey',
+    role: 'Managing Director',
+    storyTitle: 'Crafting the Future of Structural Glass & Interiors',
+    story: 'Under the leadership of John Dakey, Managing Director, Glasstech Fabrications has evolved from a structural glass specialist into Ghana’s premier hub for complete interior finishing. Our mission is to bridge the gap between industrial engineering and luxury design.',
+    bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.'
+  },
+  services: SERVICES_DATA,
+  process: PROCESS_STEPS,
+  portfolio: PORTFOLIO_DATA,
+  gallery: ROOM_GALLERY,
+  products: GLASS_CATALOG_DATA,
+  categories: GLASS_CATALOG_CATEGORIES,
+  brand: BRAND0
+};

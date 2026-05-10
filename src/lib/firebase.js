@@ -37,6 +37,15 @@ export { auth, db, storage, isFirebaseEnabled };
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
+/**
+ * Uploads a file to Firebase Storage or falls back to Base64 if Firebase is disabled or fails.
+ * 
+ * @param {string} bucket - The bucket or top-level folder name.
+ * @param {string} path - The path within the bucket.
+ * @param {File} file - The File object to upload.
+ * @returns {Promise<string>} Returns the download URL or Base64 string.
+ * @throws {Error} Throws if file is too large for fallback and upload fails.
+ */
 export const uploadFile = async (bucket, path, file) => {
   const fileToBase64 = (f) => new Promise((resolve, reject) => {
     const reader = new FileReader();

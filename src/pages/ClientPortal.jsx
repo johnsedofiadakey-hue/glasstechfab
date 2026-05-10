@@ -15,6 +15,7 @@ export default function ClientPortal({ user, dbClients = [], clients = [], ...pr
   const [activeProject, setActiveProject] = useState(null);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [activeInvoice, setActiveInvoice] = useState(null);
 
   useEffect(() => {
     const handleResize = () => setMob(window.innerWidth < 1000);
@@ -368,6 +369,7 @@ export default function ClientPortal({ user, dbClients = [], clients = [], ...pr
                              <th style={{ padding: mob ? '16px 20px' : '20px 32px', textAlign: 'left', fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase' }}>Description</th>
                              <th style={{ padding: mob ? '16px 20px' : '20px 32px', textAlign: 'left', fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase' }}>Status</th>
                              <th style={{ padding: mob ? '16px 20px' : '20px 32px', textAlign: 'right', fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase' }}>Amount</th>
+                             <th style={{ padding: mob ? '16px 20px' : '20px 32px', textAlign: 'center', fontSize: 9, color: '#B5AFA9', textTransform: 'uppercase' }}>Action</th>
                           </tr>
                        </thead>
                        <tbody>
@@ -386,11 +388,20 @@ export default function ClientPortal({ user, dbClients = [], clients = [], ...pr
                                 <td style={{ padding: mob ? '16px 20px' : '24px 32px', textAlign: 'right' }}>
                                    <div style={{ fontSize: 14, fontWeight: 900 }}>{props.formatPrice(inv.amount)}</div>
                                 </td>
+                                <td style={{ padding: mob ? '16px 20px' : '24px 32px', textAlign: 'center' }}>
+                                   <button 
+                                      onClick={() => setActiveInvoice(inv)}
+                                      className="p-btn-light"
+                                      style={{ padding: '6px 12px', fontSize: 10, borderRadius: 8 }}
+                                   >
+                                      View
+                                   </button>
+                                </td>
                              </tr>
                           ))}
                           {myInvoices.length === 0 && (
                              <tr>
-                                <td colSpan={4} style={{ padding: 60, textAlign: 'center', color: '#B5AFA9', fontSize: 13 }}>No financial transactions to display.</td>
+                                <td colSpan={5} style={{ padding: 60, textAlign: 'center', color: '#B5AFA9', fontSize: 13 }}>No financial transactions to display.</td>
                              </tr>
                           )}
                        </tbody>
@@ -493,6 +504,49 @@ export default function ClientPortal({ user, dbClients = [], clients = [], ...pr
               <div style={{ display: 'flex', gap: 12 }}>
                  <button onClick={() => setShowFeedback(false)} className="p-btn-light" style={{ flex: 1, height: 48, borderRadius: 12, fontSize: 12 }}>Skip</button>
                  <button onClick={() => { props.notify('success', 'Feedback recorded.'); setShowFeedback(false); }} className="p-btn-dark" style={{ flex: 1, height: 48, borderRadius: 12, background: ac, color: '#1A1410', border: 'none', fontSize: 12 }}>Submit</button>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* INVOICE DETAILS MODAL */}
+      {activeInvoice && (
+        <div className="overlay-modal" style={{ background: 'rgba(26,20,16,0.95)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+           <div className="modal-box printable-invoice" style={{ maxWidth: 600, width: '100%', padding: mob ? 32 : 48, borderRadius: mob ? 24 : 40, background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
+                 <div>
+                    <h2 className="lxfh" style={{ fontSize: 24, margin: 0 }}>INVOICE</h2>
+                    <div style={{ fontSize: 12, color: '#B5AFA9' }}>Ref: {activeInvoice.id.toUpperCase()}</div>
+                 </div>
+                 <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: ac }}>GLASSTECH</div>
+                    <div style={{ fontSize: 8, color: '#B5AFA9' }}>FABRICATIONS</div>
+                 </div>
+              </div>
+              
+              <div style={{ borderTop: '1px solid #F0EBE5', borderBottom: '1px solid #F0EBE5', padding: '24px 0', marginBottom: 32 }}>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <span style={{ fontSize: 12, color: '#B5AFA9' }}>Description:</span>
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>{activeInvoice.title || 'Installation Service'}</span>
+                 </div>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <span style={{ fontSize: 12, color: '#B5AFA9' }}>Date:</span>
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>{activeInvoice.date}</span>
+                 </div>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <span style={{ fontSize: 12, color: '#B5AFA9' }}>Status:</span>
+                    <PSBadge s={activeInvoice.status} />
+                 </div>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
+                 <span style={{ fontSize: 14, fontWeight: 700 }}>Total Amount:</span>
+                 <span style={{ fontSize: 24, fontWeight: 900, color: '#1A1410' }}>{props.formatPrice(activeInvoice.amount)}</span>
+              </div>
+              
+              <div style={{ display: 'flex', gap: 12 }} className="no-print">
+                 <button onClick={() => setActiveInvoice(null)} className="p-btn-light" style={{ flex: 1, height: 48, borderRadius: 12 }}>Close</button>
+                 <button onClick={() => window.print()} className="p-btn-dark" style={{ flex: 1, height: 48, borderRadius: 12, background: ac, color: '#1A1410', border: 'none' }}>Print Invoice</button>
               </div>
            </div>
         </div>

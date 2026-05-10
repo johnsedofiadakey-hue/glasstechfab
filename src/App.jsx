@@ -8,13 +8,19 @@ const ProductsHub = lazy(() => import('./pages/ProductsHub'));
 const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Showcase = lazy(() => import('./pages/Showcase'));
 const FieldUpload = lazy(() => import('./pages/admin/FieldUpload'));
+import ProtectedRoute from './components/ProtectedRoute';
+import { sanitizeText } from './lib/sanitize';
+import { useContext, useCallback } from 'react';
+import { AppContext } from './context/AppContext';
+import { useFileUpload } from './hooks/useFileUpload';
+import { useMessaging } from './hooks/useMessaging';
 import { 
   CLIENTS_DATA, PROPOSALS_DATA, INVOICES_DATA, 
   BOOKINGS_DATA, EMAIL_QUEUE, HERO_SLIDES,
   SERVICES_DATA, ABOUT_DATA, PROCESS_STEPS, ROOM_GALLERY,
   PORTFOLIO_DATA, TEAM_MEMBERS, PROJECT_STAGES, WHY_US, 
   PRODUCTS_DATA, GLASS_CATALOG_DATA, GLASS_CATALOG_CATEGORIES,
-  BRAND0, DEFAULT_SCENES
+  BRAND0, DEFAULT_SCENES, INITIAL_CONTENT
 } from './data.jsx';
 
 
@@ -30,49 +36,43 @@ import { MessengerService } from './lib/MessengerService';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 
-const INITIAL_CONTENT = {
-  hero: { slides: HERO_SLIDES },
-  about: {
-    ...ABOUT_DATA,
-    founder: 'John Dakey',
-    role: 'Managing Director',
-    storyTitle: 'Crafting the Future of Structural Glass & Interiors',
-    story: 'Under the leadership of John Dakey, Managing Director, Glasstech Fabrications has evolved from a structural glass specialist into Ghana’s premier hub for complete interior finishing. Our mission is to bridge the gap between industrial engineering and luxury design.',
-    bio: 'John Dakey leads Glasstech with a commitment to sub-millimeter precision and aesthetic excellence. From Spintex to the most exclusive developments in Accra, his vision is to provide a "million-dollar finish" for every project, leveraging global sourcing and local technical expertise.'
-  },
-  services: SERVICES_DATA,
-  process: PROCESS_STEPS,
-  portfolio: PORTFOLIO_DATA,
-  gallery: ROOM_GALLERY,
-  products: GLASS_CATALOG_DATA,
-  categories: GLASS_CATALOG_CATEGORIES,
-  brand: BRAND0
-};
 
 
-const ProtectedRoute = ({ user, role, children, setView }) => {
-  if (!user) return null;
-  if (role && user.role !== role) {
-    return (
-      <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f9f7f4', color: '#1a1410', fontFamily: 'Inter' }}>
-        <h1 style={{ fontSize: '4rem', marginBottom: '1rem', opacity: 0.1 }}>403</h1>
-        <p style={{ letterSpacing: '2px', textTransform: 'uppercase', fontSize: '0.8rem', fontWeight: 700 }}>Access Denied</p>
-        <button onClick={() => setView('public')} style={{ marginTop: '2rem', background: 'none', border: '1px solid #1a1410', padding: '10px 20px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem', textTransform: 'uppercase' }}>Return Home</button>
-      </div>
-    );
-  }
-  return children;
-};
+
+
 
 export default function App() {
   const [page, setPage] = useState('home');
-  const [user, setUser] = useState(null);
   const [loginType, setLoginType] = useState('client'); 
   const [authLoading, setAuthLoading] = useState(true); 
   const navigate = useNavigate();
-  const location = useLocation();  const [brand, setBrand] = useState(BRAND0);
-  const [content, setContent] = useState(INITIAL_CONTENT);
+  const location = useLocation();
+  const [activeMagicCode, setActiveMagicCode] = useState(null);
+  const [showVisualizer, setShowVisualizer] = useState(false);
+  const [notification, setNotification] = useState(null); 
+  const [loading, setLoading] = useState(true);
+  const [magicCode, setMagicCode] = useState(null);
+  const [otp, setOtp] = useState('');
 
+  const {
+    user, clients, proposals, invoices, bookings, emails, dbClients, teamMembers, logs, shipments, messages, testimonials, tasks, transactions, changeRequests, userNotifications, procurements, jobs, notes, media, approvals, materials, assets, workOrders, containers,
+    brand, content, currency, lang,
+    setCurrency, setLang, setBrand, setContent,
+    loadMoreMessages, hasMoreMessages,
+    loadMoreInvoices, hasMoreInvoices,
+    loadMoreWorkOrders, hasMoreWorkOrders
+  } = useContext(AppContext);
+  
+  const notify = useCallback((type, msg) => {
+    if (window._notifTimeout) clearTimeout(window._notifTimeout);
+    setNotification({ type, msg });
+    if (type !== 'pending') {
+      window._notifTimeout = setTimeout(() => setNotification(null), 5000);
+    }
+  }, []);
+
+  const { uploadMedia } = useFileUpload(notify);
+  const { sendMessage } = useMessaging();
 
   // Inject dynamic CSS variables based on brand settings
   useEffect(() => {
@@ -82,48 +82,9 @@ export default function App() {
     if (brand.color || brand.accent) root.style.setProperty('--ac', brand.accent || brand.color);
     if (brand.fontFamily) root.style.setProperty('--font-primary', brand.fontFamily);
   }, [brand]);
-  
-  const [clients, setClients] = useState([]);
-  const [proposals, setProposals] = useState([]);
-  const [invoices, setInvoices] = useState([]);
-  const [bookings, setBookings] = useState([]);
-  const [emails, setEmails] = useState([]);
-  const [activeMagicCode, setActiveMagicCode] = useState(null);
-  const [dbClients, setDbClients] = useState([]);
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [logs, setLogs] = useState([]);
-  const [shipments, setShipments] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [testimonials, setTestimonials] = useState([]);
-  const [lang, setLang] = useState(localStorage.getItem('lx-lang') || 'en');
-  const [showVisualizer, setShowVisualizer] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  const [changeRequests, setChangeRequests] = useState([]);
-  const [userNotifications, setUserNotifications] = useState([]);
-  const [notification, setNotification] = useState(null); 
-  const [loading, setLoading] = useState(true);
-  const [procurements, setProcurements] = useState([]);
-  const [jobs, setJobs] = useState([]);
-  const [notes, setNotes] = useState([]);
-  const [media, setMedia] = useState([]);
-  const [approvals, setApprovals] = useState([]);
-  const [materials, setMaterials] = useState([]);
-  const [assets, setAssets] = useState([]);
-  const [workOrders, setWorkOrders] = useState([]);
-  const [containers, setContainers] = useState([]);
-  const [magicCode, setMagicCode] = useState(null);
-  const [otp, setOtp] = useState('');
-  const [currency, setCurrency] = useState('GHS');
   const rates = { USD: 1, GHS: 15.2, EUR: 0.93 };
 
-  const notify = (type, msg) => {
-    if (window._notifTimeout) clearTimeout(window._notifTimeout);
-    setNotification({ type, msg });
-    if (type !== 'pending') {
-      window._notifTimeout = setTimeout(() => setNotification(null), 5000);
-    }
-  };
+
 
   const normalizePhone = (p) => {
     if (!p) return '';
@@ -141,10 +102,7 @@ export default function App() {
     return clean;
   };
 
-  const sendMessage = async (text, senderId, receiverId, type='chat') => {
-    if (!db) return;
-    await addDoc(collection(db, 'messages'), { text, senderId, receiverId, type, createdAt: serverTimestamp() });
-  };
+  // sendMessage moved to useMessaging hook
 
   const submitTestimonial = async (data) => {
     if (!db) return;
@@ -161,7 +119,7 @@ export default function App() {
     if (!db) return;
     try {
       await addDoc(collection(db, 'notifications'), {
-        userId, msg, type, link,
+        userId, msg: sanitizeText(msg), type, link,
         read: false,
         createdAt: serverTimestamp()
       });
@@ -186,69 +144,9 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    if (!db) return;
-    
-    // 📨 MESSAGE LISTENER (ONLY FOR LOGGED IN USERS)
-    let unsubMsg = () => {};
-    if (user) {
-      const qMsg = query(collection(db, 'messages'), orderBy('createdAt', 'asc'));
-      unsubMsg = onSnapshot(qMsg, (s) => setMessages(s.docs.map(d => ({id: d.id, ...d.data()}))), (err) => {
-        console.warn("Message Sync Issue:", err);
-      });
-    }
+  // Listeners moved to AppContext
 
-    // 💬 TESTIMONIAL LISTENER (PUBLIC CAN SEE)
-    const qTest = query(collection(db, 'testimonials'), orderBy('createdAt', 'desc'));
-    const unsubTest = onSnapshot(qTest, (s) => setTestimonials(s.docs.map(d => ({id: d.id, ...d.data()}))), (err) => {
-      console.warn("Testimonial Sync Issue:", err);
-    });
-    
-    // 🌐 REAL-TIME CMS LISTENER
-    const unsubCMS = onSnapshot(collection(db, 'cms_content'), (s) => {
-      const newContent = { ...INITIAL_CONTENT };
-      s.docs.forEach(doc => {
-        if (doc.data().content) {
-          const c = doc.data().content;
-          // 🛡️ AUTO-REPAIR: If "Ama Asante" is found in the DB, silently upgrade it to John Dakey
-          if (doc.id === 'about' && (c.founder === 'Ama Asante' || !c.founder)) {
-            const upgraded = { ...c, founder: 'John Dakey', role: 'Managing Director' };
-            syncCMS('about', upgraded);
-            newContent[doc.id] = upgraded;
-          } else {
-            newContent[doc.id] = c;
-          }
-          // 🖼️ AUTO-REPAIR: If logo is missing in DB, force the official one
-          if (doc.id === 'brand' && !c.logo) {
-            const upgraded = { ...c, logo: '/logo.png' };
-            syncCMS('brand', upgraded);
-            newContent[doc.id] = upgraded;
-          }
-          // 🚀 AUTO-REPAIR: Upgrade legacy hero images to premium ones
-          if (doc.id === 'hero' && c.slides?.some(s => s.img?.includes('photo-1519302959554'))) {
-            const upgraded = { ...c, slides: HERO_SLIDES };
-            syncCMS('hero', upgraded);
-            newContent[doc.id] = upgraded;
-          }
-        }
-      });
-      setContent(newContent);
-      if (newContent.brand) setBrand(prev => ({ ...prev, ...newContent.brand }));
-    }, (err) => {
-      console.warn("CMS Sync Permission Issue:", err);
-      // Fallback to initial content if permission denied
-      setContent(INITIAL_CONTENT);
-    });
 
-    fetchData();
-    return () => { unsubMsg(); unsubTest(); unsubCMS(); };
-  }, [db, user]);
-
-  useEffect(() => {
-    if (!db && !isFirebaseEnabled) {
-      fetchData();
-    }
-  }, [db]);
 
   const migrateToFirebase = async () => {
     if (!db) return;
@@ -490,7 +388,6 @@ export default function App() {
       }
 
       notify('success', 'Glasstech Production Ecosystem Deployed');
-      fetchData();
     } catch (err) { 
       console.error("[MIGRATION ERROR]:", err); 
       notify('error', 'Seeding failed. Check console for details.'); 
@@ -511,51 +408,9 @@ export default function App() {
     }
   };
 
-  const fetchData = async () => {
-    if (!db || !isFirebaseEnabled) {
-      console.log("[FETCH] Firebase disabled. Using local mock data.");
-      setClients(CLIENTS_DATA.map(c => ({ id: c.id, ...c, name: c.title || c.project })));
-      setProposals(PROPOSALS_DATA);
-      setInvoices(INVOICES_DATA);
-      setBookings(BOOKINGS_DATA);
-      setTeamMembers(TEAM_MEMBERS);
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      
-      // ONLY FETCH PROTECTED DATA IF USER IS AUTHENTICATED
-      if (user) {
-        if (user.role === 'admin') {
-          const [uSnap, pSnap, iSnap] = await Promise.all([
-            getDocs(collection(db, 'users')),
-            getDocs(collection(db, 'proposals')),
-            getDocs(collection(db, 'invoices'))
-          ]);
-          const allUsers = uSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-          setClients(allUsers.filter(u => u.role === 'client'));
-          setTeamMembers(allUsers.filter(u => u.role !== 'client'));
-          setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-          setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        } else {
-          const [pSnap, iSnap] = await Promise.all([
-            getDocs(query(collection(db, 'proposals'), where('clientId', '==', user.id))),
-            getDocs(query(collection(db, 'invoices'), where('clientId', '==', user.id)))
-          ]);
-          setProposals(pSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-          setInvoices(iSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        }
-      }
-      
-    } catch (err) { 
-      console.warn('Fetch failed (likely missing permissions for public view):', err); 
-    } finally { 
-      setLoading(false); 
-    }
-  };
 
-  const logAction = async (pid, type, action, projectTitle) => {
+
+  const logAction = useCallback(async (pid, type, action, projectTitle) => {
     if (!db) return;
     const log = { 
       user_id: user?.id || 'System', 
@@ -569,11 +424,11 @@ export default function App() {
       if (pid) await addDoc(collection(db, 'projects', pid, 'activity_logs'), log);
       else await addDoc(collection(db, 'activity_logs'), log);
     } catch (error) { console.error("Logging failed:", error.message); }
-  };
+  }, [user]);
 
   const notifyUser = async (userId, message, type, link = '') => {
     if (!userId || !db) return;
-    try { await addDoc(collection(db, 'notifications'), { userId, message, type, link, read: false, createdAt: new Date().toISOString() }); }
+    try { await addDoc(collection(db, 'notifications'), { userId, message: sanitizeText(message), type, link, read: false, createdAt: new Date().toISOString() }); }
     catch (e) { console.error("Notification failed", e); }
   };
 
@@ -815,8 +670,6 @@ export default function App() {
 
       notify('success', `Ecosystem Deployed: Project ${projectId} is now live.`);
       logAction(projectId, 'Provisioning', `Administrator converted inquiry ${inquiry.id} into active project.`, projectTitle);
-      
-      fetchData(); // Refresh local state
     } catch (err) {
       console.error("Provisioning failed:", err);
       notify('error', 'Project provisioning failed: ' + err.message);
@@ -830,188 +683,14 @@ export default function App() {
     } catch (e) {}
   }, []);
 
+  // Handle redirection based on auth state
   useEffect(() => {
-    if (!auth || !db || !isFirebaseEnabled) {
-      setAuthLoading(false);
-      checkManualSession();
-      return;
-    }
-
-    const authSub = onAuthStateChanged(auth, async (sessionUser) => {
-      try {
-        // We use non-blocking auth sync
-        if (sessionUser) {
-          const userRef = doc(db, 'users', sessionUser.uid);
-          const userSnap = await getDoc(userRef);
-          
-          if (userSnap.exists()) {
-            const profile = userSnap.data();
-            const fullUser = { ...sessionUser, ...profile, id: sessionUser.uid };
-            delete fullUser.password;
-            
-            setUser(fullUser);
-            localStorage.setItem('glasstech_user_cache', JSON.stringify(fullUser));
-            setNotification(null);
-            
-            if (location.pathname === '/login') navigate(profile.role === 'admin' ? '/admin' : '/portal');
-          }
-        } else {
-          localStorage.removeItem('glasstech_user_cache');
-          setUser(null);
-          if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/portal')) {
-            navigate('/login');
-          }
-        }
-      } catch (e) {
-        console.error("Auth sync error:", e);
-      } finally {
-        setAuthLoading(false);
+    if (user) {
+      if (location.pathname === '/login') {
+        navigate(user.role === 'admin' ? '/admin' : '/portal');
       }
-    });
-
-    return () => authSub && authSub();
-  }, []); // Run only once on mount
-
-
-  useEffect(() => {
-    if (!user?.id || !db || !isFirebaseEnabled) {
-      if (!user?.id) console.log("[FETCH] Awaiting user identity...");
-      if (!db || !isFirebaseEnabled) console.log("[FETCH] Database disabled, skipping real-time listeners.");
-      return;
     }
-    
-    console.log("[FETCH] Initializing Data Pipeline for:", user.id);
-    
-    let projectSub, userSub, paymentSub, taskSub, logSub, transSub, proposalSub, bookingSub, emailSub, assetSub, jobSub, notifSub, msgSub;
-    let approvalSub, crSub, procSub, noteSub, mediaSub, shipSub, workOrderSub, containerSub;
-
-    // PROJECT LISTENER (Strict Phone/Identifier Reference)
-    const projectQuery = user.role === 'admin' 
-      ? collection(db, 'projects') 
-      : query(collection(db, 'projects'), where('clientId', '==', user.id));
-
-    projectSub = onSnapshot(projectQuery, (snap) => {
-      setClients(snap.docs.map(d => ({ id: d.id, ...d.data(), name: d.data().title || d.data().project })));
-    }, (err) => console.warn("Project Sync Error:", err));
-
-    // USER REGISTRY (Global for Admin, Self-Only for Client)
-    if (user.role === 'admin') {
-      userSub = onSnapshot(collection(db, 'users'), (snap) => {
-        const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        const team = all.filter(u => u.role !== 'client');
-        setTeamMembers(team);
-        setDbClients(all.filter(u => u.role === 'client'));
-      }, (err) => console.warn("User Registry Error:", err));
-    } else {
-      // Clients only listen to their OWN document
-      userSub = onSnapshot(doc(db, 'users', user.id), (snap) => {
-        if (snap.exists()) {
-          setDbClients([{ id: snap.id, ...snap.data() }]);
-        }
-      }, (err) => console.warn("Client Profile Sync Error:", err));
-    }
-
-    // ADMIN-ONLY GLOBAL LISTENERS (High Overhead)
-    if (user.role === 'admin') {
-      emailSub = onSnapshot(query(collection(db, 'emails'), limit(50)), (snap) => {
-        setEmails(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-      assetSub = onSnapshot(query(collection(db, 'assets'), limit(50)), (snap) => {
-        setAssets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-      jobSub = onSnapshot(query(collection(db, 'jobs'), limit(50)), (snap) => {
-        setJobs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-    }
-
-    // SHARED LISTENERS (Filtered for Clients where applicable)
-    const invQuery = user.role === 'admin' ? collection(db, 'invoices') : query(collection(db, 'invoices'), where('parentId', 'in', clients.map(c => c.id).concat(['none'])));
-    
-    // Simplification: For global collections, we filter by clientId if the field exists
-    const filterByClient = (coll) => user.role === 'admin' ? collection(db, coll) : query(collection(db, coll), where('clientId', '==', user.id));
-    const filterByParent = (coll) => user.role === 'admin' ? collection(db, coll) : query(collection(db, coll), where('parentId', '==', user.id));
-
-    paymentSub = onSnapshot(user.role === 'admin' ? collection(db, 'invoices') : query(collection(db, 'invoices'), where('clientId', '==', user.id)), (snap) => {
-      setInvoices(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Invoice Sync Error:", err));
-
-    taskSub = onSnapshot(user.role === 'admin' ? collection(db, 'tasks') : query(collection(db, 'tasks'), where('clientId', '==', user.id)), (snap) => {
-      setTasks(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Global Task Sync Error:", err));
-
-    logSub = onSnapshot(user.role === 'admin' ? query(collection(db, 'activity_logs'), orderBy('created_at', 'desc'), limit(30)) : query(collection(db, 'activity_logs'), where('clientId', '==', user.id)), (snap) => {
-      setLogs(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Activity logs listener failed:", err));
-
-    approvalSub = onSnapshot(user.role === 'admin' ? collection(db, 'approvals') : query(collection(db, 'approvals'), where('clientId', '==', user.id)), (snap) => {
-      setApprovals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Approval Sync Error:", err));
-    
-    crSub = onSnapshot(user.role === 'admin' ? collection(db, 'change_requests') : query(collection(db, 'change_requests'), where('clientId', '==', user.id)), (snap) => {
-      setChangeRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("CR Sync Error:", err));
-    
-    procSub = onSnapshot(user.role === 'admin' ? collection(db, 'procurements') : query(collection(db, 'procurements'), where('clientId', '==', user.id)), (snap) => {
-      setProcurements(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Procurement Sync Error:", err));
-    
-    noteSub = onSnapshot(user.role === 'admin' ? collection(db, 'notes') : query(collection(db, 'notes'), where('clientId', '==', user.id)), (snap) => {
-      setNotes(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Note Sync Error:", err));
-    
-    mediaSub = onSnapshot(user.role === 'admin' ? collection(db, 'media') : query(collection(db, 'media'), where('clientId', '==', user.id)), (snap) => {
-      setMedia(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Media Sync Error:", err));
-
-    workOrderSub = onSnapshot(user.role === 'admin' ? collection(db, 'work_orders') : query(collection(db, 'work_orders'), where('clientId', '==', user.id)), (snap) => {
-      setWorkOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Work Order Sync Error:", err));
-
-    containerSub = onSnapshot(user.role === 'admin' ? collection(db, 'containers') : query(collection(db, 'containers'), where('clientId', '==', user.id)), (snap) => {
-      setContainers(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Container Sync Error:", err));
-    
-    shipSub = onSnapshot(user.role === 'admin' ? collection(db, 'shipments') : query(collection(db, 'shipments'), where('clientId', '==', user.id)), (snap) => {
-      setShipments(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Shipment Sync Error:", err));
-
-    // MSG SYNC (Filtered in memory for security & speed if index is missing)
-    msgSub = onSnapshot(query(collection(db, 'messages'), orderBy('createdAt', 'desc'), limit(50)), (snap) => {
-      const allMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (user.role === 'admin') {
-        setMessages(allMsgs);
-      } else {
-        setMessages(allMsgs.filter(m => m.senderId === user.id || m.receiverId === user.id));
-      }
-    }, (err) => console.warn("Msg Sync Error:", err));
-
-    proposalSub = onSnapshot(user.role === 'admin' ? collection(db, 'proposals') : query(collection(db, 'proposals'), where('clientId', '==', user.id)), (snap) => {
-      setProposals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Proposal Sync Error:", err));
-
-    bookingSub = onSnapshot(user.role === 'admin' ? collection(db, 'bookings') : query(collection(db, 'bookings'), where('userId', '==', user.id)), (snap) => {
-      setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Booking Sync Error:", err));
-
-    transSub = onSnapshot(user.role === 'admin' ? query(collection(db, 'transactions'), orderBy('date', 'desc')) : query(collection(db, 'transactions'), where('clientId', '==', user.id)), (snap) => {
-      setTransactions(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    }, (err) => console.warn("Transactions listener failed:", err));
-
-    notifSub = db && onSnapshot(query(collection(db, 'notifications'), where('userId', '==', user.id), limit(50)), (snap) => {
-      const sorted = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-        .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setUserNotifications(sorted.slice(0, 20));
-    }, (err) => console.warn("Notifications listener failed:", err));
-
-    return () => { 
-      console.log("[FETCH] Tearing down Data Pipeline...");
-      projectSub && projectSub(); userSub && userSub(); paymentSub && paymentSub(); logSub && logSub(); taskSub && taskSub(); notifSub && notifSub();
-      approvalSub && approvalSub(); crSub && crSub(); procSub && procSub(); noteSub && noteSub(); mediaSub && mediaSub(); shipSub && shipSub();
-      proposalSub && proposalSub(); bookingSub && bookingSub(); emailSub && emailSub(); transSub && transSub();
-      assetSub && assetSub();
-      if (typeof jobSub === 'function') jobSub();
-    };
-  }, [user?.id]);
+  }, [user, location.pathname, navigate]);
   
   // Sync Brand Theme & Favicon
   useEffect(() => {
@@ -1285,27 +964,7 @@ export default function App() {
     try { await deleteDoc(doc(db, 'projects', projectId, 'notes', id)); }
     catch(e) { console.error(e); }
   };
-  const uploadMedia = async (projectId, file, stageId) => {
-    if (!db) return;
-    try {
-      notify('pending', 'Uploading production media...');
-      const fileName = `${Date.now()}_${file.name}`;
-      const url = await uploadFile('projects', `${projectId}/${fileName}`, file);
-      
-      await addDoc(collection(db, 'media'), { 
-        url, 
-        parentId: projectId,
-        stageId: parseInt(stageId), 
-        type: file.type.startsWith('image/') ? 'image' : 'video',
-        createdAt: new Date().toISOString() 
-      });
-      
-      notify('success', 'Media added to phase');
-    } catch (e) {
-      console.error(e);
-      notify('error', 'Upload failed');
-    }
-  };
+  // uploadMedia moved to useFileUpload hook
 
   const deleteMedia = async (id) => {
     if (!db) return;
@@ -1463,7 +1122,6 @@ export default function App() {
       await setDoc(doc(db, 'users', id), payload);
       
       notify('success', `Client ${data.name} Registered Successfully`);
-      fetchData(); // Refresh list
       
       const welcomeEmail = {
         to: data.email || proxyEmail,
@@ -1757,13 +1415,16 @@ export default function App() {
     brand, setBrand, content, setContent,
     clients, updateProject: syncProjects,
     dbClients: uniqueDbClients, rawDbClients: dbClients,
-    setDbClients,
     createClient, updateClient,
-    teamMembers, setTeamMembers,
+    loadMoreMessages, hasMoreMessages,
+    loadMoreInvoices, hasMoreInvoices,
+    loadMoreWorkOrders, hasMoreWorkOrders,
+    teamMembers,
     logs, logAction, 
-    invoices, setInvoices,
+    invoices,
     payInvoice,
     createInvoice,
+    uploadMedia,
     createProposal,
     transactions, recordOfflinePayment,
     materials, updateMaterial,
@@ -1943,32 +1604,36 @@ export default function App() {
           } />
 
           <Route path="/admin/*" element={
-            user?.role === 'admin' ? (
-              <AdminPortal 
-                user={user} 
-                onLogout={handleLogout} 
-                onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
-                onLogoUpload={logoUpload}
-                onThemeChange={async (t) => {
-                  setBrand(prev => ({ ...prev, theme: t }));
-                  if (db) await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
-                }}
-                syncCatalog={syncCatalogOnly}
-                {...commonProps} 
-              />
-            ) : <Navigate to="/login" />
+            <ProtectedRoute>
+              {user?.role === 'admin' ? (
+                <AdminPortal 
+                  user={user} 
+                  onLogout={handleLogout} 
+                  onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+                  onLogoUpload={logoUpload}
+                  onThemeChange={async (t) => {
+                    setBrand(prev => ({ ...prev, theme: t }));
+                    if (db) await updateDoc(doc(db, 'settings', 'branding'), { theme: t });
+                  }}
+                  syncCatalog={syncCatalogOnly}
+                  {...commonProps} 
+                />
+              ) : <Navigate to="/login" />}
+            </ProtectedRoute>
           } />
 
           <Route path="/portal/*" element={
-            user?.role === 'client' ? (
-              <ClientPortal 
-                client={clients.find(c => c.email === user.email) || user} 
-                onLogout={handleLogout} 
-                onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
-                updateClientProfile={updateClientProfile}
-                {...commonProps} 
-              />
-            ) : <Navigate to="/login" />
+            <ProtectedRoute>
+              {user?.role === 'client' ? (
+                <ClientPortal 
+                  client={clients.find(c => c.email === user.email) || user} 
+                  onLogout={handleLogout} 
+                  onPreview={() => { setUser(null); if (auth) signOut(auth); navigate('/'); }} 
+                  updateClientProfile={updateClientProfile}
+                  {...commonProps} 
+                />
+              ) : <Navigate to="/login" />}
+            </ProtectedRoute>
           } />
           <Route path="/field-upload" element={<FieldUpload {...commonProps} />} />
           <Route path="/field-upload/:projectId" element={<FieldUpload {...commonProps} />} />

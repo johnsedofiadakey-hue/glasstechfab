@@ -1,0 +1,21 @@
+.card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--sh-md);
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: var(--sh-lg);
+  border-color: rgba(var(--ac-rgb), 0.3);
+}
+
+.card-title {
+  font-family: var(--font-h);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 16px;
+}

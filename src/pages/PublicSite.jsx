@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useContext } from 'react';
+import { AppContext } from '../context/AppContext';
 import { 
   ChevronRight, ChevronLeft, Award, Check, Play, X, ArrowLeft, Star, 
   SplitSquareHorizontal, Layout, Home, Layers, Droplet, Zap, Settings, 
   Hammer, Palette, Package, Mail, Truck, CreditCard, Building, 
-  CheckCircle, Send, Sparkles, MapPin, Calendar, Menu
+  CheckCircle, Send, Sparkles, MapPin, Calendar, Menu, Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
+import { HERO_SLIDES, ABOUT_DATA } from '../data';
+
+const ContactPage = lazy(() => import('./ContactPage'));
+const AboutPage = lazy(() => import('./AboutPage'));
 
 // --- HELPERS ---
-function useWindowWidth() {
+export function useWindowWidth() {
   const [width, setWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 1200));
   useEffect(() => {
     const handler = () => setWidth(window.innerWidth);
@@ -18,18 +23,20 @@ function useWindowWidth() {
   }, []);
   return width;
 }
-const isMob = (w) => w <= 1024;
-const LIGHT_BG = '#FDFCFB';
-const DARK_TEXT = '#1A1410';
-const AC = '#C8A96E';
+export const isMob = (w) => w <= 1024;
+export const LIGHT_BG = '#FDFCFB';
+export const DARK_TEXT = '#1A1410';
+export const AC = '#C8A96E';
 
 // --- SHARED COMPONENTS ---
 
 export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, setMenuOpen, navigate }) {
   const [scrolled, setScrolled] = useState(false);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const winW = useWindowWidth();
   const mob = isMob(winW);
   const ac = brand.color || AC;
+  const { userNotifications } = useContext(AppContext);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20);
@@ -110,6 +117,36 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
                 </button>
               ))}
             </div>
+            {user && (
+              <div style={{ position: 'relative', marginRight: 16 }}>
+                <button 
+                  onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+                  style={{ background: 'none', border: 'none', color: isScrolled ? DARK_TEXT : '#fff', cursor: 'pointer', padding: 8, display: 'flex', alignItems: 'center' }}
+                >
+                  <Bell size={20} />
+                  {userNotifications.filter(n => !n.read).length > 0 && (
+                    <span style={{ position: 'absolute', top: 0, right: 0, background: 'red', color: '#fff', borderRadius: '50%', width: 16, height: 16, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {userNotifications.filter(n => !n.read).length}
+                    </span>
+                  )}
+                </button>
+                {showNotifDropdown && (
+                  <div style={{ position: 'absolute', top: 40, right: 0, width: 300, background: '#fff', border: '1px solid #F0EBE5', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.1)', zIndex: 1002, padding: '16px' }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 12, textTransform: 'uppercase', color: DARK_TEXT }}>Notifications</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 300, overflowY: 'auto' }}>
+                      {userNotifications.length > 0 ? userNotifications.map(n => (
+                        <div key={n.id} style={{ fontSize: 12, color: n.read ? '#B5AFA9' : '#1A1410', borderBottom: '1px solid #F9F7F4', paddingBottom: 8 }}>
+                          {n.message}
+                          <div style={{ fontSize: 10, color: '#B5AFA9', marginTop: 4 }}>{new Date(n.createdAt).toLocaleDateString()}</div>
+                        </div>
+                      )) : (
+                        <div style={{ fontSize: 12, color: '#B5AFA9', textAlign: 'center' }}>No notifications</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             {onPortal && (
               <button onClick={() => onPortal && onPortal('client')} style={{ 
                 padding: '12px 28px', fontSize: 10, fontWeight: 800, 
@@ -120,6 +157,20 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
               }}>Client Portal</button>
             )}
           </div>
+        )}
+        {user && (
+          <button 
+            className="mob-only" 
+            onClick={() => setMenuOpen(true)} 
+            style={{ background: 'none', border: 'none', color: ac, zIndex: 1001, padding: 8, position: 'relative', marginRight: 8 }}
+          >
+            <Bell size={28} />
+            {userNotifications.filter(n => !n.read).length > 0 && (
+              <span style={{ position: 'absolute', top: 4, right: 4, background: 'red', color: '#fff', borderRadius: '50%', width: 16, height: 16, fontSize: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {userNotifications.filter(n => !n.read).length}
+              </span>
+            )}
+          </button>
         )}
         {/* MOBILE TOGGLE */}
         <button 
@@ -135,9 +186,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
       {/* MOBILE DRAWER - Translucent Glass Effect */}
       <div style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, left: 0,
-        background: 'rgba(255,255,255,0.92)', 
-        backdropFilter: 'blur(20px)', 
-        WebkitBackdropFilter: 'blur(20px)',
+        background: '#ffffff', 
         transform: menuOpen ? 'translateX(0)' : 'translateX(100%)',
         transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)', zIndex: 1000,
         padding: '120px 32px 48px', display: 'flex', flexDirection: 'column',
@@ -168,6 +217,20 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
               {l.n}
             </button>
           ))}
+          
+          {user && userNotifications.length > 0 && (
+            <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '1px solid #F0EBE5' }}>
+              <div style={{ fontSize: 12, fontWeight: 800, marginBottom: 12, textTransform: 'uppercase', color: ac }}>Notifications</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 200, overflowY: 'auto' }}>
+                {userNotifications.map(n => (
+                  <div key={n.id} style={{ fontSize: 13, color: n.read ? '#B5AFA9' : DARK_TEXT, borderBottom: '1px solid #F9F7F4', paddingBottom: 8 }}>
+                    {n.message}
+                    <div style={{ fontSize: 10, color: '#B5AFA9', marginTop: 4 }}>{new Date(n.createdAt).toLocaleDateString()}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <button onClick={() => { setMenuOpen(false); onPortal('client'); }} style={{
           padding: '20px', background: DARK_TEXT, color: '#fff', borderRadius: 16, border: 'none',
@@ -355,99 +418,11 @@ export function ServicesPreview({ brand, navigate }) {
 
 // --- FULL PAGES ---
 
-export function AboutPage({ brand, content }) {
-  const winW = useWindowWidth();
-  const mob = isMob(winW);
-  const ac = brand.color || AC;
-  const data = content?.about || ABOUT_DATA;
 
-  
-  return (
-    <div style={{ paddingTop: mob ? 80 : 120 }}>        <section style={{ padding: '80px 5vw', background: '#F9F7F4', color: DARK_TEXT }}>
-          <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-            <span style={{ color: ac, fontSize: 10, fontWeight: 800, letterSpacing: '0.3em', textTransform: 'uppercase' }}>{data.storyTitle || 'THE HUB'}</span>
-            <h1 style={{ fontSize: mob ? 48 : 96, fontWeight: 800, letterSpacing: '-0.04em', margin: '20px 0' }}>Our Legacy.</h1>
-            <p style={{ fontSize: mob ? 18 : 24, color: 'rgba(26,20,16,0.6)', maxWidth: 800, lineHeight: 1.6 }}>{data.story || 'Industrial precision meets architectural luxury across West Africa\'s premium residential and commercial landscape.'}</p>
-          </div>
-       </section>
-       <section style={{ padding: '100px 5vw', background: '#fff' }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: mob ? '1fr' : '1fr 1fr', gap: 64, alignItems: 'center' }}>
-             <div>
-                <h2 style={{ fontSize: 40, fontWeight: 800, marginBottom: 8, color: DARK_TEXT }}>{data.founder || 'John Dakey'}</h2>
-                <div style={{ color: ac, fontSize: 12, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 32 }}>{data.role || 'Managing Director'}</div>
-                <p style={{ color: 'rgba(26,20,16,0.6)', lineHeight: 1.8, fontSize: 16, marginBottom: 24 }}>{data.bio || 'From structural glass to full interior finishing, our evolution has been driven by a commitment to technical mastery and aesthetic perfection.'}</p>
-                <div style={{ padding: 32, background: '#F9F7F4', borderRadius: 24, border: '1px solid #F0EBE5' }}>
-                   <h4 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, color: DARK_TEXT }}>Accra Headquarters</h4>
-                   <p style={{ color: 'rgba(26,20,16,0.5)', margin: 0 }}>{brand.location || 'Spintex Road Industrial Area, Accra'}</p>
-                </div>
-             </div>
-             <img src={data.image || "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80"} style={{ width: '100%', borderRadius: 24, boxShadow: '0 30px 60px rgba(0,0,0,0.05)' }} />
-          </div>
-       </section>
 
-    </div>
-  );
-}
 
-export function ContactPage({ brand, submitContact }) {
-  const [searchParams] = useSearchParams();
-  const initialSubject = searchParams.get('subject') || '';
-  const winW = useWindowWidth();
-  const mob = isMob(winW);
-  const ac = brand.color || AC;
-  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', subject: initialSubject, message: '' });
 
-  const handleSubmit = () => {
-    if (!formData.firstName || !formData.email || !formData.message) return alert("Please fill all required fields.");
-    submitContact(formData);
-    setFormData({ firstName: '', lastName: '', email: '', subject: '', message: '' });
-  };
-
-  return (
-    <div style={{ paddingTop: mob ? 80 : 120 }}>
-       <section style={{ padding: '100px 5vw', background: '#F9F7F4', color: DARK_TEXT }}>
-          <div style={{ maxWidth: 1400, margin: '0 auto' }}>
-             <h1 style={{ fontSize: mob ? 48 : 96, fontWeight: 800, letterSpacing: '-0.04em' }}>Let's <em style={{ fontStyle: 'italic', color: ac, fontWeight: 400 }}>Collaborate</em>.</h1>
-             <p style={{ fontSize: 20, color: 'rgba(26,20,16,0.6)' }}>Speak to a technical lead about your finishing requirements.</p>
-          </div>
-       </section>
-       <section style={{ padding: mob ? '60px 24px' : '100px 5vw', background: '#fff' }}>
-          <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: mob ? '1fr' : '1.5fr 1fr', gap: mob ? 40 : 64 }}>
-             <div style={{ background: '#fff', padding: mob ? '32px 20px' : 48, borderRadius: 24, border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 20px 50px rgba(0,0,0,0.03)' }}>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                      <input placeholder="First Name" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} />
-                      <input placeholder="Last Name" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} />
-                   </div>
-                   <input placeholder="Email" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-                   <input placeholder="Subject (Optional)" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee' }} value={formData.subject} onChange={e => setFormData({...formData, subject: e.target.value})} />
-                   <textarea rows={5} placeholder="Project Description" style={{ padding: 16, borderRadius: 12, border: '1px solid #eee', resize: 'none' }} value={formData.message} onChange={e => setFormData({...formData, message: e.target.value})} />
-                   <button onClick={handleSubmit} style={{ padding: 20, background: DARK_TEXT, color: '#fff', borderRadius: 12, border: 'none', fontWeight: 800, cursor: 'pointer' }}>Send Message</button>
-                </div>
-             </div>
-             <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-                <div>
-                   <h4 style={{ fontSize: 11, fontWeight: 800, color: ac, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>Direct Contact</h4>
-                   <p style={{ fontSize: 24, fontWeight: 800, margin: 0, color: DARK_TEXT }}>{brand.phone}</p>
-                   <p style={{ color: 'rgba(26,20,16,0.5)', margin: '8px 0 0' }}>{brand.email}</p>
-                </div>
-                <div>
-                   <h4 style={{ fontSize: 11, fontWeight: 800, color: ac, letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 16 }}>Regional Hubs</h4>
-                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                      {['Accra', 'Kumasi', 'Takoradi', 'Koforidua'].map(c => (
-                         <span key={c} style={{ padding: '6px 12px', background: '#F5F5F5', borderRadius: 6, fontSize: 11, fontWeight: 700, color: DARK_TEXT }}>{c.toUpperCase()}</span>
-                      ))}
-                   </div>
-                </div>
-             </div>
-          </div>
-       </section>
-    </div>
-  );
-}
-
-export default function PublicSite({ brand, setPage, page, onPortal, user, content, navigate }) {
+export default function PublicSite({ brand, setPage, page, onPortal, user, content, navigate, submitContact }) {
   const [searchParams] = useSearchParams();
   const urlPage = searchParams.get('page');
   const p = urlPage || page || 'home';
@@ -478,8 +453,16 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
         </section>
       </>
     );
-    if (p === 'about') return <AboutPage brand={brand} content={content} />;
-    if (p === 'contact') return <ContactPage brand={brand} submitContact={props.submitContact} />;
+    if (p === 'about') return (
+      <Suspense fallback={<div style={{ padding: 100, textAlign: 'center' }}>Loading About Page...</div>}>
+        <AboutPage brand={brand} content={content} />
+      </Suspense>
+    );
+    if (p === 'contact') return (
+      <Suspense fallback={<div style={{ padding: 100, textAlign: 'center' }}>Loading Contact Page...</div>}>
+        <ContactPage brand={brand} submitContact={submitContact} />
+      </Suspense>
+    );
 
     return <div style={{ paddingTop: 200, textAlign: 'center' }}>{p.toUpperCase()} Page Under Construction</div>;
 

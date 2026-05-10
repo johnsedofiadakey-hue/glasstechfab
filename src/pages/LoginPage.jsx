@@ -5,6 +5,7 @@ import {
   ShieldCheck, Lock, ChevronLeft, Globe, Shield,
   Mail, KeyRound, Fingerprint, Command
 } from 'lucide-react';
+import Button from '../components/ui/Button';
 
 const COUNTRIES = [
   { name: 'Ghana', code: '+233', flag: '🇬🇭' },
@@ -81,7 +82,7 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
                 value={newPass}
                 onChange={e => setNewPass(e.target.value)}
               />
-              <button 
+              <Button 
                 onClick={async () => {
                    if(newPass.length < 6) return alert("Password must be at least 6 characters.");
                    if(props.updateClientProfile) {
@@ -89,21 +90,24 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
                    }
                    setShowOnboarding(false);
                 }}
-                className="p-btn-gold" 
-                style={{ width: '100%', padding: 16, borderRadius: 12, border: 'none', background: '#1A1410', color: '#fff', fontWeight: 800, cursor: 'pointer' }}
-              >Update & Continue</button>
+                variant="dark" 
+                size="lg"
+                style={{ width: '100%' }}
+              >Update & Continue</Button>
            </div>
         </div>
       )}
       
       {/* Navigation Top */}
       <div style={{ width: '100%', maxWidth: 440, marginBottom: 24 }}>
-        <button 
+        <Button 
           onClick={onBack} 
-          style={{ background: 'none', border: 'none', color: isAdminLogin ? '#625C54' : '#B5AFA9', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}
+          variant="ghost"
+          size="sm"
+          style={{ color: isAdminLogin ? '#625C54' : '#B5AFA9', fontSize: 13, gap: 6, fontWeight: 500 }}
         >
           <ChevronLeft size={16} /> Return to Public Site
-        </button>
+        </Button>
       </div>
 
       <div className={`p-card ${isAdminLogin ? 'dark-theme' : ''}`} style={{ 
@@ -154,6 +158,7 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
             {isAdminLogin ? <Mail size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} /> : <Command size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac }} />}
             <input 
               placeholder={isAdminLogin ? "Staff ID (Email)" : "Username"} 
+              aria-label={isAdminLogin ? "Staff ID (Email)" : "Username"}
               style={{ width: '100%', height: 56, paddingLeft: 48, background: isAdminLogin ? 'rgba(255,255,255,0.03)' : '#F9F7F4', border: isAdminLogin ? '1px solid rgba(255,255,255,0.1)' : '1px solid #F0EBE5', color: isAdminLogin ? '#fff' : '#121212', borderRadius: 12, outline: 'none' }}
               value={isAdminLogin ? email : username} 
               onChange={e => isAdminLogin ? setEmail(e.target.value) : setUsername(e.target.value)} 
@@ -164,15 +169,16 @@ export default function LoginPage({ onLogin, onBack, brand, type = 'client', ...
             <input 
               type="password" 
               placeholder="Access Password" 
+              aria-label="Access Password"
               style={{ width: '100%', height: 56, paddingLeft: 48, background: isAdminLogin ? 'rgba(255,255,255,0.03)' : '#F9F7F4', border: isAdminLogin ? '1px solid rgba(255,255,255,0.1)' : '1px solid #F0EBE5', color: isAdminLogin ? '#fff' : '#121212', borderRadius: 12, outline: 'none' }}
               value={isAdminLogin ? pw : password} 
               onChange={e => isAdminLogin ? setPw(e.target.value) : setPassword(e.target.value)} 
               onKeyPress={e => e.key === 'Enter' && handleLoginSubmit()}
             />
           </div>
-          <button onClick={handleLoginSubmit} disabled={loading} style={{ height: 60, marginTop: 12, background: isAdminLogin ? 'linear-gradient(135deg, #E5C387, #C8A96E)' : '#1A1410', color: isAdminLogin ? '#121212' : '#fff', border: 'none', borderRadius: 14, fontWeight: 800, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <Button onClick={handleLoginSubmit} disabled={loading} variant={isAdminLogin ? 'primary' : 'dark'} size="lg" style={{ height: 60, marginTop: 12, width: '100%', gap: 12 }}>
             {loading ? <Spinner /> : isAdminLogin ? <><Shield size={18} /> Authorize Terminal</> : <><ArrowRight size={18} /> Enter Portal</>}
-          </button>
+          </Button>
         </div>
 
         {/* SECURITY INFO FOOTER */}

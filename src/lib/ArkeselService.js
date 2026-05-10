@@ -42,6 +42,11 @@ export const ArkeselService = {
 
   /**
    * Sends an OTP via Arkesel.
+   * 
+   * @param {string} phone - The phone number to send to.
+   * @param {string} code - The OTP code to send.
+   * @param {string} [channel='whatsapp'] - The channel to use ('sms' or 'whatsapp').
+   * @returns {Promise<object>} Returns the API response.
    */
   sendOTP: async (phone, code, channel = 'whatsapp') => {
     const cleanPhone = phone.replace(/\D/g, '');
@@ -58,6 +63,11 @@ export const ArkeselService = {
 
   /**
    * Sends a generic message via Arkesel.
+   * 
+   * @param {string} phone - The phone number to send to.
+   * @param {string} message - The message text to send.
+   * @param {string} [channel='whatsapp'] - The channel to use ('sms' or 'whatsapp').
+   * @returns {Promise<object>} Returns the API response.
    */
   sendMessage: async (phone, message, channel = 'whatsapp') => {
     const cleanPhone = phone.replace(/\D/g, '');

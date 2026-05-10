@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, Settings, LogOut, Folder, FileCode,
   Eye, Calendar, Activity, Globe, Truck, Package, Mail, MessageSquare, Sparkles,
-  ChevronRight, ChevronDown, FolderOpen, FileText, Briefcase
+  ChevronRight, ChevronDown, FolderOpen, FileText, Briefcase, TrendingUp
 } from 'lucide-react';
 import { NotificationBell } from '../../components/Shared';
 
@@ -19,6 +19,7 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
       label: 'Main',
       items: [
         { id: 'dash', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+        { id: 'analytics', label: 'Analytics', icon: <TrendingUp size={18} /> },
       ]
     },
     {

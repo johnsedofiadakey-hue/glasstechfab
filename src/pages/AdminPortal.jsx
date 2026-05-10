@@ -17,6 +17,7 @@ import ProjectProcurement from './admin/ProjectProcurement';
 import { PROJECT_STAGES } from '../data.jsx';
 import AdminShowcase from './admin/AdminShowcase';
 import AdminFinancials from './admin/AdminFinancials';
+import AdminAnalytics from './admin/AdminAnalytics';
 
 export default function AdminPortal({ user, onLogout, onPreview, content, setContent, ...props }) {
   const location = useLocation();
@@ -73,6 +74,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'financials': return <AdminFinancials {...common} />;
       case 'system': return <AdminSystem onReset={props.migrateToFirebase} syncCatalog={props.syncCatalog} {...common} />;
       case 'email': return <AdminEmailCenter {...common} convertInquiry={props.convertInquiryToProject} updateEmailStatus={props.updateEmailStatus} />;
+      case 'analytics': return <AdminAnalytics {...common} />;
       default: return <AdminDashboard {...common} />;
     }
   };

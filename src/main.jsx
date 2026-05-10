@@ -7,6 +7,9 @@ import App from './App.jsx'
 window.React = React;
 
 import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AppProvider } from './context/AppContext'
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -29,7 +32,7 @@ class ErrorBoundary extends Component {
             style={{ padding: '12px 28px', background: '#1A1410', color: '#fff', border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.05em' }}>
             Reload Page
           </button>
-          {process.env.NODE_ENV === 'development' && (
+          {import.meta.env.DEV && (
             <pre style={{ marginTop: 24, fontSize: 11, color: '#cc0000', background: '#fff', padding: 16, borderRadius: 8, maxWidth: 600, overflow: 'auto', textAlign: 'left' }}>
               {this.state.error?.toString()}
             </pre>
@@ -41,12 +44,20 @@ class ErrorBoundary extends Component {
   }
 }
 
+const queryClient = new QueryClient();
+
+console.log("App Mounting...");
+
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <ErrorBoundary>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <App />
+        <AuthProvider>
+          <AppProvider>
+            <App />
+          </AppProvider>
+        </AuthProvider>
       </BrowserRouter>
-    </ErrorBoundary>
-  </StrictMode>,
+    </QueryClientProvider>
+  </ErrorBoundary>,
 )

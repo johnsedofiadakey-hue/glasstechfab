@@ -1,12 +1,8 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      // Allow read for authenticated users (or public if they are open media)
-      allow read: if true; 
-      
-      // Strict write: Must be logged in
-      allow write: if request.auth != null;
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

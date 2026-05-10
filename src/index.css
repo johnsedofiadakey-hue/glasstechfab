@@ -981,3 +981,30 @@ body {
 }
 .luxe-horiz-scroll::-webkit-scrollbar { display: none; }
 
+/* Print Styles for Invoices */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .printable-invoice, .printable-invoice * {
+    visibility: visible !important;
+  }
+  .printable-invoice {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .overlay-modal {
+    background: #ffffff !important;
+    padding: 0 !important;
+  }
+}
+

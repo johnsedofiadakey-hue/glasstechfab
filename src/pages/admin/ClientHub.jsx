@@ -13,6 +13,8 @@ import AdminProjectGallery from './AdminProjectGallery';
 import MaterialSelector from '../../components/MaterialSelector';
 import FabricationKanban from './FabricationKanban';
 import ProjectProcurement from './ProjectProcurement';
+import Button from '../../components/ui/Button';
+import '../../components/ui/Input.css';
 
 export default function ClientHub({ clientId, dbClients = [], clients = [], onBack, ...props }) {
   const brand = props.brand || {};
@@ -42,7 +44,7 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
       <AlertCircle size={48} color="#B5AFA9" style={{ marginBottom: 16 }} />
       <div className="lxfh" style={{ fontSize: 20, color: '#1A1410' }}>Contextual Identifier Not Located</div>
       <p className="lxf" style={{ color: '#B5AFA9', marginBottom: 24 }}>Security Layer: The stakeholder identity {clientId} is not resolved.</p>
-      <button onClick={onBack} className="p-btn-dark" style={{ padding: '12px 32px' }}>Return to Directory</button>
+      <Button onClick={onBack} variant="dark" size="md">Return to Directory</Button>
     </div>
   );
 
@@ -70,7 +72,7 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
       {/* 1. TOP ACTION BAR */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 40 }}>
          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <button onClick={onBack} style={{ width: 44, height: 44, borderRadius: 14, background: '#F9F7F4', border: '1px solid #F0EBE5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+            <button onClick={onBack} aria-label="Go back" style={{ width: 44, height: 44, borderRadius: 14, background: '#F9F7F4', border: '1px solid #F0EBE5', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                <ArrowLeft size={18} />
             </button>
             <div>
@@ -144,7 +146,7 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                               <div className="lxf" style={{ fontSize: 11, color: '#6A635C' }}><Package size={14} style={{ marginBottom: -3, marginRight: 4 }} /> {wo.components || 'Standard'} Components</div>
                            </div>
                            <div style={{ display: 'flex', gap: 12 }}>
-                              <button onClick={() => { setTab('production'); setActiveWorkOrderId(wo.id); }} className="lxf" style={{ background: 'none', border: 'none', color: ac, fontSize: 11, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>Manage Steps <ChevronRight size={14} /></button>
+                              <Button onClick={() => { setTab('production'); setActiveWorkOrderId(wo.id); }} variant="ghost" size="sm" className="lxf" style={{ gap: 4, fontSize: 11, fontWeight: 800 }}>Manage Steps <ChevronRight size={14} /></Button>
                            </div>
                         </div>
                      </div>
@@ -152,6 +154,17 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                      <div style={{ padding: 80, textAlign: 'center', background: '#fff', borderRadius: 32, border: '1px dashed #F0EBE5' }}>
                         <Briefcase size={48} color="#F0EBE5" style={{ marginBottom: 20 }} />
                         <p className="lxf" style={{ color: '#B5AFA9' }}>No active requirements deployed for this stakeholder.</p>
+                     </div>
+                  )}
+                  {props.hasMoreWorkOrders && (
+                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, marginBottom: 24 }}>
+                        <Button 
+                           onClick={props.loadMoreWorkOrders}
+                           variant="outline"
+                           size="sm"
+                        >
+                           Load More Work Orders
+                        </Button>
                      </div>
                   )}
                </div>
@@ -204,7 +217,7 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                                        <div style={{ flex: 1 }}>
                                           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                              <div className="lxf" style={{ fontSize: 15, fontWeight: isCurrent ? 800 : 500, color: isCurrent ? '#1A1410' : '#B5AFA9' }}>{s.name}</div>
-                                             {isCurrent && <button onClick={() => props.updateStage(activeWorkOrder.id, s.id + 1)} className="p-btn-gold" style={{ padding: '4px 12px', fontSize: 10 }}>Complete Stage</button>}
+                                             {isCurrent && <Button onClick={() => props.updateStage(activeWorkOrder.id, s.id + 1)} variant="primary" size="sm">Complete Stage</Button>}
                                           </div>
                                        </div>
                                     </div>
@@ -264,6 +277,17 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                      <p className="lxf" style={{ fontSize: 11, color: '#16A34A', fontWeight: 800, marginTop: 4 }}>ENC-256 LAYER ACTIVE</p>
                   </div>
                   <div style={{ flex: 1, padding: 32, overflowY: 'auto', background: '#FDFCFB', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                     {props.hasMoreMessages && (
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                           <Button 
+                              onClick={props.loadMoreMessages}
+                              variant="outline"
+                              size="sm"
+                           >
+                              Load Older Messages
+                           </Button>
+                        </div>
+                     )}
                      {(props.messages || []).filter(m => 
                         m.senderId === hId || m.receiverId === hId || 
                         m.senderId === client?.id || m.receiverId === client?.id ||
@@ -288,12 +312,12 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                   <div style={{ padding: 24, background: '#fff', borderTop: '1px solid #F0EBE5', display: 'flex', gap: 12 }}>
                      <input 
                        id="hubMsgInp" 
-                       className="p-inp" 
+                       className="input-field" 
                        placeholder="Send secure message..." 
-                       style={{ flex: 1, background: '#F9F7F4' }}
+                       style={{ flex: 1 }}
                        onKeyDown={e => { if (e.key === 'Enter' && e.target.value) { props.sendMessage(e.target.value, 'admin', client.id); e.target.value = ''; } }}
                      />
-                     <button onClick={() => { const inp = document.getElementById('hubMsgInp'); if (inp.value) { props.sendMessage(inp.value, 'admin', client.id); inp.value = ''; } }} className="p-btn-dark" style={{ width: 56, height: 56, borderRadius: 16, background: ac, color: '#1A1410', border: 'none' }}>
+                     <button onClick={() => { const inp = document.getElementById('hubMsgInp'); if (inp.value) { props.sendMessage(inp.value, 'admin', client.id); inp.value = ''; } }} aria-label="Send message" className="p-btn-dark" style={{ width: 56, height: 56, borderRadius: 16, background: ac, color: '#1A1410', border: 'none' }}>
                         <Send size={20} />
                      </button>
                   </div>
@@ -323,7 +347,7 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                               </div>
                               <div style={{ display: 'flex', gap: 12 }}>
                                  {p.img && <img src={p.img} style={{ width: 60, height: 60, borderRadius: 12, objectFit: 'cover' }} />}
-                                 <button className="p-btn-light" style={{ height: 32, fontSize: 10 }}>Share with Client</button>
+                                 <Button variant="secondary" size="sm">Share with Client</Button>
                               </div>
                            </div>
                         ))}
@@ -366,6 +390,17 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                         </tbody>
                      </table>
                   </div>
+                  {props.hasMoreInvoices && (
+                     <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16 }}>
+                        <Button 
+                           onClick={props.loadMoreInvoices}
+                           variant="outline"
+                           size="sm"
+                        >
+                           Load More Invoices
+                        </Button>
+                     </div>
+                  )}
                </div>
             )}
          </div>
@@ -403,10 +438,10 @@ export default function ClientHub({ clientId, dbClients = [], clients = [], onBa
                      <span style={{ fontWeight: 800 }}>{client.phone}</span>
                   </div>
                </div>
-               <button onClick={() => alert("Credentials sent.")} className="p-btn-dark" style={{ width: '100%', marginTop: 24, height: 44, fontSize: 11 }}>Sync Portal Access</button>
+               <Button onClick={() => alert("Credentials sent.")} variant="dark" size="md" style={{ width: '100%', marginTop: 24 }}>Sync Portal Access</Button>
             </div>
          </div>
-
+      </div>
     </div>
   );
 }

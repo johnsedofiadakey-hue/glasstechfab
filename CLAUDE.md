@@ -1,0 +1,1 @@
+/Users/truth/CLAUDE.md
