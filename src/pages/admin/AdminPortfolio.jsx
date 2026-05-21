@@ -4,7 +4,7 @@ import { FF as PFormField } from '../../components/Shared';
 import { uploadFile } from '../../lib/firebase';
 import { compressImage } from '../../lib/image-utils';
 
-export default function AdminPortfolio({ content, syncCMS, brand }) {
+export default function AdminPortfolio({ content, syncCMS, brand, notify }) {
   const ac = brand?.color || '#C8A96E';
   const portfolio = content?.portfolio || [];
   
@@ -55,7 +55,7 @@ export default function AdminPortfolio({ content, syncCMS, brand }) {
         const compressed = await compressImage(file, { maxWidth: 1600, quality: 0.7 });
         const url = await uploadFile('assets', `portfolio/${Date.now()}_${field}_${file.name}`, compressed);
         updateProj(idx, { [field]: url, hasBA: field === 'before' ? true : portfolio[idx].hasBA });
-      } catch (err) { alert('Upload failed: ' + err.message); }
+      } catch (err) { notify?.('error', 'Upload failed: ' + err.message); }
     }
   };
 

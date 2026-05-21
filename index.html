@@ -3,34 +3,48 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#1A1410" />
-    
+    <link rel="canonical" href="https://glasstech.com.gh" />
+    <meta name="robots" content="index, follow" />
+
     <!-- SEO Meta Tags -->
-    <title>Glasstech Hub | Premier Glass Installation, Interior Deco & China Sourcing - Ghana</title>
-    <meta name="description" content="Ghana's #1 hub for structural glass, aluminum works, and interior finishing. Expert shower cubicles, glass balustrades, office partitions, kitchen cabinets, and furniture sourcing from China. Serving Accra, Kumasi, Takoradi & beyond." />
-    <meta name="keywords" content="glass installation ghana, aluminum works accra, shower cubicles ghana, glass balustrades accra, office glass partitions, tempered glass ghana, frameless glass doors, glass staircase railing, mirror installation accra, skylight installation ghana, curtain wall systems, kitchen renovation ghana, interior deco accra, furniture purchase from china, electrical works ghana, plumbing tarkwa, tiles koforidua, home finishing contractors ghana, commercial fit-out accra" />
+    <title>Glasstech Fabrications | Glass, Bathrooms, Kitchens, Tiles, Electrical & Plumbing — Ghana</title>
+    <meta name="description" content="Ghana's #1 interior works company. We install glass, aluminium windows, shower cubicles, kitchen cabinets, wardrobes, tiles, doors, electrical wiring, and plumbing across Accra, Kumasi, Takoradi and all of Ghana. Free quotes via WhatsApp." />
+    <meta name="keywords" content="glass installation ghana, aluminium windows accra, shower cubicle ghana, bathroom renovation accra, kitchen cabinet ghana, kitchen renovation accra, modular kitchen ghana, wardrobe installation ghana, fitted wardrobe accra, floor tiles accra, tiles supplier ghana, porcelain tiles ghana, wall tiles accra, tiles installation ghana, door installation accra, wooden doors ghana, security doors ghana, WPC doors ghana, electrician accra, electrical installation ghana, plumber accra, plumbing services ghana, interior finishing ghana, interior design accra, glass balustrade accra, frameless glass door ghana, curtain wall ghana, glass partition accra, bathroom tiles accra, vanity unit accra, shower tray ghana, home renovation ghana, commercial fit-out accra, china sourcing ghana, furniture from china ghana" />
     <meta name="author" content="Glasstech Fabrications" />
-    
-    <!-- Social Meta Tags -->
-    <meta property="og:title" content="Glasstech Hub | Structural Glass & Interior Solutions" />
-    <meta property="og:description" content="Precision glass engineering and premium interior deco across Ghana. From Balustrades to China Furniture Sourcing." />
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Glasstech Fabrications" />
+    <meta property="og:title" content="Glasstech Fabrications | Glass, Bathrooms, Kitchens, Tiles, Electrical &amp; Plumbing — Ghana" />
+    <meta property="og:description" content="Ghana's #1 interior works company. Glass, aluminium windows, bathrooms, kitchens, wardrobes, tiles, doors, electrical and plumbing — installed across all of Ghana." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://glasstechfab.com" />
-    <meta property="og:image" content="/hero_seo.png" />
+    <meta property="og:url" content="https://glasstech.com.gh" />
+    <meta property="og:image" content="https://glasstech.com.gh/hero_seo.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_GH" />
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:image" content="/hero_seo.png" />
-    
+    <meta name="twitter:title" content="Glasstech Fabrications | Glass &amp; Interior Experts — Ghana" />
+    <meta name="twitter:description" content="Precision glass engineering, shower cubicles, balustrades, and China sourcing. Serving all of Ghana." />
+    <meta name="twitter:image" content="https://glasstech.com.gh/hero_seo.png" />
+
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
       "name": "Glasstech Fabrications",
-      "description": "Premier structural glass, balustrades, and interior deco services in Ghana.",
-      "url": "https://glasstechfab.com",
-      "telephone": "+233000000000",
+      "description": "Premier structural glass, balustrades, and interior finishing services in Ghana.",
+      "url": "https://glasstech.com.gh",
+      "telephone": "+233598455012",
+      "email": "contact@glasstech.com.gh",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Accra",
@@ -44,25 +58,28 @@
       },
       "areaServed": ["Accra", "Kumasi", "Koforidua", "Takoradi", "Cape Coast", "Tarkwa"],
       "knowsAbout": [
-        "Structural Glass Installation", 
-        "Aluminum Glazing", 
-        "Shower Cubicles", 
-        "Glass Balustrades", 
-        "Office Glass Partitions", 
-        "Frameless Glass Doors", 
-        "China Furniture Sourcing", 
-        "Modern Kitchen Design", 
-        "Smart Home Electricals"
+        "Structural Glass Installation",
+        "Aluminum Glazing",
+        "Shower Cubicles",
+        "Glass Balustrades",
+        "Office Glass Partitions",
+        "Frameless Glass Doors",
+        "China Furniture Sourcing",
+        "Modern Kitchen Design"
       ],
       "hasOfferCatalog": {
         "@type": "OfferCatalog",
-        "name": "Construction & Interior Services",
+        "name": "Interior Works & Installation Services",
         "itemListElement": [
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Glass Installation & Balustrades" }},
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Shower Cubicles & Enclosures" }},
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Office Glass Partitions" }},
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "China Furniture Sourcing & Logistics" }},
-          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Interior Deco & Finishing" }}
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Glass Installation — frameless glass, balustrades, curtain walls, partitions" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Aluminium Windows & Doors — casement, sliding, louvre, burglar proof" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Bathroom Renovation — shower cubicles, vanities, WC, tiles, plumbing" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Kitchen Installation — kitchen cabinets, worktops, modular kitchens" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Wardrobes — fitted wardrobes, sliding wardrobes, walk-in closets" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Tiles Supply & Installation — porcelain, ceramic, floor and wall tiles" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Doors — interior timber doors, security doors, WPC bathroom doors" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Electrical Works — wiring, LED lighting, DB boards, smart switches" }},
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Plumbing — pipe installation, sanitary fittings, water heaters" }}
         ]
       }
     }

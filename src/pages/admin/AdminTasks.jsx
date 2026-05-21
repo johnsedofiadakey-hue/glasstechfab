@@ -3,7 +3,7 @@ import { CheckCircle, Trash2 } from 'lucide-react';
 import { FF as PFormField } from '../../components/Shared';
 import { PROJECT_STAGES } from '../../data';
 
-export default function AdminTasks({ projectId, projectTitle, tasks, createTask, deleteTask, updateTask, teamMembers, brand }) {
+export default function AdminTasks({ projectId, projectTitle, tasks, createTask, deleteTask, updateTask, teamMembers, brand, notify }) {
   const ac = brand.color || '#C8A96E';
   const [showAdd, setShowAdd] = useState(false);
   const [nt, setNt] = useState({ title: '', desc: '', assignedTo: '', stage: 1, dueDate: '' });
@@ -21,7 +21,7 @@ export default function AdminTasks({ projectId, projectTitle, tasks, createTask,
   });
 
   const handleAdd = async () => {
-    if (!nt.title || !nt.assignedTo) return alert('Title and Assignee required');
+    if (!nt.title || !nt.assignedTo) { notify?.('error', 'Title and Assignee are required.'); return; };
     await createTask({
       project_id: projectId,
       project_title: projectTitle,

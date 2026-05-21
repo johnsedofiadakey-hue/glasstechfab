@@ -2,19 +2,22 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, Settings, LogOut, Folder, FileCode,
   Eye, Calendar, Activity, Globe, Truck, Package, Mail, MessageSquare, Sparkles,
-  ChevronRight, ChevronDown, FolderOpen, FileText, Briefcase, TrendingUp, Kanban
+  ChevronRight, ChevronDown, FolderOpen, FileText, Briefcase, TrendingUp, Kanban, HardHat
 } from 'lucide-react';
 import { NotificationBell } from '../../components/Shared';
 
-export default function AdminLayout({ user, onLogout, onPreview, brand, view, setView, userNotifications, markNotificationRead, children, ...props }) {
+export default function AdminLayout({ user, onLogout, onPreview, brand, view, setView, userNotifications, markNotificationRead, onSearchChange, children, staffMode = false, ...props }) {
   const ac = brand.color || '#C8A96E';
   const [expandedFolders, setExpandedFolders] = useState({});
+  const [searchValue, setSearchValue] = useState('');
 
   const toggleFolder = (id) => {
     setExpandedFolders(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const menuGroups = [
+  const STAFF_ALLOWED_IDS = ['dash', 'projects', 'operations', 'client-hub', 'messages'];
+
+  const allMenuGroups = [
     {
       label: 'Main',
       items: [
@@ -50,12 +53,24 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
       ]
     },
     {
+      label: 'Team',
+      items: [
+        { id: 'staff', label: 'Staff Accounts', icon: <Users size={18} /> },
+      ]
+    },
+    {
       label: 'System',
       items: [
         { id: 'system', label: 'Settings', icon: <Settings size={18} /> },
       ]
     }
   ];
+
+  const menuGroups = staffMode
+    ? allMenuGroups
+        .map(g => ({ ...g, items: g.items.filter(item => STAFF_ALLOWED_IDS.includes(item.id)) }))
+        .filter(g => g.items.length > 0)
+    : allMenuGroups;
 
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   useEffect(() => {
@@ -116,7 +131,10 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
             ))}
           </nav>
 
-          <div style={{ padding: 16, borderTop: '1px solid rgba(255,255,255,.05)' }}>
+          <div style={{ padding: 16, borderTop: '1px solid rgba(255,255,255,.05)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <a href="/work" target="_blank" rel="noreferrer" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: 'rgba(249,247,244,.6)', cursor: 'pointer', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>
+              <HardHat size={16} /> Field Worker View
+            </a>
             <button onClick={onLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'none', border: 'none', color: 'rgba(249,247,244,.4)', cursor: 'pointer' }}>
               <LogOut size={16} /> <span style={{ fontSize: 13 }}>Logout</span>
             </button>
@@ -128,13 +146,15 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
       <main className="lx-main-admin" style={{ flex: 1, marginLeft: !isMobile ? 280 : 0 }}>
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           {/* RESPONSIVE HEADER */}
-          <header className={`p-nav-float ${isMobile ? 'mobile-header' : ''}`} style={{ 
+          <header className={`p-nav-float ${isMobile ? 'mobile-header' : ''}`} style={{
             marginTop: isMobile ? 0 : 24,
             borderRadius: isMobile ? 0 : 20,
             background: 'rgba(255, 255, 255, 0.4)',
             backdropFilter: 'blur(24px) saturate(180%)',
             border: '1px solid rgba(255, 255, 255, 0.6)',
-            boxShadow: 'var(--sh-md)'
+            boxShadow: 'var(--sh-md)',
+            position: 'relative',
+            zIndex: 50
           }}>
             <div className="header-inner" style={{ 
               display: 'flex', 
@@ -164,16 +184,26 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
                       <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: ac, opacity: 0.5 }}>
                          <Eye size={16} />
                       </div>
-                      <input 
+                      <input
                         className="lxf"
-                        placeholder="Predictive Search: Clients, Vessels, or Ledger Ref..." 
-                        style={{ 
-                          width: '100%', 
-                          height: 44, 
-                          borderRadius: 14, 
-                          background: 'rgba(255,255,255,0.4)', 
+                        value={searchValue}
+                        onChange={e => {
+                          setSearchValue(e.target.value);
+                          onSearchChange?.(e.target.value);
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === 'Escape') { setSearchValue(''); onSearchChange?.(''); }
+                          if (e.key === 'Enter' && searchValue.trim()) setView('operations');
+                        }}
+                        placeholder="Search clients, projects, invoices..."
+                        style={{
+                          width: '100%',
+                          height: 44,
+                          borderRadius: 14,
+                          background: 'rgba(255,255,255,0.4)',
                           border: '1px solid rgba(255,255,255,0.6)',
                           paddingLeft: 44,
+                          paddingRight: searchValue ? 36 : 80,
                           fontSize: 12,
                           fontWeight: 500,
                           color: '#1A1410',
@@ -183,7 +213,9 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
                         onFocus={(e) => { e.target.style.background = '#fff'; e.target.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)'; }}
                         onBlur={(e) => { e.target.style.background = 'rgba(255,255,255,0.4)'; e.target.style.boxShadow = 'none'; }}
                       />
-                      <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: '#F9F7F4', padding: '4px 8px', borderRadius: 6, fontSize: 8, fontWeight: 900, color: '#B5AFA9', letterSpacing: 1 }}>CTRL + K</div>
+                      {searchValue && (
+                        <button onClick={() => { setSearchValue(''); onSearchChange?.(''); }} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#B5AFA9', display: 'flex', alignItems: 'center' }}>✕</button>
+                      )}
                    </div>
                  )}
                                 <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>

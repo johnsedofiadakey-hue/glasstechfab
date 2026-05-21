@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { usePaystackPayment } from 'react-paystack';
-import { Lock, ShieldCheck, CheckCircle, ArrowRight, X } from 'lucide-react';
+import { Lock, ShieldCheck, CheckCircle, ArrowRight, X, AlertCircle } from 'lucide-react';
 import { Spinner } from './Shared';
+import { functions } from '../lib/firebase';
+const _dev = import.meta.env.DEV;
+const devLog = (...a) => { if (_dev) console.log(...a); };
+import { httpsCallable } from 'firebase/functions';
 
 export default function PaystackPayModal({ invoice, brand, onClose, onSuccess }) {
-  const [status, setStatus] = useState('idle'); // idle, processing, success, error
+  const [status, setStatus] = useState('idle'); // idle, processing, verifying, success, error
   const [error, setError] = useState(null);
+  const [verifyRef, setVerifyRef] = useState(null);
 
   const ac = brand.color || '#C8A96E';
   
   // Paystack expects amount in Kobo (lowest currency unit)
-  const rawAmount = parseFloat(invoice.amount.replace(/[$,]/g, ''));
+  const rawAmount = parseFloat(String(invoice.amount || 0).replace(/[$,]/g, '')) || 0;
   const amountInKobo = Math.round(rawAmount * 100);
 
   const config = {
@@ -27,15 +32,58 @@ export default function PaystackPayModal({ invoice, brand, onClose, onSuccess })
 
   const initializePayment = usePaystackPayment(config);
 
-  const handlePaystackSuccess = (reference) => {
-    console.log("[PAYSTACK] Success Reference:", reference);
+  const handlePaystackSuccess = async (reference) => {
+    const ref = reference?.reference || reference?.trxref || String(reference);
+    setVerifyRef(ref);
+    setStatus('verifying');
+    // Server-side verification
+    if (functions && invoice?.projectId) {
+      try {
+        const verify = httpsCallable(functions, 'verifyPaystackPayment');
+        await verify({ reference: ref, projectId: invoice.projectId, invoiceId: invoice.id, type: 'invoice' });
+      } catch (err) {
+        setError('Payment received but verification failed. Reference: ' + ref + '. Contact support.');
+        setStatus('error');
+        return;
+      }
+    }
     setStatus('success');
     onSuccess(invoice.id);
   };
 
   const handlePaystackClose = () => {
-    console.log("[PAYSTACK] Payment Dashboard Closed");
+    devLog("[PAYSTACK] Payment Dashboard Closed");
   };
+
+  if (status === 'error') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(26,20,16,.9)', backdropFilter: 'blur(12px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div className="p-card fade-in" style={{ width: '100%', maxWidth: 440, padding: 48, textAlign: 'center', background: '#fff', borderRadius: 32 }}>
+          <div style={{ width: 80, height: 80, borderRadius: 40, background: '#FEF2F2', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+            <AlertCircle size={40} />
+          </div>
+          <h2 className="lxfh" style={{ fontSize: 24, color: '#1A1410', marginBottom: 12 }}>Verification Failed</h2>
+          <p className="lxf" style={{ color: '#6A635C', marginBottom: 32, lineHeight: 1.6, fontSize: 14 }}>{error}</p>
+          <button onClick={onClose} className="p-btn-dark lxf" style={{ width: '100%', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'verifying') {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(26,20,16,.9)', backdropFilter: 'blur(12px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+        <div className="p-card fade-in" style={{ width: '100%', maxWidth: 440, padding: 48, textAlign: 'center', background: '#fff', borderRadius: 32 }}>
+          <Spinner />
+          <h2 className="lxfh" style={{ fontSize: 22, color: '#1A1410', marginTop: 24, marginBottom: 12 }}>Verifying with Paystack...</h2>
+          <p className="lxf" style={{ color: '#6A635C', fontSize: 14 }}>Please wait while we confirm your payment on our servers.</p>
+          {verifyRef && <p style={{ fontSize: 11, color: '#B5AFA9', marginTop: 12 }}>Ref: {verifyRef}</p>}
+        </div>
+      </div>
+    );
+  }
 
   if (status === 'success') {
     return (
@@ -76,12 +124,14 @@ export default function PaystackPayModal({ invoice, brand, onClose, onSuccess })
            </div>
 
            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <button 
+              <button
                 onClick={() => {
+                  if (status !== 'idle') return;
                   initializePayment(handlePaystackSuccess, handlePaystackClose);
-                }} 
-                className="p-btn-dark lxf" 
-                style={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, borderRadius: 16, background: '#09A5DB', color: '#fff', border: 'none' }}
+                }}
+                disabled={status !== 'idle'}
+                className="p-btn-dark lxf"
+                style={{ width: '100%', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, borderRadius: 16, background: status !== 'idle' ? '#E8E3DD' : '#09A5DB', color: status !== 'idle' ? '#B5AFA9' : '#fff', border: 'none', cursor: status !== 'idle' ? 'default' : 'pointer' }}
               >
                 <Lock size={18} /> Authorize Secure Payment
               </button>

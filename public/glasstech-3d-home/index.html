@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore Glasstech's interactive 3D virtual home tour. Experience ultra-luxurious, classy Ghanaian home renovations featuring smart glass partitions, frameless railings, and double-glazed facades.">
+  <title>GLASSTECH | Luxurious 3D Ghanaian Home Renovation Tour</title>
+  
+  <!-- Font Awesome for sleek icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Main Premium Style -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Three.js from Cloudflare CDN for robust and fast 3D spherical rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- 1. HEADER SECTION -->
+    <header class="app-header">
+      <div class="logo-container">
+        <div class="logo-icon">G</div>
+        <div class="logo-text">
+          <h1>Glasstech</h1>
+          <span>Luxury Glass Architecture</span>
+        </div>
+      </div>
+      
+      <div class="header-cta">
+        <div class="phone-number">
+          <i class="fa-solid fa-phone"></i> Call: <span>+233 59 845 5012</span>
+        </div>
+        <button class="btn-primary" onclick="openConsultationModal()">Request Quote</button>
+      </div>
+    </header>
+
+    <!-- 2. 3D VIEWPORT & CANVAS AREA -->
+    <main class="viewport-area" id="viewport-area">
+      <!-- Three.js Canvas Container -->
+      <div id="canvas-container" layoutsubtree></div>
+
+      <!-- Floating 3D Projected Hotspots Container -->
+      <div class="hotspot-overlay-container" id="hotspot-overlay-container">
+        <!-- Hotspots are dynamically generated and injected here by app.js -->
+      </div>
+
+      <!-- Left Tour Controls Overlay -->
+      <div class="tour-controls">
+        <button class="control-btn" id="rotate-toggle-btn" title="Toggle Auto-Rotation">
+          <i class="fa-solid fa-rotate"></i>
+        </button>
+        <button class="control-btn" id="music-toggle-btn" title="Play Ambient Music">
+          <i class="fa-solid fa-music"></i>
+        </button>
+        <button class="control-btn" id="fullscreen-btn" title="Toggle Fullscreen">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+      </div>
+
+      <!-- Drag / Interact Help Indicator -->
+      <div class="drag-instructions">
+        <i class="fa-solid fa-computer-mouse"></i> Click & Drag to explore 360° or click <span>Hotspots</span>
+      </div>
+
+      <!-- Floating Floor Plan Minimap Card -->
+      <div class="minimap-card">
+        <div class="minimap-header">
+          <span>Interactive Map</span>
+          <span id="active-floor-label">Living Room</span>
+        </div>
+        <div class="minimap-svg-container">
+          <svg viewBox="0 0 200 110" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <!-- Kitchen (Left) -->
+            <rect id="map-kitchen" class="floor-plan-room" x="5" y="45" width="40" height="50" rx="3" onclick="selectRoom('kitchen')" />
+            <text class="floor-plan-text" x="25" y="70">Kitchen</text>
+
+            <!-- Living Room (Center) -->
+            <rect id="map-living" class="floor-plan-room active" x="48" y="45" width="80" height="60" rx="3" onclick="selectRoom('living')" />
+            <text class="floor-plan-text" x="88" y="75">Living Room</text>
+
+            <!-- Master Bedroom (Right) -->
+            <rect id="map-bedroom" class="floor-plan-room" x="131" y="45" width="64" height="60" rx="3" onclick="selectRoom('bedroom')" />
+            <text class="floor-plan-text" x="163" y="75">Bedroom</text>
+
+            <!-- Washroom (Top Right) -->
+            <rect id="map-washroom" class="floor-plan-room" x="131" y="5" width="30" height="37" rx="2" onclick="selectRoom('washroom')" />
+            <text class="floor-plan-text" x="146" y="24" style="font-size: 8px;">Bath</text>
+
+            <!-- Walk-in Closet (Top Far Right) -->
+            <rect id="map-closet" class="floor-plan-room" x="164" y="5" width="31" height="37" rx="2" onclick="selectRoom('closet')" />
+            <text class="floor-plan-text" x="179" y="24" style="font-size: 8px;">Closet</text>
+            
+            <!-- Connection Lines/Doors (for realistic architectural feel) -->
+            <line x1="45" y1="70" x2="48" y2="70" stroke="rgba(255,255,255,0.4)" stroke-dasharray="2" />
+            <line x1="128" y1="75" x2="131" y2="75" stroke="rgba(255,255,255,0.4)" stroke-dasharray="2" />
+            <line x1="146" y1="42" x2="146" y2="45" stroke="rgba(255,255,255,0.4)" stroke-dasharray="2" />
+            <line x1="179" y1="42" x2="179" y2="45" stroke="rgba(255,255,255,0.4)" stroke-dasharray="2" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Active Room Title floating badge (bottom-left) -->
+      <div class="room-indicator-tag">
+        <span id="current-room-category">Glasstech Showroom</span>
+        <h2 id="current-room-title">Ultra-Luxury Living Room</h2>
+      </div>
+
+      <!-- Dynamic Before & After Toggle Switch Overlay (Only visible in Living Room) -->
+      <div class="before-after-toggle-panel" id="before-after-panel">
+        <button class="toggle-switch-btn" id="before-toggle-btn">
+          Before Renovation
+        </button>
+        <button class="toggle-switch-btn active" id="after-toggle-btn">
+          <span class="toggle-badge-live"></span> Glasstech After
+        </button>
+      </div>
+
+      <!-- Bottom Horizontal Room Selector Carousel -->
+      <nav class="bottom-room-carousel" aria-label="Room navigation">
+        <div class="carousel-card active" id="card-living" onclick="selectRoom('living')">
+          <img src="assets/living_after.png" alt="Living Room Thumbnail">
+          <div class="carousel-card-title">Living Room</div>
+        </div>
+        <div class="carousel-card" id="card-kitchen" onclick="selectRoom('kitchen')">
+          <img src="assets/kitchen_after.png" alt="Chef's Kitchen Thumbnail">
+          <div class="carousel-card-title">Modern Kitchen</div>
+        </div>
+        <div class="carousel-card" id="card-bedroom" onclick="selectRoom('bedroom')">
+          <img src="assets/bedroom_after.png" alt="Master Bedroom Thumbnail">
+          <div class="carousel-card-title">Master Bedroom</div>
+        </div>
+        <div class="carousel-card" id="card-washroom" onclick="selectRoom('washroom')">
+          <img src="assets/washroom_after.png" alt="Spa Washroom Thumbnail">
+          <div class="carousel-card-title">Spa Washroom</div>
+        </div>
+        <div class="carousel-card" id="card-closet" onclick="selectRoom('closet')">
+          <img src="assets/closet_after.png" alt="Walk-in Closet Thumbnail">
+          <div class="carousel-card-title">Walk-In Closet</div>
+        </div>
+      </nav>
+    </main>
+
+    <!-- 3. RIGHT SIDE GLASS SPECIFICATION PANEL -->
+    <aside class="spec-panel">
+      <div class="spec-header-image">
+        <img id="spec-img-header" src="assets/living_after.png" alt="Active Room Header">
+        <div class="spec-header-overlay"></div>
+      </div>
+      
+      <div class="spec-content">
+        <div class="spec-room-title">
+          <p id="spec-meta">Featured Renovation</p>
+          <h3 id="spec-title">Luxury Living Room</h3>
+        </div>
+
+        <p class="spec-description" id="spec-description">
+          A breathtaking high-ceiling architectural masterpiece. We replaced heavy solid brick walls with structural double-glazed sliding glass facades, seamlessly merging the interior elegance with natural tropical scenery.
+        </p>
+
+        <h4 style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent-gold); margin-top: 5px;">
+          Installed Glass Features
+        </h4>
+        
+        <!-- Features List (Loaded Dynamically based on room) -->
+        <div class="glass-features-list" id="glass-features-list">
+          <!-- Dynamic features injected by app.js -->
+        </div>
+
+        <!-- Consultation Box -->
+        <div class="consultation-box">
+          <h4>Transform Your Home</h4>
+          <p>Book a free consultation with our design specialists today.</p>
+          <form class="consultation-form" onsubmit="handleLeadSubmit(event)">
+            <input type="text" class="form-input" placeholder="Your Name" required name="clientName">
+            <input type="email" class="form-input" placeholder="Email Address" required name="clientEmail">
+            <input type="tel" class="form-input" placeholder="Phone (e.g. +233...)" required name="clientPhone">
+            <button type="submit" class="btn-submit">Request Free Consultation</button>
+          </form>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- 4. LUXURIOUS PRODUCT SPECIFICATION MODAL -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-box">
+      <button class="modal-close-btn" onclick="closeModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="modal-body">
+        <div class="modal-image-col">
+          <img id="modal-product-img" src="" alt="Product Showcase">
+        </div>
+        <div class="modal-info-col">
+          <span id="modal-product-badge">Premium Feature</span>
+          <h3 id="modal-product-title">Toughened Smart Glass</h3>
+          <p id="modal-product-desc">
+            Our state-of-the-art glass features acoustic dampening, thermostatic heat regulation, and privacy toggling. Crafted utilizing premium materials to endure tropical conditions.
+          </p>
+          <button class="btn-primary" onclick="requestFeatureDetails()">Enquire About This</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. TOAST SUCCESS NOTIFICATION -->
+  <div class="toast-notification" id="success-toast">
+    <i class="fa-solid fa-circle-check" style="font-size: 18px;"></i>
+    <span>Thank you! We will contact you within 24 hours.</span>
+  </div>
+
+  <!-- 6. APPLICATION JAVASCRIPT -->
+  <script src="app.js"></script>
+</body>
+</html>

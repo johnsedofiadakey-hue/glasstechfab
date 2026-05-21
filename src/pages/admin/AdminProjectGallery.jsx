@@ -3,13 +3,13 @@ import { Camera, Trash2 } from 'lucide-react';
 import { FF as PFormField } from '../../components/Shared';
 import { PROJECT_STAGES } from '../../data';
 
-export default function AdminProjectGallery({ projectId, media = [], uploadMedia, deleteMedia, ac }) {
+export default function AdminProjectGallery({ projectId, media = [], uploadMedia, deleteMedia, ac, notify }) {
   const [showAdd, setShowAdd] = useState(false);
   const [nm, setNm] = useState({ stage: 1, file: null, preview: '' });
   const myMedia = media.filter(m => m.parentId === projectId);
 
   const handleUpload = async () => {
-    if (!nm.file) return alert('Select a photo');
+    if (!nm.file) { notify?.('error', 'Select a photo first.'); return; };
     await uploadMedia(projectId, nm.file, parseInt(nm.stage));
     setNm({ stage: 1, file: null, preview: '' });
     setShowAdd(false);

@@ -3,7 +3,7 @@ import { FF as PFormField } from '../../components/Shared';
 import { PROCUREMENT_STAGES } from '../../data';
 import { Camera, Package, Truck, CheckCircle, Factory, Warehouse } from 'lucide-react';
 
-export default function AdminProcurement({ projectId, procurements = [], createProcurement, updateProcurement, deleteProcurement, brand }) {
+export default function AdminProcurement({ projectId, procurements = [], createProcurement, updateProcurement, deleteProcurement, brand, notify }) {
   const ac = brand.color || '#C8A96E';
   const myProcs = (procurements || []).filter(p => p.parentId === projectId);
   
@@ -17,7 +17,7 @@ export default function AdminProcurement({ projectId, procurements = [], createP
   const totalAct = myProcs.reduce((acc, p) => acc + (parseFloat(p.actualCost) || 0), 0);
 
   const handleAdd = async () => {
-    if (!na.itemName || !na.estimatedCost) return alert('Name and Estimated Cost required');
+    if (!na.itemName || !na.estimatedCost) { notify?.('error', 'Name and Estimated Cost required'); return; };
     if (createProcurement) {
       await createProcurement(projectId, {
         itemName: na.itemName, source: na.source, estimatedCost: na.estimatedCost, 
