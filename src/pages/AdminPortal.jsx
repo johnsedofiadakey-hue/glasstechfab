@@ -9,6 +9,7 @@ import AdminPortfolio from './admin/AdminPortfolio';
 import AdminEmailCenter from './admin/AdminEmailCenter';
 import AdminStaff from './admin/AdminStaff';
 import AdminSystem from './admin/AdminSystem';
+import AdminProductSync from './admin/AdminProductSync';
 import AIProposalGenerator from '../components/AIProposalGenerator';
 import ClientHub from './admin/ClientHub';
 import FabricationKanban from './admin/FabricationKanban';
@@ -109,6 +110,7 @@ export default function AdminPortal({ user, onLogout, onPreview, content, setCon
       case 'showcase': return <AdminShowcase {...common} />;
       case 'staff': return <AdminStaff {...common} team={props.teamMembers || []} />;
       case 'financials': return <AdminFinancials {...common} />;
+      case 'product-sync': return <AdminProductSync {...common} syncCatalog={props.syncCatalog} />;
       case 'system': return <AdminSystem onReset={props.migrateToFirebase} syncCatalog={props.syncCatalog} {...common} />;
       case 'email': return <AdminEmailCenter {...common} convertInquiry={props.convertInquiryToProject} updateEmailStatus={props.updateEmailStatus} />;
       case 'analytics': return <AdminAnalytics {...common} />;

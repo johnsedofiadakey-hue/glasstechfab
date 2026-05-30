@@ -10,6 +10,7 @@ const Portfolio = lazy(() => import('./pages/Portfolio'));
 const Showcase = lazy(() => import('./pages/Showcase'));
 const FieldUpload = lazy(() => import('./pages/admin/FieldUpload'));
 const WorkerView = lazy(() => import('./pages/WorkerView'));
+const WorkflowManualPage = lazy(() => import('./pages/WorkflowManualPage'));
 import ProtectedRoute from './components/ProtectedRoute';
 import { sanitizeText } from './lib/sanitize';
 import { mapFirebaseError } from './lib/firebaseErrors';
@@ -1887,6 +1888,7 @@ export default function App() {
               ) : <Navigate to="/login" />}
             </ProtectedRoute>
           } />
+          <Route path="/workflow-manual" element={<WorkflowManualPage {...commonProps} />} />
           <Route path="/field-upload" element={<FieldUpload {...commonProps} />} />
           <Route path="/field-upload/:projectId" element={<FieldUpload {...commonProps} />} />
           <Route path="/work" element={

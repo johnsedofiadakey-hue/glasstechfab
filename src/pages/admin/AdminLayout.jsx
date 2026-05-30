@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, Settings, LogOut, Folder, FileCode,
   Eye, Calendar, Activity, Globe, Truck, Package, Mail, MessageSquare, Sparkles,
-  ChevronRight, ChevronDown, FolderOpen, FileText, Briefcase, TrendingUp, Kanban, HardHat
+  ChevronRight, ChevronDown, FolderOpen, FileText, Briefcase, TrendingUp, Kanban, HardHat, KeyRound, X
 } from 'lucide-react';
 import { NotificationBell } from '../../components/Shared';
+import LanguageFlagSwitch from '../../components/LanguageFlagSwitch';
 
 export default function AdminLayout({ user, onLogout, onPreview, brand, view, setView, userNotifications, markNotificationRead, onSearchChange, children, staffMode = false, ...props }) {
   const ac = brand.color || '#C8A96E';
@@ -61,6 +62,7 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
     {
       label: 'System',
       items: [
+        { id: 'product-sync', label: 'Product Sync', icon: <Package size={18} /> },
         { id: 'system', label: 'Settings', icon: <Settings size={18} /> },
       ]
     }
@@ -132,6 +134,9 @@ export default function AdminLayout({ user, onLogout, onPreview, brand, view, se
           </nav>
 
           <div style={{ padding: 16, borderTop: '1px solid rgba(255,255,255,.05)', display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <div style={{ marginBottom: 8 }}>
+              <LanguageFlagSwitch {...props} />
+            </div>
             <a href="/work" target="_blank" rel="noreferrer" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, color: 'rgba(249,247,244,.6)', cursor: 'pointer', textDecoration: 'none', fontSize: 13, fontWeight: 600 }}>
               <HardHat size={16} /> Field Worker View
             </a>
