@@ -11,10 +11,12 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { HERO_SLIDES, ABOUT_DATA } from '../data';
+import WaterproofingHome from './WaterproofingHome';
 
-const ContactPage = lazy(() => import('./ContactPage'));
-const AboutPage = lazy(() => import('./AboutPage'));
-const ServicesPage = lazy(() => import('./ServicesPage'));
+const ContactPage = lazy(() => import('./WaterproofingContact'));
+const AboutPage = lazy(() => import('./WaterproofingAbout'));
+const ServicesPage = lazy(() => import('./WaterproofingServices'));
+const WaterproofingSolutions = lazy(() => import('./WaterproofingSolutions'));
 
 // --- HELPERS ---
 export function useWindowWidth() {
@@ -38,7 +40,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const winW = useWindowWidth();
   const mob = isMob(winW);
-  const ac = brand.color || AC;
+  const ac = '#126e82';
   const { userNotifications } = useContext(AppContext);
 
   useEffect(() => {
@@ -49,10 +51,9 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
 
   const links = [
     { n: 'Home', id: 'home' },
+    { n: 'Shop Materials', id: 'products' },
+    { n: 'Solutions', id: 'solutions' },
     { n: 'Services', id: 'services' },
-    { n: 'Products', id: 'products' },
-    { n: 'Showroom', id: 'showcase', badge: 'LUXE' },
-    { n: 'Portfolio', id: 'portfolio' },
     { n: 'About', id: 'about' },
     { n: 'Contact', id: 'contact' }
   ];
@@ -97,18 +98,15 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
 
         {/* DESKTOP NAV */}
         {!mob && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 48 }}>
-            <div style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
               {links.map(l => (
                 <button key={l.id} onClick={() => {
                   if (l.id === 'home') { navigate('/'); if (setPage) setPage('home'); }
-                  else if (l.id === 'products') navigate('/products');
+                  else if (l.id === 'products') navigate('/products?group=waterproofing');
                   else if (l.id === 'showcase') navigate('/showcase');
                   else if (l.id === 'portfolio') navigate('/portfolio');
-                  else if (setPage) {
-                    if (window.location.pathname !== '/') navigate('/?page=' + l.id);
-                    else setPage(l.id);
-                  }
+                  else navigate('/?page=' + l.id);
                 }} style={{
                   background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700,
                   color: activePage === l.id ? ac : DARK_TEXT,
@@ -199,19 +197,16 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
         borderLeft: '1px solid rgba(0,0,0,0.05)'
       }}>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: mob ? 0 : 8 }}>
-          {links.map((l, i) => (
+          {links.map((l) => (
             <button 
               key={l.id} 
               onClick={() => {
                 setMenuOpen(false);
                 if (l.id === 'home') { navigate('/'); if (setPage) setPage('home'); }
-                else if (l.id === 'products') navigate('/products');
+                else if (l.id === 'products') navigate('/products?group=waterproofing');
                 else if (l.id === 'showcase') navigate('/showcase');
                 else if (l.id === 'portfolio') navigate('/portfolio');
-                else if (setPage) {
-                  if (window.location.pathname !== '/') navigate('/?page=' + l.id);
-                  else setPage(l.id);
-                }
+                else navigate('/?page=' + l.id);
               }} 
               style={{
                 background: 'none', border: 'none', textAlign: 'left',
@@ -251,7 +246,7 @@ export function PubNav({ brand, setPage, activePage, onPortal, user, menuOpen, s
 
 
 export function Footer({ brand, setPage, onPortal, navigate }) {
-  const ac = brand.color || AC;
+  const ac = '#6fc0cc';
   const winW = useWindowWidth();
   const mob = isMob(winW);
 
@@ -261,21 +256,18 @@ export function Footer({ brand, setPage, onPortal, navigate }) {
         <div style={{ display: 'grid', gridTemplateColumns: mob ? '1fr' : 'repeat(4, 1fr)', gap: 48, marginBottom: 80 }}>
           <div>
             <h3 style={{ fontSize: 24, fontWeight: 900, marginBottom: 20 }}>GLASSTECH<span style={{ color: ac }}>FAB</span></h3>
-            <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, fontSize: 14 }}>Industrial precision meets architectural luxury. Premier structural glass and interior finishing solutions for modern developments.</p>
+            <p style={{ color: 'rgba(255,255,255,0.5)', lineHeight: 1.8, fontSize: 14 }}>Waterproofing materials, building finishing products, and practical installation solutions for your project.</p>
           </div>
           <div>
             <h4 style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 24 }}>Navigation</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {['Home', 'Services', 'Products', 'Showroom', 'Portfolio', 'About', 'Contact'].map(n => (
+              {['Home', 'Shop Materials', 'Solutions', 'Services', 'About', 'Contact'].map(n => (
                 <button key={n} onClick={() => {
-                  const id = n.toLowerCase();
-                  if (id === 'products') navigate('/products');
-                  else if (id === 'showcase') navigate('/showcase');
+                  const id = n === 'Shop Materials' ? 'products' : n === 'Projects' ? 'portfolio' : n.toLowerCase();
+                  if (id === 'home') { navigate('/'); if (setPage) setPage('home'); }
+                  else if (id === 'products') navigate('/products?group=waterproofing');
                   else if (id === 'portfolio') navigate('/portfolio');
-                  else if (setPage) {
-                    if (window.location.pathname !== '/') navigate('/?page=' + id);
-                    else setPage(id);
-                  }
+                  else navigate('/?page=' + id);
                 }} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', textAlign: 'left', fontSize: 14 }}>{n}</button>
 
               ))}
@@ -285,6 +277,8 @@ export function Footer({ brand, setPage, onPortal, navigate }) {
             <h4 style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 24 }}>Capabilities</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
               {[
+                { Icon: Droplets,   label: 'Waterproofing materials' },
+                { Icon: ShieldCheck, label: 'Waterproofing solutions' },
                 { Icon: Layers,     label: 'Glass & Glazing'       },
                 { Icon: AppWindow,  label: 'Aluminium Windows'      },
                 { Icon: ShowerHead, label: 'Bathroom Installation'  },
@@ -297,7 +291,7 @@ export function Footer({ brand, setPage, onPortal, navigate }) {
               ].map(({ Icon, label }) => (
                 <button
                   key={label}
-                  onClick={() => navigate('/?page=services')}
+                  onClick={() => navigate(label === 'Waterproofing materials' ? '/products?group=waterproofing' : label === 'Waterproofing solutions' ? '/?page=solutions' : '/?page=services')}
                   style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.45)', cursor: 'pointer', textAlign: 'left', fontSize: 13, padding: 0, display: 'flex', alignItems: 'center', gap: 10, transition: 'color 0.2s' }}
                   onMouseOver={e => e.currentTarget.style.color = ac}
                   onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.45)'}
@@ -311,7 +305,7 @@ export function Footer({ brand, setPage, onPortal, navigate }) {
           <div>
             <h4 style={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.2em', marginBottom: 24 }}>Contact</h4>
             <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.8, marginBottom: 24 }}>
-              {brand.location}<br />
+              Accra, Ghana<br />
               {brand.phone}<br />
               {brand.email}
             </div>
@@ -334,7 +328,7 @@ export function Footer({ brand, setPage, onPortal, navigate }) {
           </div>
         </div>
         <div style={{ paddingTop: 40, borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', fontSize: 12, color: 'rgba(255,255,255,0.3)', display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
-          <span>© 2026 Glasstech Fabrications Ltd. All rights reserved.</span>
+          <span>© 2026 Glasstech Fabrications. All rights reserved.</span>
           <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.1)', cursor: 'pointer', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Management Portal</button>
         </div>
 
@@ -667,10 +661,10 @@ function TestimonialsSection({ brand, testimonials: propTestimonials, cmsTestimo
 
 
 
-export default function PublicSite({ brand, setPage, page, onPortal, user, content, navigate, submitContact, testimonials = [] }) {
+export default function PublicSite({ brand, setPage, onPortal, user, content, navigate, submitContact }) {
   const [searchParams] = useSearchParams();
   const urlPage = searchParams.get('page');
-  const p = urlPage || page || 'home';
+  const p = urlPage || 'home';
   const [menuOpen, setMenuOpen] = useState(false);
   const winW = useWindowWidth();
   const mob = isMob(winW);
@@ -688,43 +682,11 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
   useEffect(() => { window.scrollTo(0, 0); }, [p]);
 
   const render = () => {
-    const cta = content?.hero?.cta || {};
-    const ctaHeading = cta.heading || "Ready to build something remarkable?";
-    const ctaSub     = cta.sub     || "From concept to installation — our team handles every detail.";
-    const ctaBtn1    = cta.btn1    || "Request a Quote";
-    const ctaBtn2    = cta.btn2    || "View Portfolio";
-
-    if (p === 'home') return (
-      <>
-        <Hero slides={content?.hero?.slides || HERO_SLIDES} brand={brand} navigate={navigate} />
-        {mob
-          ? <StatsBarMobile brand={brand} stats={content?.stats} />
-          : <StatsBar brand={brand} stats={content?.stats} />}
-        <ServicesPreview brand={brand} navigate={navigate} services={content?.homeServices || content?.services} />
-        <WhyGlasstech brand={brand} navigate={navigate} reasons={content?.whyUs} />
-        <TestimonialsSection brand={brand} testimonials={testimonials} cmsTestimonials={content?.testimonials} />
-        <section style={{ padding: mob ? '80px 24px' : '120px 5vw', background: '#1A1410', color: '#fff', textAlign: 'center' }}>
-          <div style={{ maxWidth: 700, margin: '0 auto' }}>
-            <span style={{ color: brand.color || AC, fontSize: 10, fontWeight: 800, letterSpacing: '0.3em', textTransform: 'uppercase' }}>GET STARTED</span>
-            <h2 style={{ fontSize: mob ? 36 : 60, fontWeight: 800, marginBottom: 16, marginTop: 16, letterSpacing: '-0.04em', lineHeight: 1.1 }}>
-              {ctaHeading.split('something remarkable?')[0]}
-              {ctaHeading.includes('something remarkable?')
-                ? <><em style={{ fontStyle: 'italic', fontWeight: 400, color: brand.color || AC }}>something remarkable?</em></>
-                : null}
-              {!ctaHeading.includes('something remarkable?') && ctaHeading}
-            </h2>
-            <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.5)', marginBottom: 40, lineHeight: 1.7 }}>{ctaSub}</p>
-            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={() => navigate('/?page=contact')} style={{ padding: '18px 48px', background: brand.color || AC, color: '#1A1410', border: 'none', borderRadius: 14, fontWeight: 900, fontSize: 15, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                {ctaBtn1} <ChevronRight size={16} />
-              </button>
-              <button onClick={() => navigate('/portfolio')} style={{ padding: '18px 48px', background: 'rgba(255,255,255,0.06)', color: '#fff', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14, fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
-                {ctaBtn2}
-              </button>
-            </div>
-          </div>
-        </section>
-      </>
+    if (p === 'home') return <WaterproofingHome brand={brand} navigate={navigate} />;
+    if (p === 'solutions') return (
+      <Suspense fallback={<div style={{ padding: 100, textAlign: 'center' }}>Loading solutions...</div>}>
+        <WaterproofingSolutions brand={brand} navigate={navigate} />
+      </Suspense>
     );
     if (p === 'services') return (
       <Suspense fallback={<div style={{ padding: 100, textAlign: 'center' }}>Loading...</div>}>
@@ -754,7 +716,7 @@ export default function PublicSite({ brand, setPage, page, onPortal, user, conte
       
       {/* FLOATING WHATSAPP SUPPORT */}
       <a 
-        href={`https://wa.me/${brand.whatsapp || '233598455012'}?text=${encodeURIComponent("Hi, I'm interested in a glass installation quote from Glasstech Fabrications.")}`}
+        href={`https://wa.me/${String(brand.whatsapp || '233598455012').replace(/\D/g, '')}?text=${encodeURIComponent("Hi Glasstech, I need help finding waterproofing materials or solving a water issue.")}`}
         target="_blank" 
         rel="noopener noreferrer"
         style={{

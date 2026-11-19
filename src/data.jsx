@@ -83,13 +83,13 @@ export const BRAND0 = {
   color: '#C8A96E',
   phone: '+233 59 845 5012',
   email: 'contact@glasstech.com.gh',
-  location: 'Spintex Road Industrial Area, Accra',
+  location: 'Accra, Ghana',
   instagram: '@glasstech_gh',
   facebook: 'GlasstechFabrications',
   twitter: '@glasstech_gh',
   linkedin: 'glasstech-fabrications',
   whatsapp: '+233598455012',
-  website: 'www.glasstech.com.gh'
+  website: 'www.glasstechfabrications.com'
 };
 
 // Live team data comes from Firestore (users collection, role != 'client').

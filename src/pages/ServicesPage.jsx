@@ -7,6 +7,17 @@ const LIGHT_BG = '#FDFCFB';
 
 const ALL_SERVICES = [
   {
+    id: 'waterproofing',
+    Icon: Droplets,
+    name: 'Waterproofing Solutions',
+    tagline: 'Material supply, site assessment and installation enquiries',
+    keywords: ['roof waterproofing', 'bathroom waterproofing', 'foundation waterproofing', 'water leaks', 'waterproofing materials'],
+    desc: 'Water issues need the right system for the surface and the source of the leak. Tell us about the affected area, existing finish and site conditions. We can discuss manufacturer-listed materials, supply options and a site assessment for installation.',
+    items: ['Roof slabs and terraces', 'Bathrooms and wet areas', 'Foundations and below-ground walls', 'Concrete and mortar additives', 'Joints and local repairs', 'Material-only and supply-and-install enquiries'],
+    whatsapp: 'Hi Glasstech, I need help with a waterproofing issue. Please advise on materials and installation options.',
+    img: '💧',
+  },
+  {
     id: 'glass',
     Icon: Layers,
     name: 'Glass Installation & Glazing',
@@ -122,11 +133,11 @@ export default function ServicesPage({ brand, navigate }) {
         <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           <span style={{ color: ac, fontSize: 10, fontWeight: 800, letterSpacing: '0.3em', textTransform: 'uppercase' }}>WHAT WE DO</span>
           <h1 style={{ fontSize: mob ? 40 : 72, fontWeight: 800, letterSpacing: '-0.04em', margin: '16px 0', color: '#fff', lineHeight: 1.05 }}>
-            Every service your<br />
-            <em style={{ fontStyle: 'italic', fontWeight: 400, color: ac }}>home or office needs.</em>
+            Materials and skilled work<br />
+            <em style={{ fontStyle: 'italic', fontWeight: 400, color: ac }}>for your building.</em>
           </h1>
           <p style={{ fontSize: mob ? 15 : 18, color: 'rgba(255,255,255,0.55)', maxWidth: 600, lineHeight: 1.7, marginBottom: 40 }}>
-            Glass, aluminium, bathrooms, kitchens, wardrobes, tiles, doors, electrical, and plumbing — we handle it all under one roof across Ghana.
+            Explore waterproofing help alongside Glasstech's glass, aluminium and building finishing services.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {ALL_SERVICES.map(s => (

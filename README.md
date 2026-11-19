@@ -1,48 +1,28 @@
-# LuxeSpace Platform — Modular Edition
+# Glasstech Fabrications
 
-A production-ready, white-label interior design studio platform built for scale. Refactored from the ground up for performance, maintainability, and visual excellence.
+React/Vite website and existing Firebase-backed project portals for Glasstech Fabrications. The public storefront is being repositioned around waterproofing materials, building finishing products, and installation enquiries.
 
-## 🚀 Overview
-LuxeSpace is a comprehensive ERP/CRM and client portal solution specifically designed for high-end interior design firms. It manages everything from public-facing portfolio sites to background administrative workflows, proposals, invoicing, and real-time client communication.
+## Local development
 
-## 🏗️ Architecture
-The platform has been refactored from a monolithic codebase into a modular React/Vite architecture:
+```bash
+npm ci --legacy-peer-deps
+npm run dev
+```
 
-- **src/components/**: Shared UI elements (glassmorphic modals, spinners, sliders, etc.).
-- **src/pages/**: High-level page modules (Public Site, Admin Portal, Client Portal, Account Manager Portal).
-- **src/data.js**: Centralised source of truth for mock data, pricing, and services.
-- **src/index.css**: Premium design system and print-safe global styles.
+The legacy peer flag is currently required because `react-paystack@6` declares support through React 18 while this repository uses React 19. Build with `npm run build`; output goes to the repository's `dist/` directory, as configured for Firebase Hosting.
 
-## ✨ Key Features
-- **Public Site**: Elegant Home, Portfolio, and Contact pages with glassmorphic design.
-- **Admin Command Centre**: Full studio management (CRM, Analytics, Proposals, Invoices).
-- **Client Portal**: Dedicated secure area for project tracking, approvals, and payments.
-- **Design Team Portal**: Task and schedule management for account managers.
-- **Stripe-Style Payments**: Secure, multi-step payment flow simulation.
-- **AI Proposal Generator**: (Logic ready for integration) Drafts high-end proposals automatically.
+## Public routes
 
-## 🛠️ Getting Started
+- `/` — waterproofing-led homepage
+- `/products?group=waterproofing` — waterproofing product references and enquiry basket
+- `/?page=solutions` — guided waterproofing enquiry
+- `/?page=services` — installation and other services
+- `/portfolio` — existing projects area
 
-### Prerequisites
-- Node.js (v18+)
-- npm or yarn
+## Product catalogue status
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/johnsedofiadakey-hue/glasstechfab.git
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+`src/waterproofingCatalog.js` contains manufacturer-published reference products from MC-Bauchemie Ghana and Sika Ghana. These entries are **not confirmed Glasstech stock**. Prices, availability, delivery, licensed product photos, and supplier arrangements must be verified before direct checkout is enabled. Each reference entry links to the manufacturer's page or data sheet. The current basket sends a combined order enquiry to Glasstech via WhatsApp.
 
-## 📦 Deployment
-The project is configured for seamless deployment to Vercel, Netlify, or AWS Amplify. Simply connect your GitHub repository and build using `npm run build`.
+The existing glass and finishing catalogue remains in `src/catalog.jsx`. Firebase CMS entries can override static entries by product ID. Do not run the admin catalog sync command as a means of publishing the new reference products; those are currently read by the public catalogue directly.
 
-## 📄 License
-Commercial Use Only — LuxeSpace™
+See [REBRAND_CONCEPT.md](REBRAND_CONCEPT.md) for the proposed site structure and commercial inputs needed for the next phase.
